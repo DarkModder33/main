@@ -1,0 +1,11 @@
+{
+  "name": "resume-image-tools",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate:webp": "python tools/png_to_webp.py",
+    "generate:responsive": "python tools/generate_responsive.py",
+    "generate:placeholders": "python tools/generate_placeholders.py",
+    "generate:all": "npm run generate:webp && npm run generate:responsive && npm run generate:placeholders"
+  }
+}
