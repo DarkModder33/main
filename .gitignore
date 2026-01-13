@@ -22,3 +22,15 @@ frontend/coverage
 **/pnpm-lock.yaml
 **/package-lock.json
 **/yarn.lock
+
+# Temporary and test files
+*.orig
+*.orig.*
+*_ORIGINAL.*
+*.tmp
+tmp_*
+*-test.html
+test.html
+probe.txt
+*.bak
+*.backup
