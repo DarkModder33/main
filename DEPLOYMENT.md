@@ -18,7 +18,7 @@ This repository is configured to deploy automatically to GitHub Pages at **trade
 The site will automatically deploy when changes are pushed to the `main` branch via GitHub Actions workflow (`.github/workflows/static.yml`).
 
 **To enable GitHub Pages:**
-1. Go to your repository: https://github.com/DarkModder33/main
+1. Go to your repository: https://github.com/DarkModder33/tradehax
 2. Navigate to **Settings** → **Pages**
 3. Under "Source", select **GitHub Actions** (this should already be configured)
 4. The custom domain should be set to: `tradehax.net`
