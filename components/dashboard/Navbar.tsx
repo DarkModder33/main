@@ -8,6 +8,7 @@ import type { NavLink } from "@/types";
 
 const navLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/todos", label: "Tasks" },
   { href: "/dashboard", label: "Analytics" },
   { href: "/dashboard", label: "Settings" },
 ];
