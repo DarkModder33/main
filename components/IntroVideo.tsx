@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface IntroVideoProps {
   onComplete: () => void;
 }
 
 export function IntroVideo({ onComplete }: IntroVideoProps) {
-  const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -22,16 +21,12 @@ export function IntroVideo({ onComplete }: IntroVideoProps) {
   }, [onComplete]);
 
   const handleVideoEnd = () => {
-    setIsPlaying(false);
     onComplete();
   };
 
   const handleSkip = () => {
-    setIsPlaying(false);
     onComplete();
   };
-
-  if (!isPlaying) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
@@ -43,6 +38,7 @@ export function IntroVideo({ onComplete }: IntroVideoProps) {
         muted
       >
         <source src="/videos/intro-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag. Please upgrade your browser to view the intro video.
       </video>
       
       {/* Skip button */}
