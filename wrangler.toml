@@ -1,0 +1,17 @@
+name = "tradehax-claim"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Public vars
+SOLANA_CLUSTER = "devnet"
+RPC_URL = "https://api.devnet.solana.com"
+MINT_ADDRESS = "" # fill after minting
+
+# Bindings
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "" # fill after creating KV namespace
+
+# Secrets to set via `wrangler secret put`
+# - MINT_SECRET (base64 or JSON array of u8 for Keypair)
