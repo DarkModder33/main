@@ -19,7 +19,6 @@ export function ArtistCard({
   name,
   instrument,
   bio,
-  imageUrl,
   followers = 0,
 }: ArtistCardProps) {
   const [isFollowing, setIsFollowing] = useState(false);
