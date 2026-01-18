@@ -42,6 +42,11 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Shamrock theme colors */
+  --color-shamrock-blue: #0366d6;
+  --color-shamrock-blue-dark: #0256b8;
+  --color-shamrock-blue-light: #0479f5;
 }
 
 :root {
@@ -119,5 +124,68 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+}
+
+/* Shamrock theme styles integration */
+@layer components {
+  .shamrock-link {
+    @apply text-[#0366d6] hover:text-[#0256b8] transition-colors no-underline;
+  }
+  
+  .shamrock-button {
+    @apply bg-[#0366d6] hover:bg-[#0256b8] text-white px-4 py-2 rounded-md transition-all;
+  }
+  
+  .floating-download {
+    @apply fixed right-5 bottom-5 bg-[#0366d6] text-white px-4 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 font-semibold hover:bg-[#0256b8] transition-all;
+  }
+  
+  .portfolio-container {
+    @apply max-w-4xl mx-auto px-4 py-10;
+  }
+  
+  @media (max-width: 600px) {
+    .floating-download {
+      @apply block;
+    }
+  }
+  
+  @media (min-width: 601px) {
+    .floating-download {
+      @apply hidden;
+    }
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }
