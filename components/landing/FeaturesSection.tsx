@@ -6,7 +6,7 @@ import type { FeatureCardProps } from "@/types";
 
 const features: FeatureCardProps[] = [
   {
-    icon: <Zap className="w-10 h-10 text-purple-400" />,
+    icon: <Zap className="w-10 h-10 text-[#00FF41]" />,
     title: "Lightning-Fast Transactions",
     description: "Execute trades in milliseconds on Solana's high-performance blockchain with ultra-low fees.",
   },
@@ -16,7 +16,7 @@ const features: FeatureCardProps[] = [
     description: "Advanced algorithms analyze market trends and provide intelligent trading recommendations.",
   },
   {
-    icon: <Lock className="w-10 h-10 text-purple-400" />,
+    icon: <Lock className="w-10 h-10 text-[#00FF41]" />,
     title: "Secure Wallet Integration",
     description: "Connect your wallet securely with support for Phantom, Solflare, and other popular wallets.",
   },
@@ -44,7 +44,7 @@ export function FeaturesSection() {
     <section className="py-20 px-6 relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text">
             Powerful Features
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">

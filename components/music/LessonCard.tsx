@@ -55,7 +55,7 @@ export function LessonCard({
       
       <button 
         onClick={handleBooking}
-        className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold"
+        className="w-full px-6 py-3 bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold"
       >
         Book Lesson
       </button>

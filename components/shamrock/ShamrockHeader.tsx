@@ -88,12 +88,12 @@ export function ShamrockHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur-md border-b border-gray-800">
+    <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-[#00FF41]/30 shadow-lg shadow-[#00FF41]/20">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text">
+            <div className="text-2xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text drop-shadow-[0_0_8px_rgba(0,255,65,0.5)]">
               TradeHax AI
             </div>
           </Link>
@@ -116,8 +116,8 @@ export function ShamrockHeader() {
                       href={item.href}
                       className={`flex items-center gap-1 text-sm font-medium transition-colors ${
                         isActive
-                          ? 'text-[#0366d6]'
-                          : 'text-gray-300 hover:text-white'
+                          ? 'text-[#00FF41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]'
+                          : 'text-gray-300 hover:text-[#39FF14] hover:drop-shadow-[0_0_6px_rgba(0,255,65,0.6)]'
                       }`}
                       onFocus={() => setOpenDropdown(item.name)}
                       onKeyDown={(e) => handleKeyDown(e, item.name)}
@@ -130,14 +130,14 @@ export function ShamrockHeader() {
                     
                     {openDropdown === item.name && (
                       <div 
-                        className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-2 animate-slide-up"
+                        className="absolute top-full left-0 mt-2 w-48 bg-black/95 border border-[#00FF41]/50 rounded-lg shadow-2xl shadow-[#00FF41]/30 py-2 animate-slide-up"
                         role="menu"
                       >
                         {item.submenu.map((subitem) => (
                           <Link
                             key={subitem.name}
                             href={subitem.href}
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#003B00] hover:text-[#00FF41] hover:shadow-[0_0_10px_rgba(0,255,65,0.3)] transition-all"
                             role="menuitem"
                           >
                             {subitem.name}
@@ -155,8 +155,8 @@ export function ShamrockHeader() {
                   href={item.href}
                   className={`text-sm font-medium transition-colors ${
                     isActive
-                      ? 'text-[#0366d6]'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'text-[#00FF41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]'
+                      : 'text-gray-300 hover:text-[#39FF14] hover:drop-shadow-[0_0_6px_rgba(0,255,65,0.6)]'
                   }`}
                 >
                   {item.name}
@@ -182,7 +182,7 @@ export function ShamrockHeader() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-gray-800 animate-slide-up">
+          <div className="md:hidden py-4 space-y-2 border-t border-[#00FF41]/30 animate-slide-up">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
@@ -191,8 +191,8 @@ export function ShamrockHeader() {
                     href={item.href}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
                       isActive
-                        ? 'bg-[#0366d6]/10 text-[#0366d6]'
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        ? 'bg-[#003B00] text-[#00FF41] shadow-[0_0_10px_rgba(0,255,65,0.3)]'
+                        : 'text-gray-300 hover:bg-[#003B00] hover:text-[#39FF14]'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -204,7 +204,7 @@ export function ShamrockHeader() {
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className="block px-3 py-1 text-sm text-gray-400 hover:text-white transition-colors"
+                          className="block px-3 py-1 text-sm text-gray-400 hover:text-[#00FF41] transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {subitem.name}

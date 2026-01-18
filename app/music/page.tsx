@@ -154,7 +154,7 @@ export default function MusicPage() {
                 href={bookingLinks.guitarLessons}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold text-center"
+                className="block w-full px-6 py-3 bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold text-center"
               >
                 Join Next Workshop
               </a>
@@ -180,7 +180,7 @@ export default function MusicPage() {
               </div>
               
               <div className="flex items-start gap-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#00D100] to-[#00FF41] rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
                   SM
                 </div>
                 <div>
@@ -230,7 +230,7 @@ export default function MusicPage() {
             />
           </div>
 
-          <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-8 text-center">
+          <div className="bg-gradient-to-br from-[#003B00]/40 to-black/60 border border-[#00FF41]/30 rounded-xl p-8 text-center">
             <h3 className="text-2xl font-bold text-white mb-4">
               Become a Featured Artist
             </h3>
@@ -250,7 +250,7 @@ export default function MusicPage() {
         {/* Token Roadmap Section */}
         <section id="token" className="mb-20 scroll-mt-20">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-full text-purple-400 text-sm font-semibold mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-[#00FF41]/30 rounded-full text-[#00FF41] text-sm font-semibold mb-6">
               <Sparkles className="w-4 h-4" />
               <span>Coming Soon</span>
             </div>

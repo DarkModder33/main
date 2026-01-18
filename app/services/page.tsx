@@ -24,7 +24,7 @@ export default function ServicesPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-6">
             Professional Services
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -328,7 +328,7 @@ function ProcessStep({
 }) {
   return (
     <div className="text-center">
-      <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+      <div className="w-12 h-12 bg-gradient-to-r from-[#00D100] to-[#00FF41] rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
         {number}
       </div>
       <h3 className="text-lg font-bold text-white mb-2">{title}</h3>

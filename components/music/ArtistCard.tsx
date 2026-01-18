@@ -60,7 +60,7 @@ export function ArtistCard({
           className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
             isFollowing
               ? 'bg-gray-800 text-gray-300'
-              : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+              : 'bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white'
           }`}
         >
           {isFollowing ? (

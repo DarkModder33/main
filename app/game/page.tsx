@@ -36,7 +36,7 @@ export default function GamePage() {
           
           <button
             onClick={handlePlayClick}
-            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-purple-500/50 hover:scale-105 inline-flex items-center gap-3"
+            className="px-8 py-4 bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-purple-500/50 hover:scale-105 inline-flex items-center gap-3"
           >
             <Gamepad2 className="w-6 h-6" />
             Play Now (Free)

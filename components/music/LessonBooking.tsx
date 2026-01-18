@@ -18,7 +18,7 @@ export function LessonBooking() {
       
       <div className="space-y-4 mb-6">
         <div className="flex items-start gap-3">
-          <Calendar className="w-5 h-5 text-purple-400 flex-shrink-0 mt-1" />
+          <Calendar className="w-5 h-5 text-[#00FF41] flex-shrink-0 mt-1" />
           <div>
             <p className="text-white font-semibold">Flexible Scheduling</p>
             <p className="text-gray-400 text-sm">Choose times that work for your schedule</p>
@@ -26,7 +26,7 @@ export function LessonBooking() {
         </div>
         
         <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-purple-400 flex-shrink-0 mt-1" />
+          <Clock className="w-5 h-5 text-[#00FF41] flex-shrink-0 mt-1" />
           <div>
             <p className="text-white font-semibold">60-Minute Sessions</p>
             <p className="text-gray-400 text-sm">Full hour of one-on-one instruction</p>
@@ -34,7 +34,7 @@ export function LessonBooking() {
         </div>
         
         <div className="flex items-start gap-3">
-          <Video className="w-5 h-5 text-purple-400 flex-shrink-0 mt-1" />
+          <Video className="w-5 h-5 text-[#00FF41] flex-shrink-0 mt-1" />
           <div>
             <p className="text-white font-semibold">Remote via Zoom</p>
             <p className="text-gray-400 text-sm">Link sent automatically after booking</p>

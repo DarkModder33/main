@@ -43,10 +43,12 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   
-  /* Shamrock theme colors */
-  --color-shamrock-blue: #0366d6;
-  --color-shamrock-blue-dark: #0256b8;
-  --color-shamrock-blue-light: #0479f5;
+  /* Matrix Green Celtic theme colors */
+  --color-matrix-green: #00FF41;
+  --color-matrix-green-dark: #008F11;
+  --color-matrix-green-light: #39FF14;
+  --color-matrix-green-deep: #003B00;
+  --color-celtic-emerald: #00D100;
 }
 
 :root {
@@ -128,18 +130,21 @@
   }
 }
 
-/* Shamrock theme styles integration */
+/* Matrix Green Celtic theme styles integration */
 @layer components {
   .shamrock-link {
-    @apply text-[#0366d6] hover:text-[#0256b8] transition-colors no-underline;
+    @apply text-[#00FF41] hover:text-[#39FF14] transition-colors no-underline;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
   }
   
   .shamrock-button {
-    @apply bg-[#0366d6] hover:bg-[#0256b8] text-white px-4 py-2 rounded-md transition-all;
+    @apply bg-[#00D100] hover:bg-[#00FF41] text-black px-4 py-2 rounded-md transition-all;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
   }
   
   .floating-download {
-    @apply fixed right-5 bottom-5 bg-[#0366d6] text-white px-4 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 font-semibold hover:bg-[#0256b8] transition-all;
+    @apply fixed right-5 bottom-5 bg-[#00D100] text-black px-4 py-3 rounded-full shadow-lg z-50 flex items-center gap-2 font-semibold hover:bg-[#00FF41] transition-all;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
   }
   
   .portfolio-container {

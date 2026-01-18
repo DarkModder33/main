@@ -36,9 +36,9 @@ export default function Home() {
         </section>
         
         {/* Newsletter Section */}
-        <section className="py-16 px-6 bg-gradient-to-br from-purple-900/20 to-blue-900/20">
+        <section className="py-16 px-6 bg-gradient-to-br from-[#003B00]/30 to-black/50">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-4">
               Stay Updated with Market Insights
             </h2>
             <p className="text-gray-400 mb-8">
@@ -52,11 +52,11 @@ export default function Home() {
                     type="email"
                     placeholder="Enter your email"
                     required
-                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00FF41] focus:border-transparent"
                   />
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 font-semibold transition-all shadow-lg hover:shadow-purple-500/50"
+                    className="px-6 py-3 bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white rounded-lg hover:from-purple-700 hover:to-blue-700 font-semibold transition-all shadow-lg hover:shadow-[#00FF41]/50"
                   >
                     Subscribe
                   </button>
@@ -81,10 +81,10 @@ export default function Home() {
       <EmailCaptureModal />
       
       {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-gradient-to-r from-purple-600 to-blue-600 p-4 shadow-lg border-t border-purple-500/50">
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-gradient-to-r from-[#00D100] to-[#00FF41] p-4 shadow-lg border-t border-[#00FF41]/50">
         <a
           href="/dashboard"
-          className="block w-full text-center py-3 bg-white text-purple-600 rounded-lg font-bold hover:bg-gray-100 transition-all"
+          className="block w-full text-center py-3 bg-white text-[#003B00] rounded-lg font-bold hover:bg-gray-100 transition-all"
         >
           Start Trading Today →
         </a>
