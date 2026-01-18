@@ -9,21 +9,31 @@ export function IntroVideoWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check if intro has been shown in this session
-    const introShown = sessionStorage.getItem('introVideoShown');
-    if (!introShown) {
-      setShowIntro(true);
-    } else {
+    try {
+      const introShown = sessionStorage.getItem('introVideoShown');
+      if (!introShown) {
+        setShowIntro(true);
+      } else {
+        setIntroComplete(true);
+      }
+    } catch (error) {
+      // If sessionStorage is not available, skip intro
       setIntroComplete(true);
     }
   }, []);
 
   const handleIntroComplete = () => {
-    sessionStorage.setItem('introVideoShown', 'true');
+    try {
+      sessionStorage.setItem('introVideoShown', 'true');
+    } catch (error) {
+      // If sessionStorage is not available, continue anyway
+      console.warn('Unable to save intro state to sessionStorage');
+    }
     setShowIntro(false);
     setIntroComplete(true);
   };
 
-  if (showIntro && !introComplete) {
+  if (showIntro) {
     return <IntroVideo onComplete={handleIntroComplete} />;
   }
 
