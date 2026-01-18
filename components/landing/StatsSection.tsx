@@ -39,11 +39,11 @@ export function StatsSection() {
                 className="relative group"
               >
                 {/* Gradient border effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
                 
-                <div className="relative bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-purple-500/30 transition-all duration-300">
-                  <Icon className="w-8 h-8 text-purple-400 mb-4" />
-                  <div className="text-3xl font-bold text-white mb-2">{stat.value}</div>
+                <div className="relative bg-gray-900 border border-green-800 rounded-xl p-6 hover:border-green-500/30 transition-all duration-300">
+                  <Icon className="w-8 h-8 text-green-400 mb-4" />
+                  <div className="text-3xl font-bold text-green-100 mb-2">{stat.value}</div>
                   <div className="text-gray-400">{stat.label}</div>
                 </div>
               </div>

@@ -30,7 +30,7 @@ export function AffiliateBanner({
   };
 
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-purple-900/30 border border-purple-500/30 rounded-xl p-6 ${className}`}>
+    <div className={`relative overflow-hidden bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-green-900/30 border border-green-500/30 rounded-xl p-6 ${className}`}>
       {badge && (
         <div className="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full">
           {badge}
@@ -38,12 +38,12 @@ export function AffiliateBanner({
       )}
       
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
           <TrendingUp className="w-6 h-6 text-white" />
         </div>
         
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-white mb-2">
+          <h3 className="text-xl font-bold text-green-100 mb-2">
             {title}
           </h3>
           <p className="text-gray-300 text-sm mb-4">
@@ -55,7 +55,7 @@ export function AffiliateBanner({
             target="_blank"
             rel="noopener noreferrer sponsored"
             onClick={handleClick}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold shadow-lg hover:shadow-purple-500/50"
+            className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-black rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all font-semibold shadow-lg hover:shadow-green-500/50"
           >
             {ctaText}
             <ExternalLink className="w-4 h-4" />
@@ -90,7 +90,7 @@ export function AffiliateLink({
       target="_blank"
       rel="noopener noreferrer sponsored"
       onClick={handleClick}
-      className={`text-purple-400 hover:text-purple-300 underline decoration-dotted transition-colors ${className}`}
+      className={`text-green-400 hover:text-green-300 underline decoration-dotted transition-colors ${className}`}
     >
       {children}
     </a>

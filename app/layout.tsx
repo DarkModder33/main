@@ -12,8 +12,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#8b5cf6" },
-    { media: "(prefers-color-scheme: light)", color: "#8b5cf6" },
+    { media: "(prefers-color-scheme: dark)", color: "#00FF41" },
+    { media: "(prefers-color-scheme: light)", color: "#00FF41" },
   ],
 };
 
@@ -101,7 +101,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="antialiased bg-gray-950 text-white font-sans"
+        className="antialiased bg-black text-green-100 font-sans"
       >
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
