@@ -28,6 +28,8 @@ export function EmailCaptureModal({
 
   useEffect(() => {
     // Check if user has already seen the modal (localStorage)
+    if (typeof window === 'undefined') return;
+    
     const hasSeenModal = localStorage.getItem('emailCaptureShown');
     if (hasSeenModal) return;
 
@@ -37,7 +39,9 @@ export function EmailCaptureModal({
         if (e.clientY <= 0 && !hasShown) {
           setIsOpen(true);
           setHasShown(true);
-          localStorage.setItem('emailCaptureShown', 'true');
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('emailCaptureShown', 'true');
+          }
           // Track modal shown - using custom event
           if (typeof window !== 'undefined' && window.gtag) {
             window.gtag('event', 'exit_intent_modal_shown', {
