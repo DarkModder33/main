@@ -153,7 +153,7 @@ export default function LessonsPage() {
               Questions About Lessons?
             </h2>
             <p className="text-gray-400">
-              Get in touch and we&apos;ll help you find the perfect package for your goals.
+              Get in touch and we will help you find the perfect package for your goals.
             </p>
           </div>
           <EmailCapture />

@@ -194,7 +194,7 @@ export default function MusicPage() {
             Coming Soon: Music Education Scholarships
           </h2>
           <p className="text-xl text-gray-300 mb-6 max-w-3xl mx-auto">
-            We&apos;re building a blockchain-powered scholarship program to make music education
+            We are building a blockchain-powered scholarship program to make music education
             accessible to everyone. Join our waitlist to be notified when it launches.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
