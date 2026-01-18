@@ -7,7 +7,6 @@ interface ArtistCardProps {
   name: string;
   instrument: string;
   bio: string;
-  imageUrl?: string;
   followers?: number;
 }
 
