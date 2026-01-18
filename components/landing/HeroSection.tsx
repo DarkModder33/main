@@ -47,7 +47,7 @@ export function HeroSection() {
       
       {/* Fallback gradient background */}
       {(!showVideo || !videoLoaded) && (
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-purple-950/20 to-gray-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-green-950/20 to-black"></div>
       )}
       
       {/* Grid pattern overlay */}
@@ -55,26 +55,26 @@ export function HeroSection() {
       
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-green-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm backdrop-blur-sm">
+        <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-green-500/10 border border-green-500/20 text-green-300 text-sm backdrop-blur-sm">
           <Sparkles className="w-4 h-4" />
           <span>Powered by Solana Blockchain</span>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 text-transparent bg-clip-text animate-gradient">
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 text-transparent bg-clip-text animate-gradient">
           TradeHax AI
         </h1>
         
-        <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white drop-shadow-lg">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6 text-green-100 drop-shadow-lg">
           Trade Smarter with AI + Web3
         </h2>
 
-        <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto drop-shadow-md">
+        <p className="text-xl md:text-2xl text-green-300 mb-12 max-w-3xl mx-auto drop-shadow-md">
           Join 10,000+ traders earning passive income with advanced automated trading strategies
           powered by Solana blockchain and AI.
         </p>
@@ -83,7 +83,7 @@ export function HeroSection() {
           <Link href="/dashboard">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg group shadow-lg hover:shadow-purple-500/50"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-black px-8 py-6 text-lg group shadow-lg hover:shadow-green-500/50"
             >
               Start Trading (Free)
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -94,7 +94,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              className="border-gray-700 hover:bg-gray-800/80 backdrop-blur-sm px-8 py-6 text-lg group"
+              className="border-green-700 text-green-300 hover:bg-green-900/50 backdrop-blur-sm px-8 py-6 text-lg group"
             >
               <Play className="mr-2 w-5 h-5" />
               Play Hyperborea
@@ -106,7 +106,7 @@ export function HeroSection() {
         <div className="mt-12 flex flex-col items-center gap-3">
           <div className="flex items-center gap-2 text-yellow-400">
             <span className="text-2xl">★★★★★</span>
-            <span className="text-white font-semibold">4.9/5</span>
+            <span className="text-green-100 font-semibold">4.9/5</span>
           </div>
           <p className="text-gray-400 text-sm">
             from 1,247 reviews | 🔒 Secured by Solana
@@ -115,16 +115,16 @@ export function HeroSection() {
 
         {/* Trust indicators */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-gray-800/50">
-            <div className="text-3xl font-bold text-white mb-2">10,000+</div>
+          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-green-800/50">
+            <div className="text-3xl font-bold text-green-100 mb-2">10,000+</div>
             <div className="text-gray-400">Active Traders</div>
           </div>
-          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-gray-800/50">
-            <div className="text-3xl font-bold text-white mb-2">$1M+</div>
+          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-green-800/50">
+            <div className="text-3xl font-bold text-green-100 mb-2">$1M+</div>
             <div className="text-gray-400">Trading Volume</div>
           </div>
-          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-gray-800/50">
-            <div className="text-3xl font-bold text-white mb-2">99.9%</div>
+          <div className="text-center backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-green-800/50">
+            <div className="text-3xl font-bold text-green-100 mb-2">99.9%</div>
             <div className="text-gray-400">Uptime</div>
           </div>
         </div>

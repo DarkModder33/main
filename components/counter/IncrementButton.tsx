@@ -60,11 +60,11 @@ export function IncrementButton() {
     <Button
       onClick={handleIncrement}
       disabled={isLoading || !connected}
-      className="w-[85%] bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-base font-medium"
+      className="w-[85%] bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-black h-11 text-base font-medium"
     >
       {isLoading ? (
         <div className="flex items-center justify-center">
-          <div className="h-5 w-5 rounded-full border-2 border-purple-200/50 border-t-purple-200 animate-spin mr-2"></div>
+          <div className="h-5 w-5 rounded-full border-2 border-green-200/50 border-t-green-200 animate-spin mr-2"></div>
           <span>Processing...</span>
         </div>
       ) : (

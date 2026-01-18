@@ -59,7 +59,7 @@ export function DecrementButton() {
     <Button
       onClick={handleDecrement}
       disabled={isLoading || !connected}
-      className="w-[85%] bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white h-11 text-base font-medium"
+      className="w-[85%] bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-black h-11 text-base font-medium"
     >
       {isLoading ? (
         <div className="flex items-center justify-center">
