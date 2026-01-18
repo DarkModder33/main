@@ -19,9 +19,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TradeHax AI - Automated Web3 Trading Platform",
-  description: "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
-  keywords: ["Web3 trading", "Solana", "automated trading", "DeFi", "blockchain", "crypto trading", "AI trading", "decentralized finance"],
+  title: "TradeHax AI - Multi-Service Tech Platform",
+  description: "Multi-service tech platform offering Web3 trading, AI consultation, web development, and guitar lessons. Powered by Solana blockchain and AI technology.",
+  keywords: ["Web3 trading", "AI consultation", "web development", "guitar lessons", "Solana", "automated trading", "DeFi", "blockchain", "crypto trading", "AI trading", "tech services"],
   authors: [{ name: "TradeHax AI" }],
   creator: "TradeHax AI",
   publisher: "TradeHax AI",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     canonical: "https://tradehaxai.tech",
   },
   openGraph: {
-    title: "TradeHax AI - Automated Web3 Trading Platform",
-    description: "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
+    title: "TradeHax AI - Multi-Service Tech Platform",
+    description: "Web3 Trading • AI Consultation • Web Development • Guitar Lessons. Powered by Solana blockchain and AI technology.",
     url: "https://tradehaxai.tech",
     siteName: "TradeHax AI",
     locale: "en_US",
@@ -41,14 +41,14 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "TradeHax AI - Automated Web3 Trading Platform",
+        alt: "TradeHax AI - Multi-Service Tech Platform: Web3 Trading, AI Consultation, Web Dev, Guitar Lessons",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TradeHax AI - Automated Web3 Trading Platform",
-    description: "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
+    title: "TradeHax AI - Multi-Service Tech Platform",
+    description: "Web3 Trading • AI Consultation • Web Development • Guitar Lessons. Powered by Solana blockchain and AI technology.",
     images: ["/twitter-image.png"],
     creator: "@tradehaxai",
   },
