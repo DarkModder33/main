@@ -45,7 +45,10 @@ export function ArtistCard({
           <p className="text-gray-500 text-xs">{followers} followers</p>
         </div>
         
-        <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+        <button 
+          className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+          aria-label={`Share ${name}'s profile`}
+        >
           <Share2 className="w-5 h-5 text-gray-400" />
         </button>
       </div>
@@ -78,7 +81,10 @@ export function ArtistCard({
           Tip SOL
         </button>
         
-        <button className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all">
+        <button 
+          className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all"
+          aria-label={`Play ${name}'s music`}
+        >
           <Play className="w-5 h-5" />
         </button>
       </div>

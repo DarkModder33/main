@@ -105,17 +105,17 @@ export function ShamrockFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/services#webdev" className="shamrock-link text-sm">
+                <Link href="/services" className="shamrock-link text-sm">
                   Web Development
                 </Link>
               </li>
               <li>
-                <Link href="/services#support" className="shamrock-link text-sm">
+                <Link href="/services" className="shamrock-link text-sm">
                   Tech Support
                 </Link>
               </li>
               <li>
-                <Link href="/services#marketing" className="shamrock-link text-sm">
+                <Link href="/services" className="shamrock-link text-sm">
                   Digital Marketing
                 </Link>
               </li>

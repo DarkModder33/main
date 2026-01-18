@@ -1,6 +1,6 @@
 /**
- * Calendly booking links for all service types
- * Used for scheduling consultations and lessons
+ * Centralized Calendly booking links for all service types including lessons,
+ * consultations, and support requests
  */
 export const bookingLinks = {
   guitarLessons: 'https://calendly.com/tradehaxai/guitar-lesson',

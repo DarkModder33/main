@@ -41,9 +41,9 @@ const navigation: NavItem[] = [
     name: 'Services', 
     href: '/services',
     submenu: [
-      { name: 'Web Development', href: '/services#webdev' },
-      { name: 'Tech Support', href: '/services#support' },
-      { name: 'Marketing', href: '/services#marketing' },
+      { name: 'Web Development', href: '/services' },
+      { name: 'Tech Support', href: '/services' },
+      { name: 'Marketing', href: '/services' },
       { name: 'All Services', href: '/services' },
     ]
   },

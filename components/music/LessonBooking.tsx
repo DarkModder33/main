@@ -1,6 +1,7 @@
 'use client';
 
 import { Calendar, Clock, Video } from 'lucide-react';
+import { bookingLinks } from '@/lib/booking';
 
 /**
  * Lesson booking component with Calendly integration
@@ -8,8 +9,7 @@ import { Calendar, Clock, Video } from 'lucide-react';
  */
 export function LessonBooking() {
   const handleBooking = () => {
-    // This would integrate with Calendly in production
-    window.open('https://calendly.com/tradehaxai/guitar-lesson', '_blank');
+    window.open(bookingLinks.guitarLessons, '_blank');
   };
 
   return (

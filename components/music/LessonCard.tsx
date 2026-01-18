@@ -38,8 +38,8 @@ export function LessonCard({
       </div>
       
       <ul className="space-y-3 mb-6">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start gap-3 text-gray-300">
+        {features.map((feature) => (
+          <li key={feature} className="flex items-start gap-3 text-gray-300">
             <CheckCircle2 className="w-5 h-5 text-[#FF6B35] flex-shrink-0 mt-0.5" />
             <span>{feature}</span>
           </li>
