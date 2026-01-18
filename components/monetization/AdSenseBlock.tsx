@@ -46,7 +46,9 @@ export function AdSenseBlock({
         <Script id={`adsense-init-${adSlot}`} strategy="afterInteractive">
           {`
             try {
-              (adsbygoogle = window.adsbygoogle || []).push({});
+              if (window.adsbygoogle) {
+                (window.adsbygoogle).push({});
+              }
             } catch (e) {
               console.error('AdSense error:', e);
             }
