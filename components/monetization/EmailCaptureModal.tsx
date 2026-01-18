@@ -1,0 +1,172 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
+
+interface EmailCaptureModalProps {
+  title?: string;
+  description?: string;
+  leadMagnet?: string;
+  delay?: number; // Delay before showing (ms)
+}
+
+/**
+ * Exit-intent email capture modal
+ * Triggers when user's mouse leaves viewport
+ */
+export function EmailCaptureModal({
+  title = "Wait! Get Your Free Crypto Trading Guide 📈",
+  description = "Join 5,000+ traders receiving daily market insights and exclusive trading strategies.",
+  leadMagnet = "Crypto Trading Guide PDF",
+  delay = 5000,
+}: EmailCaptureModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [hasShown, setHasShown] = useState(false);
+
+  useEffect(() => {
+    // Check if user has already seen the modal (localStorage)
+    const hasSeenModal = localStorage.getItem('emailCaptureShown');
+    if (hasSeenModal) return;
+
+    const timer = setTimeout(() => {
+      const handleMouseLeave = (e: MouseEvent) => {
+        // Trigger when mouse leaves from top of viewport
+        if (e.clientY <= 0 && !hasShown) {
+          setIsOpen(true);
+          setHasShown(true);
+          localStorage.setItem('emailCaptureShown', 'true');
+          trackEvent({
+            action: 'exit_intent_modal_shown',
+            category: 'engagement',
+            label: 'email_capture',
+          });
+        }
+      };
+
+      document.addEventListener('mouseleave', handleMouseLeave);
+      return () => document.removeEventListener('mouseleave', handleMouseLeave);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [hasShown, delay]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'exit_intent_modal' }),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+        setEmail('');
+        trackEvent({
+          action: 'email_signup',
+          category: 'conversion',
+          label: 'exit_intent_modal',
+          value: 5, // Estimated lead value
+        });
+        
+        // Close modal after 2 seconds
+        setTimeout(() => setIsOpen(false), 2000);
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    trackEvent({
+      action: 'exit_intent_modal_closed',
+      category: 'engagement',
+      label: 'email_capture',
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-purple-500/30 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {/* Content */}
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-4">
+            {title}
+          </h2>
+          <p className="text-gray-300 mb-6">
+            {description}
+          </p>
+
+          {status === 'success' ? (
+            <div className="py-8">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-green-400 font-semibold text-lg">
+                🎉 Success! Check your email for the {leadMagnet}
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                required
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              />
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-lg hover:shadow-purple-500/50"
+              >
+                {status === 'loading' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Subscribing...
+                  </span>
+                ) : (
+                  `Get My Free ${leadMagnet} →`
+                )}
+              </button>
+              {status === 'error' && (
+                <p className="text-red-400 text-sm">
+                  ✗ Something went wrong. Please try again.
+                </p>
+              )}
+            </form>
+          )}
+
+          <p className="text-gray-500 text-xs mt-4">
+            🔒 We respect your privacy. Unsubscribe anytime.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
