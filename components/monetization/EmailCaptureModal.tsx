@@ -38,11 +38,13 @@ export function EmailCaptureModal({
           setIsOpen(true);
           setHasShown(true);
           localStorage.setItem('emailCaptureShown', 'true');
-          trackEvent({
-            action: 'exit_intent_modal_shown',
-            category: 'engagement',
-            label: 'email_capture',
-          });
+          // Track modal shown - using custom event
+          if (typeof window !== 'undefined' && window.gtag) {
+            window.gtag('event', 'exit_intent_modal_shown', {
+              event_category: 'engagement',
+              event_label: 'email_capture',
+            });
+          }
         }
       };
 
@@ -67,12 +69,7 @@ export function EmailCaptureModal({
       if (res.ok) {
         setStatus('success');
         setEmail('');
-        trackEvent({
-          action: 'email_signup',
-          category: 'conversion',
-          label: 'exit_intent_modal',
-          value: 5, // Estimated lead value
-        });
+        trackEvent.emailSignup('exit_intent_modal');
         
         // Close modal after 2 seconds
         setTimeout(() => setIsOpen(false), 2000);
@@ -86,11 +83,13 @@ export function EmailCaptureModal({
 
   const handleClose = () => {
     setIsOpen(false);
-    trackEvent({
-      action: 'exit_intent_modal_closed',
-      category: 'engagement',
-      label: 'email_capture',
-    });
+    // Track modal closed
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'exit_intent_modal_closed', {
+        event_category: 'engagement',
+        event_label: 'email_capture',
+      });
+    }
   };
 
   if (!isOpen) return null;

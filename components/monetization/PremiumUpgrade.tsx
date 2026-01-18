@@ -1,7 +1,6 @@
 'use client';
 
 import { Check, Zap, Star, Crown } from 'lucide-react';
-import { trackEvent } from '@/lib/analytics';
 
 /**
  * Premium subscription upgrade CTA
@@ -9,12 +8,14 @@ import { trackEvent } from '@/lib/analytics';
  */
 export function PremiumUpgrade() {
   const handleUpgradeClick = () => {
-    trackEvent({
-      action: 'premium_upgrade_click',
-      category: 'conversion',
-      label: 'premium_cta',
-      value: 10,
-    });
+    // Track premium upgrade click
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'premium_upgrade_click', {
+        event_category: 'conversion',
+        event_label: 'premium_cta',
+        value: 10,
+      });
+    }
     // TODO: Redirect to Stripe checkout
     window.location.href = '/api/stripe/checkout';
   };
@@ -91,12 +92,14 @@ function Feature({ icon, text }: { icon: React.ReactNode; text: string }) {
  */
 export function PremiumBanner() {
   const handleClick = () => {
-    trackEvent({
-      action: 'premium_banner_click',
-      category: 'conversion',
-      label: 'sidebar_banner',
-      value: 10,
-    });
+    // Track banner click
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'premium_banner_click', {
+        event_category: 'conversion',
+        event_label: 'sidebar_banner',
+        value: 10,
+      });
+    }
     window.location.href = '/api/stripe/checkout';
   };
 

@@ -1,20 +1,11 @@
+'use client';
+
 import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
 import { PremiumUpgrade } from '@/components/monetization/PremiumUpgrade';
 import { Gamepad2, Trophy, Star, Zap } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Hyperborea Game - Play & Earn Crypto | TradeHax AI',
-  description: 'Play Hyperborea, an exciting browser-based game with NFT integration and crypto rewards. Compete on leaderboards and unlock exclusive achievements.',
-  openGraph: {
-    title: 'Hyperborea Game - Play & Earn',
-    description: 'Play and earn crypto rewards with Hyperborea game.',
-    type: 'website',
-  },
-};
 
 export default function GamePage() {
   const handlePlayClick = () => {

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { ExternalLink, TrendingUp } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
@@ -27,12 +26,7 @@ export function AffiliateBanner({
   className = '',
 }: AffiliateBannerProps) {
   const handleClick = () => {
-    trackEvent({
-      action: 'affiliate_click',
-      category: 'monetization',
-      label: partner,
-      value: 1,
-    });
+    trackEvent.affiliateClick(partner);
   };
 
   return (
@@ -87,12 +81,7 @@ export function AffiliateLink({
   className?: string;
 }) {
   const handleClick = () => {
-    trackEvent({
-      action: 'affiliate_click',
-      category: 'monetization',
-      label: partner,
-      value: 1,
-    });
+    trackEvent.affiliateClick(partner);
   };
 
   return (

@@ -1,3 +1,5 @@
+'use client';
+
 import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { EmailCapture } from '@/components/EmailCapture';
@@ -5,17 +7,6 @@ import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
 import { Download, Mail, Briefcase, Code, Award } from 'lucide-react';
 import Link from 'next/link';
 import { trackEvent } from '@/lib/analytics';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Portfolio - Michael S. Flaherty | Full-Stack Developer & Web3 Expert',
-  description: 'Professional portfolio and resume of Michael S. Flaherty. Full-stack developer specializing in Web3, blockchain, and automated trading systems.',
-  openGraph: {
-    title: 'Portfolio - Michael S. Flaherty',
-    description: 'Full-stack developer specializing in Web3, blockchain, and automated trading systems.',
-    type: 'profile',
-  },
-};
 
 export default function PortfolioPage() {
   return (
@@ -63,19 +54,15 @@ export default function PortfolioPage() {
             <Briefcase className="w-8 h-8 text-[#0366d6]" />
             About Me
           </h2>
-          <div className="text-gray-300 space-y-4">
-            <p>
-              I'm a passionate full-stack developer with expertise in building scalable Web3 applications,
-              automated trading systems, and modern web platforms. With a strong foundation in both frontend
-              and backend technologies, I specialize in creating high-performance applications that leverage
-              blockchain technology and AI.
-            </p>
-            <p>
-              My recent work includes developing TradeHax AI, an advanced automated trading platform powered
-              by Solana blockchain, featuring real-time trading capabilities, wallet integration, and
-              sophisticated analytics dashboards.
-            </p>
-          </div>
+          <p className="text-gray-300 space-y-4">
+            <span className="block">I&apos;m a passionate full-stack developer with expertise in building scalable Web3 applications,
+            automated trading systems, and modern web platforms. With a strong foundation in both frontend
+            and backend technologies, I specialize in creating high-performance applications that leverage
+            blockchain technology and AI.</span>
+            <span className="block">My recent work includes developing TradeHax AI, an advanced automated trading platform powered
+            by Solana blockchain, featuring real-time trading capabilities, wallet integration, and
+            sophisticated analytics dashboards.</span>
+          </p>
         </section>
 
         {/* Skills Section */}
@@ -143,11 +130,11 @@ export default function PortfolioPage() {
         {/* Contact CTA Section */}
         <section id="contact" className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-8 text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Let's Work Together
+            Let&apos;s Work Together
           </h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            I'm available for freelance projects, consulting, and full-time opportunities.
-            Let's discuss how I can help bring your ideas to life.
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            I&apos;m available for freelance projects, consulting, and full-time opportunities.
+            Let&apos;s discuss how I can help bring your ideas to life.
           </p>
           <EmailCapture />
         </section>

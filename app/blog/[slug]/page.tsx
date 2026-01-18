@@ -3,8 +3,7 @@ import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { AdSenseBlock, InContentAd } from '@/components/monetization/AdSenseBlock';
 import { PremiumBanner } from '@/components/monetization/PremiumUpgrade';
 import { EmailCapture } from '@/components/EmailCapture';
-import { Calendar, Clock, Share2 } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
 
 interface BlogPostProps {
@@ -30,9 +29,7 @@ const samplePost = {
   `,
 };
 
-export async function generateMetadata({ params }: BlogPostProps): Promise<Metadata> {
-  const { slug } = await params;
-  
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${samplePost.title} - TradeHax AI Blog`,
     description: samplePost.excerpt,
@@ -40,7 +37,8 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
 }
 
 export default async function BlogPostPage({ params }: BlogPostProps) {
-  const { slug } = await params;
+  // In production, use slug to fetch specific post
+  await params;
   const post = samplePost;
 
   const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
