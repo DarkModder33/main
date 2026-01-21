@@ -83,7 +83,7 @@ export function HeroSection() {
           <Link href="/dashboard">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-black px-8 py-6 text-lg group shadow-lg hover:shadow-green-500/50"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-6 text-lg group shadow-lg hover:shadow-green-500/50"
             >
               Start Trading (Free)
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

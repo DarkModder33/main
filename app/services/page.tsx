@@ -2,7 +2,7 @@ import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
-import { Code, LineChart, Users, Zap, CheckCircle2, ArrowRight, Wrench, Megaphone, Server } from 'lucide-react';
+import { Code, LineChart, Users, Zap, CheckCircle2, ArrowRight, Wrench, Megaphone, Server, Share2, Smartphone, Database, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -24,7 +24,7 @@ export default function ServicesPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-6">
             Professional Services
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -56,14 +56,15 @@ export default function ServicesPage() {
 
           <ServiceCard
             icon={<LineChart className="w-10 h-10" />}
-            title="Trading System Development"
-            description="Automated trading bots, algorithmic strategies, and real-time market analysis tools."
+            title="Trading System Development & Community"
+            description="Automated trading bots, algorithmic strategies, real-time market analysis, and exclusive livestream trading sessions."
             features={[
               'Custom trading algorithms',
               'Portfolio management systems',
               'Market data integration',
               'Risk management tools',
               'Backtesting frameworks',
+              'Live trading sessions & community (coming soon)',
             ]}
             pricing="Starting at $3,000"
           />
@@ -98,47 +99,92 @@ export default function ServicesPage() {
 
           <ServiceCard
             icon={<Wrench className="w-10 h-10" />}
-            title="Software & Hardware Repair"
-            description="Remote-first software troubleshooting and hardware diagnostic support for all your tech issues."
+            title="Software & Hardware Support"
+            description="Remote-first technical support for all your computer needs. Fast diagnostics, troubleshooting, and optimization."
             features={[
-              'Remote software repairs & troubleshooting',
-              'Hardware diagnostic consultations',
-              'Virus/malware removal',
+              'Remote software troubleshooting & fixes',
+              'Hardware diagnostic support',
+              'Virus & malware removal',
               'System optimization & cleanup',
               'Data recovery assistance',
-              'OS installation & configuration',
+              'OS installation & updates',
             ]}
-            pricing="$50/hour (remote) | $100/hour (on-site)"
+            pricing="$50-100/hour"
           />
 
           <ServiceCard
             icon={<Megaphone className="w-10 h-10" />}
             title="Social Media Marketing"
-            description="Grow your brand with strategic social media campaigns, content creation, and community management."
+            description="Complete social media management and digital marketing services to grow your online presence and engage your audience."
             features={[
               'Social media strategy development',
               'Content creation & scheduling',
-              'Community management',
-              'Paid advertising campaigns (Meta, X, LinkedIn)',
-              'Analytics & performance tracking',
-              'Influencer collaboration setup',
+              'Community management & engagement',
+              'Paid advertising campaigns (FB, IG, TikTok)',
+              'SEO optimization & analytics',
+              'Influencer outreach & partnerships',
             ]}
             pricing="Starting at $1,000/month"
           />
 
           <ServiceCard
             icon={<Server className="w-10 h-10" />}
-            title="Complete Tech Solutions"
-            description="End-to-end technology services including hosting, domain management, email setup, and ongoing support."
+            title="Complete IT Solutions"
+            description="End-to-end IT management for businesses. From domain setup to ongoing technical support."
             features={[
               'Domain registration & DNS management',
               'Email hosting & configuration',
-              'Cloud hosting setup (AWS, Azure, Vercel)',
               'SSL certificate installation',
-              'Website maintenance & updates',
-              'Technical support retainers',
+              'Website backups & security monitoring',
+              'Cloud infrastructure setup',
+              '24/7 technical support retainers',
             ]}
             pricing="Starting at $500/month"
+          />
+
+          <ServiceCard
+            icon={<Smartphone className="w-10 h-10" />}
+            title="Custom Application Development"
+            description="Native mobile apps, web applications, and cross-platform solutions built with modern frameworks."
+            features={[
+              'iOS & Android app development',
+              'Progressive Web Apps (PWA)',
+              'React Native cross-platform apps',
+              'API development & integration',
+              'App Store & Play Store deployment',
+              'Ongoing maintenance & updates',
+            ]}
+            pricing="Starting at $8,000"
+          />
+
+          <ServiceCard
+            icon={<Database className="w-10 h-10" />}
+            title="Database & Cloud Architecture"
+            description="Scalable database design, cloud migration, and infrastructure optimization for growing businesses."
+            features={[
+              'PostgreSQL, MongoDB, MySQL setup',
+              'AWS, Google Cloud, Azure deployment',
+              'Database optimization & indexing',
+              'Cloud cost optimization',
+              'Backup & disaster recovery',
+              'DevOps & CI/CD pipelines',
+            ]}
+            pricing="Starting at $3,500"
+          />
+
+          <ServiceCard
+            icon={<ShoppingCart className="w-10 h-10" />}
+            title="E-Commerce Development"
+            description="Complete online store setup with payment processing, inventory management, and marketing tools."
+            features={[
+              'Shopify, WooCommerce, custom builds',
+              'Payment gateway integration (Stripe, PayPal)',
+              'Inventory & order management',
+              'Email marketing automation',
+              'Product photography & descriptions',
+              'Conversion rate optimization',
+            ]}
+            pricing="Starting at $6,000"
           />
         </div>
 
@@ -282,7 +328,7 @@ function ProcessStep({
 }) {
   return (
     <div className="text-center">
-      <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+      <div className="w-12 h-12 bg-gradient-to-r from-[#00D100] to-[#00FF41] rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
         {number}
       </div>
       <h3 className="text-lg font-bold text-white mb-2">{title}</h3>

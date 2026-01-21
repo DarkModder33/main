@@ -35,7 +35,11 @@ function StepCard({ step, Icon }: { step: HowItWorksStep; Icon: LucideIcon }) {
         {/* Number badge */}
         <div className="inline-flex items-center justify-center w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-900">
-            <Icon className="w-8 h-8 text-green-400" />
+<<<<<<< HEAD
+            <Icon className="w-8 h-8 text-[#00FF41]" />
+=======
+            <Icon className="w-8 h-8 text-[#00FF41]" />
+>>>>>>> origin/copilot/create-music-hub-landing-page
           </div>
         </div>
 
@@ -51,7 +55,11 @@ export function HowItWorksSection() {
     <section className="py-20 px-6 relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">
+<<<<<<< HEAD
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text">
+=======
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text">
+>>>>>>> origin/copilot/create-music-hub-landing-page
             How It Works
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">

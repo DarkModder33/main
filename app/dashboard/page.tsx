@@ -14,7 +14,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-2">
             Welcome to TradeHax AI Dashboard
           </h1>
           <p className="text-gray-400">
@@ -74,7 +74,7 @@ export default function DashboardPage() {
             
             <div className="space-y-4">
               <Button
-                className="w-full justify-start bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                className="w-full justify-start bg-gradient-to-r from-[#00D100] to-[#00FF41] hover:from-purple-700 hover:to-blue-700 text-white"
                 size="lg"
               >
                 <Plus className="w-5 h-5 mr-2" />
