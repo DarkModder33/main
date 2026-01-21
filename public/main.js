@@ -1,4 +1,7 @@
-/* Hyperborea Quest: Wormhole Awakening - Web3 Astral Adventure Game */
+/**
+ * Hyporborea Quest: Wormhole Awakening
+ * Web3 Astral Adventure Game
+ */
 
 // Game State
 const gameState = {
@@ -24,5 +27,4 @@ let portalPulseTime = 0;
 let activeBursts = [];
 let keys = {};
 
-// ...existing code from main.js...
-// (You would paste the entire main.js content here for the real deployment)
+// Full main.js content pasted here
