@@ -18,7 +18,7 @@ In your domain registrar (Namecheap, etc.), add these records:
 
 ```
 TXT    _vercel      vc-domain-verify=www.tradehaxai.tech,ee1feb30d3a07d16aca3
-CNAME  @            darkmodder33.github.io.
+A      @            76.76.21.21
 CNAME  www          cname.vercel-dns.com.
 ```
 

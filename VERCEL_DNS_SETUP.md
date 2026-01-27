@@ -22,22 +22,24 @@ TTL: 3600
 ```
 
 ### 2. Apex Domain (@) Configuration
-**Option A: Using CNAME (Recommended)**
-```
-Type: CNAME
-Name: @
-Value: darkmodder33.github.io.
-TTL: 3600
-```
-
-**Option B: Using A Records (Alternative)**
-If your DNS provider doesn't support CNAME for apex domain, use Vercel's A records:
+**Recommended: Using Vercel A Record**
 ```
 Type: A
 Name: @
 Value: 76.76.21.21
 TTL: 3600
 ```
+
+**Alternative: Using Vercel CNAME (if supported by your DNS provider)**
+Some DNS providers support CNAME flattening for apex domains:
+```
+Type: CNAME
+Name: @
+Value: cname.vercel-dns.com.
+TTL: 3600
+```
+
+**Note**: If migrating from GitHub Pages, remove the old CNAME pointing to `darkmodder33.github.io`
 
 ### 3. WWW Subdomain Configuration
 ```
