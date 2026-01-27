@@ -6,7 +6,16 @@ const nextConfig: NextConfig = {
   
   // Production URL configuration
   images: {
-    domains: ['tradehaxai.tech', 'tradehaxai.me'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tradehaxai.tech',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tradehaxai.me',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
   },

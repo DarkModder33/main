@@ -154,14 +154,16 @@ Host: @
 Value: 76.76.21.21
 TTL: Automatic
 ```
+**Note**: Vercel's IP addresses may change. Always verify the current IP from Vercel's domain configuration page.
 
-**CNAME Record (www)**
+**CNAME Record (www) - Recommended**
 ```
 Type: CNAME Record
 Host: www
 Value: cname.vercel-dns.com
 TTL: Automatic
 ```
+**Note**: CNAME records are preferred as Vercel manages IP addresses automatically.
 
 6. Save all changes
 7. Wait for DNS propagation (5-60 minutes)
