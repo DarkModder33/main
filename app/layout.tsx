@@ -6,14 +6,15 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SolanaProvider } from "@/components/counter/provider/Solana";
 import { Toaster } from "sonner";
+import { IntroVideoWrapper } from "@/components/IntroVideoWrapper";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#8b5cf6" },
-    { media: "(prefers-color-scheme: light)", color: "#8b5cf6" },
+    { media: "(prefers-color-scheme: dark)", color: "#00FF41" },
+    { media: "(prefers-color-scheme: light)", color: "#00FF41" },
   ],
 };
 
@@ -101,7 +102,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="antialiased bg-gray-950 text-white font-sans"
+        className="antialiased bg-black text-green-100 font-sans"
       >
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
@@ -121,26 +122,28 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        <SolanaProvider>
-          {children}
-          <Toaster
-            position="bottom-right"
-            theme="dark"
-            closeButton
-            richColors={false}
-            toastOptions={{
-              style: {
-                background: "#171717",
-                color: "white",
-                border: "1px solid rgba(75, 85, 99, 0.3)",
-                borderRadius: "0.5rem",
-                padding: "0.75rem 1rem",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
-              },
-              className: "toast-container",
-            }}
-          />
-        </SolanaProvider>
+        <IntroVideoWrapper>
+          <SolanaProvider>
+            {children}
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              closeButton
+              richColors={false}
+              toastOptions={{
+                style: {
+                  background: "#171717",
+                  color: "white",
+                  border: "1px solid rgba(75, 85, 99, 0.3)",
+                  borderRadius: "0.5rem",
+                  padding: "0.75rem 1rem",
+                  boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
+                },
+                className: "toast-container",
+              }}
+            />
+          </SolanaProvider>
+        </IntroVideoWrapper>
         <Analytics />
       </body>
     </html>

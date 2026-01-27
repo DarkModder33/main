@@ -79,9 +79,9 @@ export function CounterDisplay() {
       <p className="text-sm text-muted-foreground mb-2">Current Count:</p>
       <div className="h-14 flex items-center justify-center">
         {isFetchingCounter ? (
-          <div className="h-7 w-7 rounded-full border-3 border-purple-400/30 border-t-purple-400 animate-spin" />
+          <div className="h-7 w-7 rounded-full border-3 border-green-400/30 border-t-green-400 animate-spin" />
         ) : (
-          <p className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text">
+          <p className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">
             {counterValue}
           </p>
         )}

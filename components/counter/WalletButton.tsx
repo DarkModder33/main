@@ -30,7 +30,7 @@ const WalletMultiButton = dynamic(
           }}
         >
           <div
-            className="rounded-full bg-purple-400/30"
+            className="rounded-full bg-green-400/30"
             style={{ width: "24px", height: "24px" }}
           ></div>
           <div
