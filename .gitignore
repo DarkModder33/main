@@ -23,7 +23,6 @@
 # misc
 .DS_Store
 *.pem
-support-headers/
 
 # debug
 npm-debug.log*
@@ -40,22 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Program (Anchor/Solana)
-program/.anchor
-program/target
-program/**/*.rs.bk
-program/test-ledger
-program/.yarn
-
-# Lock files (regenerated on install)
-**/pnpm-lock.yaml
-**/package-lock.json
-**/yarn.lock
-
-# Temporary files
-*.orig.*
-*tmp_*
-*test*.html
-probe.txt
-*_ORIGINAL.*

@@ -1,104 +1,36 @@
-# TradeHax AI - Web3 Trading Platform
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Advanced automated trading platform powered by Solana blockchain and AI.
+## Getting Started
 
-## 🌐 Live Deployments
+First, run the development server:
 
-- **Production**: [https://tradehaxai.tech](https://tradehaxai.tech)
-- **Vercel URL**: [https://shamrockstocks-github-io.vercel.app](https://shamrockstocks-github-io.vercel.app)
-
-## 🚀 Features
-- **Solana Integration**: Lightning-fast blockchain transactions
-- **Wallet Connection**: Seamless Phantom, Solflare, and more
-- **Real-time Trading**: Execute trades on Solana devnet
-- **Professional UI**: Built with Next.js 15, React 19, TailwindCSS
-- **SEO Optimized**: Full meta tags, Open Graph, Twitter Cards
-- **Analytics Ready**: Google Analytics & Vercel Analytics support
-
-## 📁 Project Structure
-```
-├── app/
-│   ├── layout.tsx          # Root layout with SEO metadata
-│   ├── page.tsx             # Landing page
-│   └── dashboard/
-│       └── page.tsx         # Trading dashboard
-├── components/
-│   ├── counter/             # Solana counter demo components
-│   ├── dashboard/           # Dashboard components
-│   ├── landing/             # Landing page components
-│   └── ui/                  # Reusable UI components
-├── lib/
-│   ├── analytics.ts         # Analytics helpers
-│   └── utils.ts             # Utility functions
-├── types/
-│   └── index.ts             # TypeScript type definitions
-├── anchor-idl/
-│   └── idl.json             # Solana program IDL
-├── program/                 # Solana Smart Contract (Anchor)
-│   ├── programs/            # Rust source code
-│   ├── tests/               # Program tests
-│   └── Anchor.toml          # Anchor configuration
-└── portfolio/               # Legacy portfolio site (HTML)
-```
-
-## 🛠️ Tech Stack
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: TailwindCSS 4
-- **Blockchain**: Solana Web3.js, Anchor
-- **UI Components**: Radix UI, shadcn/ui
-- **Wallet**: Solana Wallet Adapter
-
-## 📦 Installation
-```bash
-npm install
-```
-
-## 🏃 Development
 ```bash
 npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000)
-
-## 🌐 Deployment
-
-See [DOMAIN_SETUP.md](./DOMAIN_SETUP.md) for connecting to tradehaxai.tech domain.
-See [MONETIZATION_SETUP.md](./MONETIZATION_SETUP.md) for revenue generation setup.
-
-**Quick Deploy to Vercel:**
-1. Push to GitHub
-2. Import to Vercel
-3. Deploy! (Root directory is already set correctly)
-
-## 🧪 Testing
-```bash
-# Type check
-npm run type-check
-
-# Lint
-npm run lint
-
-# Build
-npm run build
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## 🎓 For Students
-This project demonstrates:
-- Modern Web3 development practices
-- Next.js 15 App Router
-- Solana blockchain integration
-- Production-ready architecture
-- SEO best practices
-- Professional UI/UX design
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Perfect for college portfolios and real-world business applications.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 🙏 Credits
-The Solana counter dApp components are based on the [solana-developers/anchor-web3js-nextjs](https://github.com/solana-developers/anchor-web3js-nextjs) educational template created by the Solana Foundation.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 📝 License
-MIT
+## Learn More
 
-## 🤝 Support
-Email: support@tradehaxai.tech
-GitHub: [DarkModder33/main](https://github.com/DarkModder33/main)
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
