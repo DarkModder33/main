@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Production optimizations
   reactStrictMode: true,
   
-  // Disable image optimization for static export
+  // Image optimization configuration
   images: {
     remotePatterns: [
       {
