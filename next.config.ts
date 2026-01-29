@@ -1,11 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Static export for GitHub Pages
+  output: 'export',
+  
   // Production optimizations
   reactStrictMode: true,
   
   // Image optimization configuration
   images: {
+    unoptimized: true, // Required for static export
     remotePatterns: [
       {
         protocol: 'https',

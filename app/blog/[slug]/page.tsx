@@ -29,6 +29,16 @@ const samplePost = {
   `,
 };
 
+// Generate static params for static export
+export async function generateStaticParams() {
+  // Return array of slugs to generate at build time
+  return [
+    { slug: 'getting-started-with-solana' },
+    { slug: 'advanced-trading-strategies' },
+    { slug: 'understanding-blockchain' },
+  ];
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${samplePost.title} - TradeHax AI Blog`,
