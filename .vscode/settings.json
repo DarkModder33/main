@@ -2,5 +2,14 @@
     "chat.agent.maxRequests": 50,
     "chat.useAgentSkills": true,
     "inlineChat.enableV2": true,
-    "chat.useNestedAgentsMdFiles": true
+    "chat.useNestedAgentsMdFiles": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "*test.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
 }
