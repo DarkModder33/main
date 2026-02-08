@@ -33,8 +33,8 @@ export function HyperboreaGame({
   // Create audio context once and reuse it
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const playCollectSound = useCallback(() => {
-    // Play a simple beep sound using Web Audio API
+  const playSound = useCallback((type: 'collect' | 'powerup' | 'damage') => {
+    // Play different sounds using Web Audio API
     if (typeof window === 'undefined') return;
     
     // Create audio context only once
@@ -49,13 +49,33 @@ export function HyperboreaGame({
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
     
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
+    // Different sounds for different events
+    if (type === 'collect') {
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } else if (type === 'powerup') {
+      // Ascending tones for power-up
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+      oscillator.type = 'square';
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } else if (type === 'damage') {
+      // Low descending tone for damage
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.15);
+      oscillator.type = 'sawtooth';
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.15);
+    }
   }, []);
 
   useEffect(() => {
@@ -565,7 +585,7 @@ export function HyperboreaGame({
             createParticles(clover.position, 0xff00ff);
             
             // Play sound
-            playCollectSound();
+            playSound('collect');
             
             onEnergyChange?.(energy);
             onCloverCollect?.(cloversCollected);
@@ -610,7 +630,7 @@ export function HyperboreaGame({
             }
             
             createParticles(powerUp.mesh.position, (powerUp.mesh.material as THREE.MeshStandardMaterial).color.getHex());
-            playCollectSound();
+            playSound('powerup');
             
             // Respawn power-up after 10 seconds
             setTimeout(() => {
@@ -653,6 +673,9 @@ export function HyperboreaGame({
           
           // Camera shake
           cameraShake = 0.5;
+          
+          // Play damage sound
+          playSound('damage');
           
           // Push player away
           const pushDirection = new THREE.Vector3().subVectors(player.position, obstacle.mesh.position);
@@ -711,7 +734,7 @@ export function HyperboreaGame({
       }
       renderer.dispose();
     };
-  }, [onEnergyChange, onCloverCollect, playCollectSound]);
+  }, [onEnergyChange, onCloverCollect, onScoreChange, onPowerUpChange, playSound]);
 
   return (
     <div className="relative w-full h-full">
