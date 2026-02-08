@@ -4,7 +4,9 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15.4-black)](https://nextjs.org)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> **🚨 DEPLOYMENT ISSUE?** If your Vercel deployment is failing with "Could not read package.json", see [**VERCEL_BRANCH_FIX.md**](./VERCEL_BRANCH_FIX.md) for a 2-minute fix!
+> **🚨 DEPLOYMENT ISSUE?** If your Vercel deployment is failing with "Could not read package.json":
+> 1. **Quick Fix**: [VERCEL_BRANCH_FIX.md](./VERCEL_BRANCH_FIX.md) (2 minutes)
+> 2. **Step-by-step**: [DEPLOYMENT_FIX_CHECKLIST.md](./DEPLOYMENT_FIX_CHECKLIST.md) (10 minutes)
 
 A sophisticated automated Web3 trading platform built with Next.js, React, and powered by Solana blockchain technology. Trade smarter with AI-driven insights and decentralized technology.
 
