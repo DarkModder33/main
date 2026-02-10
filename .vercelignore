@@ -5,7 +5,8 @@ yarn-error.log
 
 # Build artifacts
 # .next is needed for Vercel deployment
-out
+# Removed 'out' directory from ignore
+# out (removed)
 dist
 build
 
