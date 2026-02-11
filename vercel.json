@@ -15,11 +15,6 @@
       "source": "/(.*)\\.html",
       "destination": "/$1",
       "permanent": true
-    },
-    {
-      "source": "/:path((?!.*\\.).*)",
-      "destination": "/:path/",
-      "permanent": false
     }
   ],
   "headers": [
