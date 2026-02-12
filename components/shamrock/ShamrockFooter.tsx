@@ -9,24 +9,23 @@ export function ShamrockFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-gray-800 bg-gray-950 py-12 px-6">
+    <footer className="border-t border-white/10 bg-black py-16 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          {/* Brand - Tesla minimalist style */}
           <div className="md:col-span-1">
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-4">
+            <div className="text-2xl font-bold text-white mb-4">
               TradeHax AI
             </div>
-            <p className="text-gray-400 text-sm mb-4">
-              3-portal business ecosystem: Music education, fintech trading, and
-              complete tech services.
+            <p className="text-white/50 text-sm mb-6 leading-relaxed">
+              Advanced trading platform powered by AI and blockchain technology.
             </p>
             <div className="flex space-x-4">
               <a
                 href="https://twitter.com/tradehaxai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-[#0366d6] transition-colors"
+                className="text-white/50 hover:text-tesla-neon-blue transition-all"
                 aria-label="Twitter"
               >
                 <Twitter className="w-5 h-5" />
@@ -35,7 +34,7 @@ export function ShamrockFooter() {
                 href="https://github.com/DarkModder33/main"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-[#0366d6] transition-colors"
+                className="text-white/50 hover:text-tesla-neon-blue transition-all"
                 aria-label="GitHub"
               >
                 <Github className="w-5 h-5" />
@@ -44,7 +43,7 @@ export function ShamrockFooter() {
                 href="https://linkedin.com/company/tradehax-ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-[#0366d6] transition-colors"
+                className="text-white/50 hover:text-tesla-neon-blue transition-all"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-5 h-5" />

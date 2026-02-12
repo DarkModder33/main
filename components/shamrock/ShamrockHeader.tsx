@@ -84,21 +84,21 @@ export function ShamrockHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-black/95 backdrop-blur-md border-b border-[#00FF41]/30 shadow-lg shadow-[#00FF41]/20">
+    <header className="sticky top-0 z-50 glass-morphism border-b border-white/10 shadow-2xl">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text drop-shadow-[0_0_8px_rgba(0,255,65,0.5)]">
+          {/* Logo - Tesla minimalist style */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="text-2xl font-bold text-white tracking-tight transition-all group-hover:text-tesla-neon-blue">
               TradeHax AI
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Tesla style */}
           <div className="hidden md:flex items-center gap-8">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-              
+
               if (item.submenu) {
                 return (
                   <div
@@ -110,10 +110,10 @@ export function ShamrockHeader() {
                   >
                     <Link
                       href={item.href}
-                      className={`flex items-center gap-1 text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-1 text-sm font-medium transition-all ${
                         isActive
-                          ? 'text-[#00FF41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]'
-                          : 'text-gray-300 hover:text-[#39FF14] hover:drop-shadow-[0_0_6px_rgba(0,255,65,0.6)]'
+                          ? 'text-white'
+                          : 'text-white/70 hover:text-white'
                       }`}
                       onFocus={() => setOpenDropdown(item.name)}
                       onKeyDown={(e) => handleKeyDown(e, item.name)}
@@ -123,17 +123,17 @@ export function ShamrockHeader() {
                       {item.name}
                       <ChevronDown className="w-4 h-4" />
                     </Link>
-                    
+
                     {openDropdown === item.name && (
-                      <div 
-                        className="absolute top-full left-0 mt-2 w-48 bg-black/95 border border-[#00FF41]/50 rounded-lg shadow-2xl shadow-[#00FF41]/30 py-2 animate-slide-up"
+                      <div
+                        className="absolute top-full left-0 mt-2 w-48 glass-morphism border border-white/20 rounded-xl shadow-2xl py-2 animate-fade-in-up"
                         role="menu"
                       >
                         {item.submenu.map((subitem) => (
                           <Link
                             key={subitem.name}
                             href={subitem.href}
-                            className="block px-4 py-2 text-sm text-gray-300 hover:bg-[#003B00] hover:text-[#00FF41] hover:shadow-[0_0_10px_rgba(0,255,65,0.3)] transition-all"
+                            className="block px-4 py-2.5 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all rounded-lg mx-2"
                             role="menuitem"
                           >
                             {subitem.name}
@@ -144,27 +144,34 @@ export function ShamrockHeader() {
                   </div>
                 );
               }
-              
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-sm font-medium transition-all ${
                     isActive
-                      ? 'text-[#00FF41] drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]'
-                      : 'text-gray-300 hover:text-[#39FF14] hover:drop-shadow-[0_0_6px_rgba(0,255,65,0.6)]'
+                      ? 'text-white'
+                      : 'text-white/70 hover:text-white'
                   }`}
                 >
                   {item.name}
                 </Link>
               );
             })}
+
+            {/* Wallet Connect Button */}
+            <Link href="/dashboard">
+              <button className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-lg hover:bg-white/90 transition-all">
+                Connect Wallet
+              </button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden text-gray-300 hover:text-white"
+            className="md:hidden text-white/80 hover:text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -178,17 +185,17 @@ export function ShamrockHeader() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-2 border-t border-[#00FF41]/30 animate-slide-up">
+          <div className="md:hidden py-4 space-y-2 border-t border-white/10 animate-fade-in-up">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <div key={item.name}>
                   <Link
                     href={item.href}
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    className={`block px-3 py-2 rounded-lg text-base font-medium transition-all ${
                       isActive
-                        ? 'bg-[#003B00] text-[#00FF41] shadow-[0_0_10px_rgba(0,255,65,0.3)]'
-                        : 'text-gray-300 hover:bg-[#003B00] hover:text-[#39FF14]'
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/70 hover:bg-white/5 hover:text-white'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -200,7 +207,7 @@ export function ShamrockHeader() {
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className="block px-3 py-1 text-sm text-gray-400 hover:text-[#00FF41] transition-colors"
+                          className="block px-3 py-1 text-sm text-white/60 hover:text-white transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {subitem.name}
@@ -211,6 +218,11 @@ export function ShamrockHeader() {
                 </div>
               );
             })}
+            <Link href="/dashboard" className="block">
+              <button className="w-full mt-2 px-4 py-2 bg-white text-black text-sm font-semibold rounded-lg hover:bg-white/90 transition-all">
+                Connect Wallet
+              </button>
+            </Link>
           </div>
         )}
       </nav>
