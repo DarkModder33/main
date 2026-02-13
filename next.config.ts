@@ -44,18 +44,15 @@ const nextConfig: NextConfig = {
   },
 
   // Turbopack configuration
-  turbopack: {},
+  turbopack: {
+    root: process.cwd(),
+  },
 
   // Output configuration
   poweredByHeader: false,
 
   // Compression
   compress: true,
-
-  // Development - More permissive
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   typescript: {
     ignoreBuildErrors: true,

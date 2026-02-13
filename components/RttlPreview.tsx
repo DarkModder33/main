@@ -61,7 +61,7 @@ export function RttlPreview({
 
   const extractKeywords = (text: string): string[] => {
     const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for']);
-    const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+    const words: string[] = text.toLowerCase().match(/\b\w+\b/g) ?? [];
     const wordFreq = new Map<string, number>();
     
     words.forEach(word => {

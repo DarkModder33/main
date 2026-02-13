@@ -7,8 +7,30 @@ import { IntroVideoWrapper } from "@/components/IntroVideoWrapper";
 import { HeaderBannerAd } from "@/components/monetization/AdSenseBlock";
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
+import { Cinzel, Montserrat, Orbitron } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-body-google",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-display-google",
+  display: "swap",
+  weight: ["500", "700", "800"],
+});
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-mystic-google",
+  display: "swap",
+  weight: ["400", "600", "700"],
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -22,9 +44,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TradeHax AI - Automated Web3 Trading Platform",
+  title: "TradeHax AI - Web3 Trading, Repairs, Lessons, and Digital Services",
   description:
-    "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
+    "TradeHax AI blends Solana-powered Web3 trading with real-world services: device repair, guitar lessons, and digital build services in one professional platform.",
   keywords: [
     "Web3 trading",
     "Solana",
@@ -32,8 +54,12 @@ export const metadata: Metadata = {
     "DeFi",
     "blockchain",
     "crypto trading",
-    "AI trading",
-    "decentralized finance",
+    "AI trading platform",
+    "device repair",
+    "guitar lessons",
+    "digital services",
+    "NFT mint",
+    "Philadelphia",
   ],
   authors: [{ name: "TradeHax AI" }],
   creator: "TradeHax AI",
@@ -43,9 +69,9 @@ export const metadata: Metadata = {
     canonical: "https://tradehaxai.tech",
   },
   openGraph: {
-    title: "TradeHax AI - Automated Web3 Trading Platform",
+    title: "TradeHax AI - Matrix Web3 and Service Platform",
     description:
-      "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
+      "A professional Web3 platform connecting automated trading, NFT experiences, and remote-first service offerings.",
     url: "https://tradehaxai.tech",
     siteName: "TradeHax AI",
     locale: "en_US",
@@ -62,9 +88,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TradeHax AI - Automated Web3 Trading Platform",
+    title: "TradeHax AI - Matrix Web3 and Service Platform",
     description:
-      "Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.",
+      "Automated Web3 trading, NFT experiences, and premium digital services on Solana.",
     images: ["/og-home.svg"],
     creator: "@tradehaxai",
     site: "@tradehaxai",
@@ -95,7 +121,7 @@ export default function RootLayout({
     "@type": "WebApplication",
     name: "TradeHax AI",
     description:
-      "Advanced automated trading platform powered by Solana blockchain",
+      "Web3 trading platform and service ecosystem powered by Solana",
     url: "https://tradehaxai.tech",
     applicationCategory: "FinanceApplication",
     operatingSystem: "Any",
@@ -114,18 +140,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="antialiased bg-black text-gray-100 font-sans">
+      <body
+        className={`${montserrat.variable} ${orbitron.variable} ${cinzel.variable} antialiased text-gray-100 font-sans theme-shell`}
+      >
         {/* Header ad for quick monetization; only renders when NEXT_PUBLIC_ADSENSE_ID set */}
         <HeaderBannerAd />
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
