@@ -6,6 +6,12 @@ import { HyperboreaGame } from "@/components/game/HyperboreaGame";
 import { NFTMintPanel } from "@/components/game/NFTMintPanel";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { PremiumUpgrade } from "@/components/monetization/PremiumUpgrade";
+import { generateDefaultLevel001 } from "@/lib/game/level-generator";
+import type {
+  ArtifactCollectionEvent,
+  HyperboreaLevelDefinition,
+} from "@/lib/game/level-types";
+import { isHyperboreaLevelDefinition } from "@/lib/game/level-types";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { trackEvent } from "@/lib/analytics";
@@ -20,12 +26,19 @@ import {
     X,
     Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+type ControlAction = "move_left" | "move_right" | "jump" | "slide";
+
+function createSessionId() {
+  return `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export default function GamePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [gameSession, setGameSession] = useState(0);
+  const [sessionId, setSessionId] = useState(createSessionId);
   const [showTutorial, setShowTutorial] = useState(false);
   const [energy, setEnergy] = useState(0);
   const [cloversCollected, setCloversCollected] = useState(0);
@@ -36,6 +49,15 @@ export default function GamePage() {
   >([]);
   const [walletConnected] = useState(false);
   const [hasPlayedBefore, setHasPlayedBefore] = useState(false);
+  const [activeLevel, setActiveLevel] = useState<HyperboreaLevelDefinition | null>(null);
+  const [levelLoadState, setLevelLoadState] = useState<"loading" | "ready" | "fallback">(
+    "loading",
+  );
+  const [levelLoadMessage, setLevelLoadMessage] = useState<string>("");
+  const [artifactFeed, setArtifactFeed] = useState<ArtifactCollectionEvent[]>([]);
+  const [claimFeedback, setClaimFeedback] = useState<string>("");
+
+  const topArtifacts = useMemo(() => artifactFeed.slice(0, 3), [artifactFeed]);
 
   // Check localStorage after mount to avoid SSR/hydration issues
   useEffect(() => {
@@ -45,11 +67,98 @@ export default function GamePage() {
     }
   }, []);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadLevel = async () => {
+      try {
+        const response = await fetch("/levels/level-001.json");
+        if (!response.ok) {
+          throw new Error(`Level request failed (${response.status})`);
+        }
+        const payload = await response.json();
+        if (!isHyperboreaLevelDefinition(payload)) {
+          throw new Error("Level format invalid");
+        }
+
+        if (!isCancelled) {
+          setActiveLevel(payload);
+          setLevelLoadState("ready");
+          setLevelLoadMessage(`Loaded: ${payload.name}`);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          const fallbackLevel = generateDefaultLevel001();
+          setActiveLevel(fallbackLevel);
+          setLevelLoadState("fallback");
+          setLevelLoadMessage(
+            `Using generated fallback level. ${
+              error instanceof Error ? error.message : "Unknown load error"
+            }`,
+          );
+        }
+      }
+    };
+
+    loadLevel();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const emitControlAction = useCallback((action: ControlAction) => {
+    if (typeof window === "undefined") return;
+    if ("vibrate" in navigator) {
+      navigator.vibrate(8);
+    }
+    window.dispatchEvent(
+      new CustomEvent("hyperborea-control", {
+        detail: { action },
+      }),
+    );
+  }, []);
+
+  const handleArtifactCollected = useCallback(
+    async (event: ArtifactCollectionEvent) => {
+      setArtifactFeed((previous) => [event, ...previous].slice(0, 8));
+
+      const tokenConfig = activeLevel?.tokenConfig;
+      if (!tokenConfig?.enabled) return;
+
+      try {
+        const response = await fetch(tokenConfig.claimEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(event),
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result?.ok) {
+          throw new Error(result?.error || "Claim queue failed");
+        }
+
+        setClaimFeedback(
+          `Relic claim queued: ${event.artifactName} (+${event.tokenRewardUnits} ${tokenConfig.l2TokenSymbol})`,
+        );
+      } catch (error) {
+        setClaimFeedback(
+          `Relic captured locally. Queue retry pending (${
+            error instanceof Error ? error.message : "claim queue unavailable"
+          }).`,
+        );
+      }
+    },
+    [activeLevel],
+  );
+
   const handlePlayClick = () => {
     trackEvent.gameStart();
     setIsPlaying(true);
     setIsPaused(false);
     setGameSession((value) => value + 1);
+    setSessionId(createSessionId());
+    setArtifactFeed([]);
+    setClaimFeedback("");
 
     // Show tutorial for first-time players
     if (!hasPlayedBefore) {
@@ -68,6 +177,9 @@ export default function GamePage() {
     setCombo(0);
     setIsPaused(false);
     setGameSession((value) => value + 1);
+    setSessionId(createSessionId());
+    setArtifactFeed([]);
+    setClaimFeedback("");
   };
 
   const handleExit = () => {
@@ -100,6 +212,9 @@ export default function GamePage() {
               setCombo(newCombo);
             }}
             onPowerUpChange={setActivePowerUps}
+            onArtifactCollected={handleArtifactCollected}
+            levelDefinition={activeLevel}
+            sessionId={sessionId}
             isPaused={isPaused}
           />
         </div>
@@ -125,6 +240,41 @@ export default function GamePage() {
         {/* Audio Control */}
         <div className="absolute bottom-4 right-4 pointer-events-auto z-20">
           <GameAudio audioUrl="/hyperborea-ambient.mp3" autoPlay />
+        </div>
+
+        {/* Session + Level Status */}
+        <div className="absolute top-4 right-4 z-20 w-80 max-w-[calc(100vw-1.5rem)] space-y-2 pointer-events-none">
+          {activeLevel && (
+            <div className="rounded-lg border border-emerald-400/40 bg-black/75 p-3 text-xs sm:text-sm text-emerald-200 backdrop-blur">
+              <div className="font-bold text-emerald-300">{activeLevel.name}</div>
+              <div className="text-emerald-100/80">
+                Zelda-like puzzle route: {activeLevel.puzzleNodes.length} nodes | Relics:{" "}
+                {activeLevel.artifacts.length}
+              </div>
+              <div className="text-emerald-100/70">
+                L2/Web5 queue: {activeLevel.tokenConfig.l2TokenSymbol} on {activeLevel.tokenConfig.l2Network}
+              </div>
+            </div>
+          )}
+
+          {topArtifacts.map((artifact) => (
+            <div
+              key={artifact.eventId}
+              className="rounded-lg border border-cyan-400/40 bg-black/80 p-2 text-xs text-cyan-100 backdrop-blur"
+            >
+              <div className="font-semibold">{artifact.artifactName}</div>
+              <div>
+                {artifact.pantheon.toUpperCase()} | +{artifact.tokenRewardUnits}{" "}
+                {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+              </div>
+            </div>
+          ))}
+
+          {claimFeedback && (
+            <div className="rounded-lg border border-yellow-400/40 bg-black/80 p-2 text-xs text-yellow-200 backdrop-blur">
+              {claimFeedback}
+            </div>
+          )}
         </div>
 
         {/* Game Controls */}
@@ -155,6 +305,51 @@ export default function GamePage() {
           </button>
         </div>
 
+        {/* Always-visible controls primer */}
+        <div className="absolute top-4 left-4 z-20 hidden sm:block pointer-events-none">
+          <div className="rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-xs text-gray-100 backdrop-blur">
+            <div className="font-bold text-emerald-300">Controls</div>
+            <div>Move: A/D or ← →</div>
+            <div>Jump: W / SPACE / ↑</div>
+            <div>Slide: S / ↓</div>
+            <div className="text-emerald-200">Mobile: Swipe or tap buttons below</div>
+          </div>
+        </div>
+
+        {/* Mobile touch buttons: explicit controls for first-time players */}
+        <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center px-3 sm:hidden pointer-events-none">
+          <div className="pointer-events-auto grid grid-cols-3 gap-2 rounded-xl border border-white/20 bg-black/70 p-3 backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => emitControlAction("move_left")}
+              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
+            >
+              ← Left
+            </button>
+            <button
+              type="button"
+              onClick={() => emitControlAction("jump")}
+              className="rounded-lg bg-emerald-600/90 px-3 py-3 text-white font-semibold"
+            >
+              ↑ Jump
+            </button>
+            <button
+              type="button"
+              onClick={() => emitControlAction("move_right")}
+              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
+            >
+              Right →
+            </button>
+            <button
+              type="button"
+              onClick={() => emitControlAction("slide")}
+              className="col-span-3 rounded-lg bg-pink-600/90 px-3 py-3 text-white font-semibold"
+            >
+              ↓ Slide
+            </button>
+          </div>
+        </div>
+
         {/* Tutorial Overlay */}
         {showTutorial && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-30 pointer-events-auto">
@@ -178,8 +373,8 @@ export default function GamePage() {
                     🎯 Objective
                   </h3>
                   <p className="text-sm sm:text-base">
-                    Collect magical clovers (🍀) to gain energy. Reach 100
-                    energy to unlock the mysterious wormhole portal!
+                    Dodge hazards, collect clovers for energy, and trigger relic
+                    milestones to recover Norse and Celtic artifacts.
                   </p>
                 </div>
 
@@ -202,7 +397,7 @@ export default function GamePage() {
                       <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
                         ↑↓←→
                       </span>
-                      <span>Move your character</span>
+                      <span>Switch lanes</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
@@ -237,14 +432,12 @@ export default function GamePage() {
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
                     <li>Each clover gives you +5 energy</li>
-                    <li>Clovers respawn after 1 second in a new location</li>
+                    <li>Artifacts unlock at score milestones shown in-session</li>
                     <li>
                       Build combos by collecting clovers quickly for bonus
                       points!
                     </li>
-                    <li>
-                      Collect power-ups: ⚡ Speed, 🧲 Magnet, ✨ Double Points
-                    </li>
+                    <li>Collect power-ups: Shield, Magnet, and Double Score</li>
                     <li>
                       Avoid red obstacles - they drain energy and break combos
                     </li>
@@ -402,6 +595,32 @@ export default function GamePage() {
               <span>Mobile & Desktop</span>
             </div>
           </div>
+
+          <div className="mt-6 mx-auto max-w-3xl rounded-xl border border-emerald-500/30 bg-black/40 p-4 text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <div className="text-emerald-300 font-bold">Level Blueprint Status</div>
+                <div className="text-sm text-gray-300">
+                  {levelLoadState === "loading"
+                    ? "Loading puzzle level..."
+                    : levelLoadMessage}
+                </div>
+              </div>
+              <div className="text-xs text-gray-400">
+                {activeLevel
+                  ? `${activeLevel.puzzleNodes.length} puzzle nodes | ${activeLevel.artifacts.length} artifacts`
+                  : "Preparing level data"}
+              </div>
+            </div>
+            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-gray-200">
+              <div className="rounded-md border border-white/15 bg-black/40 p-2">
+                Desktop: A/D or arrows to move lanes, W/Space to jump, S to slide.
+              </div>
+              <div className="rounded-md border border-white/15 bg-black/40 p-2">
+                Mobile: swipe or use on-screen left/jump/right/slide buttons.
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tutorial Modal (when not playing) */}
@@ -428,8 +647,8 @@ export default function GamePage() {
                   </h3>
                   <p className="text-sm sm:text-base">
                     Navigate the Escher-inspired impossible maze and collect
-                    magical clovers (🍀) to gain energy. Reach 100 energy to
-                    unlock the mysterious wormhole portal!
+                    magical clovers while solving shrine gates and relic routes.
+                    Reach 100 energy to unlock the portal path.
                   </p>
                 </div>
 
@@ -452,7 +671,7 @@ export default function GamePage() {
                       <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
                         ↑↓←→
                       </span>
-                      <span>Move your character</span>
+                      <span>Switch lanes</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
@@ -487,14 +706,12 @@ export default function GamePage() {
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
                     <li>Each clover gives you +5 energy</li>
-                    <li>Clovers respawn after 1 second in a new location</li>
+                    <li>Artifacts unlock at score milestones shown in-session</li>
                     <li>
                       Build combos by collecting clovers quickly for bonus
                       points!
                     </li>
-                    <li>
-                      Collect power-ups: ⚡ Speed, 🧲 Magnet, ✨ Double Points
-                    </li>
+                    <li>Collect power-ups: Shield, Magnet, and Double Score</li>
                     <li>
                       Avoid red obstacles - they drain energy and break combos
                     </li>
