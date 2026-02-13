@@ -13,36 +13,22 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Home', href: '/' },
+  { name: 'Crypto Project', href: '/crypto-project' },
+  { name: 'Schedule', href: '/schedule' },
+  { name: 'Pricing', href: '/pricing' },
+  { name: 'Services', href: '/services' },
+  { name: 'About', href: '/about' },
   {
-    name: 'Music',
-    href: '/music',
-    submenu: [
-      { name: 'Guitar Lessons', href: '/music#lessons' },
-      { name: 'Artist Showcase', href: '/music#artists' },
-      { name: 'Token Roadmap', href: '/music#token' },
-    ],
-  },
-  {
-    name: 'Trading',
+    name: 'Ecosystem',
     href: '/dashboard',
     submenu: [
-      { name: 'Dashboard', href: '/dashboard' },
-      { name: 'Community', href: '/dashboard' },
-      { name: 'Livestreams', href: '/dashboard' },
+      { name: 'Trading Dashboard', href: '/dashboard' },
+      { name: 'Hyperborea Game', href: '/game' },
+      { name: 'Music Platform', href: '/music' },
+      { name: 'Portfolio', href: '/portfolio' },
+      { name: 'Blog', href: '/blog' },
     ],
   },
-  {
-    name: 'Services',
-    href: '/services',
-    submenu: [
-      { name: 'Web Development', href: '/services' },
-      { name: 'Tech Support', href: '/services' },
-      { name: 'Marketing', href: '/services' },
-      { name: 'All Services', href: '/services' },
-    ],
-  },
-  { name: 'Portfolio', href: '/portfolio' },
-  { name: 'Blog', href: '/blog' },
 ];
 
 export function ShamrockHeader() {
@@ -88,7 +74,7 @@ export function ShamrockHeader() {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-black/80 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_1px_30px_rgba(0,0,0,0.5)]'
+          ? 'bg-[#02060d]/85 backdrop-blur-xl border-b border-[#4f678e]/35 shadow-[0_1px_30px_rgba(0,0,0,0.5)]'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
@@ -96,11 +82,11 @@ export function ShamrockHeader() {
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl font-bold text-white tracking-tight group-hover:text-[#00F0FF] transition-colors duration-300">
-              Trade
+            <span className="text-xl font-semibold text-white tracking-[0.2em] uppercase group-hover:text-[#8fffb6] transition-colors duration-300">
+              TradeHax
             </span>
-            <span className="text-xl font-bold bg-gradient-to-r from-[#00F0FF] to-[#3B82F6] text-transparent bg-clip-text">
-              Hax
+            <span className="text-sm font-semibold bg-gradient-to-r from-[#00ff41] to-[#8fffb6] text-transparent bg-clip-text uppercase tracking-[0.2em]">
+              AI
             </span>
           </Link>
 
@@ -126,8 +112,8 @@ export function ShamrockHeader() {
                       href={item.href}
                       className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? 'text-[#00F0FF]'
-                          : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                          ? 'text-[#8fffb6]'
+                          : 'text-[#9cadcc] hover:text-white hover:bg-white/[0.04]'
                       }`}
                       onFocus={() => setOpenDropdown(item.name)}
                       onKeyDown={(e) => handleKeyDown(e, item.name)}
@@ -144,14 +130,14 @@ export function ShamrockHeader() {
 
                     {openDropdown === item.name && (
                       <div
-                        className="absolute top-full left-0 mt-1 w-52 bg-[#111111]/95 backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-2xl shadow-black/50 py-1.5 animate-slide-up-fade"
+                        className="absolute top-full left-0 mt-1 w-56 bg-[#05101e]/95 backdrop-blur-xl border border-[#4f678e]/45 rounded-xl shadow-2xl shadow-black/50 py-1.5 animate-slide-up-fade"
                         role="menu"
                       >
                         {item.submenu.map((subitem) => (
                           <Link
                             key={subitem.name}
                             href={subitem.href}
-                            className="block px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/[0.06] transition-all duration-150 mx-1.5 rounded-lg"
+                            className="block px-4 py-2.5 text-sm text-[#9cadcc] hover:text-white hover:bg-white/[0.06] transition-all duration-150 mx-1.5 rounded-lg"
                             role="menuitem"
                           >
                             {subitem.name}
@@ -169,8 +155,8 @@ export function ShamrockHeader() {
                   href={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'text-[#00F0FF]'
-                      : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                      ? 'text-[#8fffb6]'
+                      : 'text-[#9cadcc] hover:text-white hover:bg-white/[0.04]'
                   }`}
                 >
                   {item.name}
@@ -179,11 +165,11 @@ export function ShamrockHeader() {
             })}
           </div>
 
-          {/* Right side — Wallet CTA + Mobile toggle */}
+          {/* Right side - Wallet CTA + Mobile toggle */}
           <div className="flex items-center gap-3">
             <Link
-              href="/dashboard"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[#00F0FF] text-sm font-medium hover:bg-[#00F0FF]/20 hover:border-[#00F0FF]/30 transition-all duration-300"
+              href="/crypto-project"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ff41]/10 border border-[#00ff41]/35 text-[#8fffb6] text-sm font-medium hover:bg-[#00ff41]/20 hover:border-[#00ff41]/55 transition-all duration-300"
             >
               <Wallet className="w-4 h-4" />
               Connect Wallet
@@ -191,7 +177,7 @@ export function ShamrockHeader() {
 
             <button
               type="button"
-              className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.06] transition-all"
+              className="md:hidden p-2 rounded-lg text-[#9cadcc] hover:text-white hover:bg-white/[0.06] transition-all"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -206,7 +192,7 @@ export function ShamrockHeader() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-1 border-t border-white/[0.06] animate-slide-up-fade">
+          <div className="md:hidden py-4 space-y-1 border-t border-[#4f678e]/35 animate-slide-up-fade">
             {navigation.map((item) => {
               const isActive =
                 pathname === item.href ||
@@ -217,8 +203,8 @@ export function ShamrockHeader() {
                     href={item.href}
                     className={`block px-3 py-2.5 rounded-lg text-base font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-[#00F0FF]/10 text-[#00F0FF]'
-                        : 'text-gray-400 hover:bg-white/[0.04] hover:text-white'
+                        ? 'bg-[#00ff41]/10 text-[#8fffb6]'
+                        : 'text-[#9cadcc] hover:bg-white/[0.04] hover:text-white'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -230,7 +216,7 @@ export function ShamrockHeader() {
                         <Link
                           key={subitem.name}
                           href={subitem.href}
-                          className="block px-3 py-2 text-sm text-gray-500 hover:text-white transition-colors"
+                          className="block px-3 py-2 text-sm text-[#8496ba] hover:text-white transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {subitem.name}
@@ -243,10 +229,10 @@ export function ShamrockHeader() {
             })}
 
             {/* Mobile wallet CTA */}
-            <div className="pt-3 mt-3 border-t border-white/[0.06]">
+            <div className="pt-3 mt-3 border-t border-[#4f678e]/35">
               <Link
-                href="/dashboard"
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/20 text-[#00F0FF] text-sm font-medium"
+                href="/crypto-project"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg bg-[#00ff41]/10 border border-[#00ff41]/35 text-[#8fffb6] text-sm font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Wallet className="w-4 h-4" />

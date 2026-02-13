@@ -6,6 +6,10 @@ import {
     WalletProvider,
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import {
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
 import { clusterApiUrl } from "@solana/web3.js";
 import { FC, ReactNode, useMemo } from "react";
 
@@ -33,29 +37,12 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
     return clusterApiUrl(network);
   }, [network]);
 
-  // Attempt to load popular wallet adapters if available; fall back to empty
+  // Configure popular wallet adapters
   const wallets = useMemo(() => {
-    try {
-      // Require at runtime to avoid forcing the dependency for environments that don't need it
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const walletsPkg = require("@solana/wallet-adapter-wallets");
-      const adapters: any[] = [];
-      if (walletsPkg.PhantomWalletAdapter) {
-        adapters.push(new walletsPkg.PhantomWalletAdapter());
-      }
-      if (walletsPkg.SolflareWalletAdapter) {
-        adapters.push(new walletsPkg.SolflareWalletAdapter({ network }));
-      }
-      return adapters;
-    } catch (e) {
-      // No adapters available; continue without wallets
-      // eslint-disable-next-line no-console
-      console.warn(
-        "Wallet adapters not installed; wallet connect disabled.",
-        e,
-      );
-      return [];
-    }
+    return [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter({ network }),
+    ];
   }, [network]);
 
   return (

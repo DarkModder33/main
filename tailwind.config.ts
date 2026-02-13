@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: "class",
@@ -19,7 +20,9 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Montserrat", "system-ui", "sans-serif"],
+        display: ["Orbitron", "Montserrat", "sans-serif"],
+        mystic: ["Cinzel", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,6 +64,13 @@ const config: Config = {
           blue: "#3B82F6",
           purple: "#8B5CF6",
           green: "#00FF41",
+        },
+        matrix: {
+          base: "#050713",
+          panel: "#0A0F1E",
+          grid: "#19253F",
+          glow: "#00FF41",
+          glowSoft: "#8FFFB6",
         },
         hax: {
           dark: "#0A0A0A",
@@ -126,7 +136,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;
 
 export default config;

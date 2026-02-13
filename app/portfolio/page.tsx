@@ -1,5 +1,3 @@
-"use client";
-
 import { EmailCapture } from "@/components/EmailCapture";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";

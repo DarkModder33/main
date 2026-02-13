@@ -125,10 +125,6 @@ export function HyperboreaGame({
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, height);
-    renderer.setSizeAttribute = function (width, height) {
-      this.domElement.width = width;
-      this.domElement.height = height;
-    };
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     currentMount.appendChild(renderer.domElement);

@@ -15,8 +15,11 @@ export function AdSense({ adSlot, adFormat = 'auto', className = '' }: AdSensePr
   useEffect(() => {
     if (adsenseId && typeof window !== 'undefined') {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        const adsWindow = window as Window & {
+          adsbygoogle?: Array<Record<string, unknown>>;
+        };
+        adsWindow.adsbygoogle = adsWindow.adsbygoogle || [];
+        adsWindow.adsbygoogle.push({});
       } catch (err) {
         console.error('AdSense error:', err);
       }

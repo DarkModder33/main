@@ -24,7 +24,6 @@
     "noImplicitAny": false,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false,
-    "suppressImplicitAnyIndexErrors": true,
     "allowUnreachableCode": true,
     "allowUnusedLabels": true,
     "plugins": [
