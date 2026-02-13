@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type {
+  ArtifactCollectionEvent,
+  HyperboreaLevelDefinition,
+} from "@/lib/game/level-types";
 import * as THREE from "three";
 
 interface HyperboreaGameProps {
@@ -8,6 +12,9 @@ interface HyperboreaGameProps {
   onCloverCollect?: (count: number) => void;
   onScoreChange?: (score: number, combo: number) => void;
   onPowerUpChange?: (powerUps: Array<{ type: string; timeLeft: number }>) => void;
+  onArtifactCollected?: (event: ArtifactCollectionEvent) => void;
+  levelDefinition?: HyperboreaLevelDefinition | null;
+  sessionId?: string;
   isPaused?: boolean;
 }
 
@@ -64,6 +71,9 @@ export function HyperboreaGame({
   onCloverCollect,
   onScoreChange,
   onPowerUpChange,
+  onArtifactCollected,
+  levelDefinition,
+  sessionId = "session-local",
   isPaused = false,
 }: HyperboreaGameProps) {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -346,7 +356,8 @@ export function HyperboreaGame({
       trackSegments.push(createTrackSegment(-i * 12));
     }
 
-    let gameSpeed = 0.18;
+    const baseSpeed = levelDefinition?.spawnProfile.baseSpeed ?? 0.18;
+    let gameSpeed = baseSpeed;
     let distance = 0;
     let score = 0;
     let runesCollected = 0;
@@ -367,9 +378,13 @@ export function HyperboreaGame({
     let hasDouble = false;
 
     let lastSpawnZ = -60;
-    const spawnInterval = isMobile ? 20 : 18;
+    const spawnInterval = levelDefinition?.spawnProfile.spawnInterval ?? (isMobile ? 20 : 18);
     const obstacleTypes: ObstacleType[] = ["icespike", "frostwall", "lowbarrier"];
     const powerUpTypes: PowerUpType[] = ["odins_shield", "thors_magnet", "freyas_double"];
+    const artifactQueue = [...(levelDefinition?.artifacts ?? [])];
+    const artifactMilestones = levelDefinition?.spawnProfile.artifactMilestones ?? [];
+    let artifactMilestoneIndex = 0;
+    const obstacleBias = levelDefinition?.spawnProfile.obstacleBias;
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -386,6 +401,73 @@ export function HyperboreaGame({
       }
     };
 
+    const emitArtifactCollected = () => {
+      if (!onArtifactCollected || artifactQueue.length === 0) return;
+      const milestone =
+        artifactMilestones[artifactMilestoneIndex] ?? 120 + artifactMilestoneIndex * 220;
+      if (score < milestone) return;
+
+      const artifact = artifactQueue.shift();
+      if (!artifact) return;
+
+      const event: ArtifactCollectionEvent = {
+        eventId: `${sessionId}-${artifact.id}-${Date.now()}-${artifactMilestoneIndex}`,
+        sessionId,
+        levelId: levelDefinition?.id ?? "endless-labyrinth",
+        artifactId: artifact.id,
+        artifactName: artifact.name,
+        pantheon: artifact.pantheon,
+        rarity: artifact.rarity,
+        playerScore: score,
+        combo,
+        tokenRewardUnits: artifact.tokenRewardUnits,
+        claimEndpoint: levelDefinition?.tokenConfig.claimEndpoint ?? "/api/game/claim-artifact",
+        web5Collection: levelDefinition?.tokenConfig.web5Collection ?? "hyperborea/relic-claims",
+        collectedAt: new Date().toISOString(),
+      };
+
+      onArtifactCollected(event);
+      artifactMilestoneIndex += 1;
+    };
+
+    const selectObstacleType = (): ObstacleType => {
+      if (!obstacleBias) {
+        return obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+      }
+
+      const weightedEntries: Array<{ type: ObstacleType; weight: number }> = [
+        { type: "icespike", weight: Math.max(obstacleBias.icespike, 0.01) },
+        { type: "frostwall", weight: Math.max(obstacleBias.frostwall, 0.01) },
+        { type: "lowbarrier", weight: Math.max(obstacleBias.lowbarrier, 0.01) },
+      ];
+      const totalWeight = weightedEntries.reduce((sum, entry) => sum + entry.weight, 0);
+      let roll = Math.random() * totalWeight;
+      for (const entry of weightedEntries) {
+        roll -= entry.weight;
+        if (roll <= 0) return entry.type;
+      }
+      return weightedEntries[weightedEntries.length - 1].type;
+    };
+
+    const applyControlAction = (action: "move_left" | "move_right" | "jump" | "slide") => {
+      if (isDead) return;
+
+      if (action === "move_left" && currentLane > 0) {
+        currentLane--;
+      }
+      if (action === "move_right" && currentLane < 2) {
+        currentLane++;
+      }
+      if (action === "jump" && !isJumping && !isSliding) {
+        isJumping = true;
+        jumpVelocity = 0.3;
+      }
+      if (action === "slide" && !isJumping && !isSliding) {
+        isSliding = true;
+        slideTimer = 25;
+      }
+    };
+
     const spawnObjects = () => {
       if (trackSegments.length === 0) return;
       const nearestTrack = trackSegments[trackSegments.length - 1].zPosition;
@@ -396,7 +478,7 @@ export function HyperboreaGame({
 
       if (pattern < 0.6) {
         const lane = Math.floor(Math.random() * 3);
-        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        const type = selectObstacleType();
         obstacles.push(createObstacle(lastSpawnZ, lane, type));
       }
 
@@ -440,23 +522,22 @@ export function HyperboreaGame({
         event.preventDefault();
       }
 
-      if ((event.key === "ArrowLeft" || event.key === "a") && currentLane > 0) {
-        currentLane--;
+      if (event.key === "ArrowLeft" || event.key === "a") {
+        applyControlAction("move_left");
       }
-      if ((event.key === "ArrowRight" || event.key === "d") && currentLane < 2) {
-        currentLane++;
+      if (event.key === "ArrowRight" || event.key === "d") {
+        applyControlAction("move_right");
       }
       if (
-        (event.key === "ArrowUp" || event.key === "w" || event.key === " " || event.code === "Space") &&
-        !isJumping &&
-        !isSliding
+        event.key === "ArrowUp" ||
+        event.key === "w" ||
+        event.key === " " ||
+        event.code === "Space"
       ) {
-        isJumping = true;
-        jumpVelocity = 0.3;
+        applyControlAction("jump");
       }
-      if ((event.key === "ArrowDown" || event.key === "s") && !isJumping && !isSliding) {
-        isSliding = true;
-        slideTimer = 25;
+      if (event.key === "ArrowDown" || event.key === "s") {
+        applyControlAction("slide");
       }
     };
 
@@ -487,19 +568,22 @@ export function HyperboreaGame({
       const deltaY = touchEndY - touchStartY;
 
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 40 && currentLane < 2) currentLane++;
-        if (deltaX < -40 && currentLane > 0) currentLane--;
+        if (deltaX > 40) applyControlAction("move_right");
+        if (deltaX < -40) applyControlAction("move_left");
         return;
       }
 
-      if (deltaY < -40 && !isJumping && !isSliding) {
-        isJumping = true;
-        jumpVelocity = 0.3;
-      }
-      if (deltaY > 40 && !isJumping && !isSliding) {
-        isSliding = true;
-        slideTimer = 25;
-      }
+      if (deltaY < -40) applyControlAction("jump");
+      if (deltaY > 40) applyControlAction("slide");
+    };
+
+    const handleExternalControl = (event: Event) => {
+      const controlEvent = event as CustomEvent<{
+        action?: "move_left" | "move_right" | "jump" | "slide";
+      }>;
+      const action = controlEvent.detail?.action;
+      if (!action) return;
+      applyControlAction(action);
     };
 
     const handleResize = () => {
@@ -515,12 +599,13 @@ export function HyperboreaGame({
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("resize", handleResize);
+    window.addEventListener("hyperborea-control", handleExternalControl as EventListener);
     currentMount.addEventListener("touchstart", handleTouchStart, { passive: true });
     currentMount.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     const stepSimulation = () => {
       frameCount++;
-      gameSpeed = 0.18 + Math.min(distance * 0.000008, 0.15);
+      gameSpeed = baseSpeed + Math.min(distance * 0.000008, 0.15);
       distance += gameSpeed;
 
       const targetX = lanes[currentLane];
@@ -652,6 +737,7 @@ export function HyperboreaGame({
               updateEnergy(energy + 5);
               onCloverCollect?.(runesCollected);
               onScoreChange?.(score, combo);
+              emitArtifactCollected();
             }
           }
         }
@@ -781,6 +867,7 @@ export function HyperboreaGame({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("hyperborea-control", handleExternalControl as EventListener);
       currentMount.removeEventListener("touchstart", handleTouchStart);
       currentMount.removeEventListener("touchend", handleTouchEnd);
 
@@ -811,7 +898,15 @@ export function HyperboreaGame({
         currentMount.removeChild(renderer.domElement);
       }
     };
-  }, [onCloverCollect, onEnergyChange, onPowerUpChange, onScoreChange]);
+  }, [
+    levelDefinition,
+    onArtifactCollected,
+    onCloverCollect,
+    onEnergyChange,
+    onPowerUpChange,
+    onScoreChange,
+    sessionId,
+  ]);
 
   return (
     <div
