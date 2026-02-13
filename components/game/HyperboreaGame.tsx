@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { generateDefaultLevel001 } from "@/lib/game/level-generator";
 import type {
   ArtifactCollectionEvent,
   HyperboreaLevelDefinition,
+  LevelArtifact,
+  LevelPuzzleNode,
 } from "@/lib/game/level-types";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 interface HyperboreaGameProps {
@@ -13,46 +16,30 @@ interface HyperboreaGameProps {
   onScoreChange?: (score: number, combo: number) => void;
   onPowerUpChange?: (powerUps: Array<{ type: string; timeLeft: number }>) => void;
   onArtifactCollected?: (event: ArtifactCollectionEvent) => void;
+  onStatusChange?: (message: string) => void;
   levelDefinition?: HyperboreaLevelDefinition | null;
   sessionId?: string;
   isPaused?: boolean;
 }
 
-type PowerUpType = "odins_shield" | "thors_magnet" | "freyas_double";
-type ObstacleType = "icespike" | "frostwall" | "lowbarrier";
+type ControlAction = "forward" | "backward" | "turn_left" | "turn_right" | "use";
 
-interface TrackSegment {
-  mesh: THREE.Mesh;
-  zPosition: number;
-  decorations: THREE.Mesh[];
+interface ExternalControlDetail {
+  action?: ControlAction;
+  pressed?: boolean;
 }
 
-interface Obstacle {
+interface ArtifactInstance {
+  data: LevelArtifact;
   mesh: THREE.Mesh;
-  lane: number;
-  zPosition: number;
-  type: ObstacleType;
-}
-
-interface Collectible {
-  mesh: THREE.Mesh;
-  lane: number;
-  zPosition: number;
   collected: boolean;
 }
 
-interface PowerUp {
+interface PuzzleInstance {
+  data: LevelPuzzleNode;
   mesh: THREE.Mesh;
-  lane: number;
-  zPosition: number;
-  type: PowerUpType;
-  collected: boolean;
-}
-
-interface TrailParticle {
-  mesh: THREE.Mesh;
-  velocity: THREE.Vector3;
-  life: number;
+  activated: boolean;
+  blockedCellKey?: string;
 }
 
 function isTexture(value: unknown): value is THREE.Texture {
@@ -64,14 +51,28 @@ function isTexture(value: unknown): value is THREE.Texture {
   );
 }
 
-// NORDIC/CELTIC HYPERBOREA ENDLESS RUNNER
-// Temple Run inspired runner with Norse + cyberpunk art direction
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function cellKey(x: number, y: number) {
+  return `${x},${y}`;
+}
+
+const FALLBACK_LEVEL = generateDefaultLevel001();
+const CELL_SIZE = 4;
+const WALL_HEIGHT = 3.5;
+const PLAYER_RADIUS = 0.38;
+const EYE_HEIGHT = 1.5;
+const INTERACT_DISTANCE = 2.7;
+
 export function HyperboreaGame({
   onEnergyChange,
   onCloverCollect,
   onScoreChange,
   onPowerUpChange,
   onArtifactCollected,
+  onStatusChange,
   levelDefinition,
   sessionId = "session-local",
   isPaused = false,
@@ -88,33 +89,31 @@ export function HyperboreaGame({
     if (!currentMount) return;
     if (!currentMount.clientWidth || !currentMount.clientHeight) return;
 
+    const activeLevel = levelDefinition ?? FALLBACK_LEVEL;
+    const layout = activeLevel.layout;
+    const gridHeight = layout.length;
+    const gridWidth = layout[0]?.length ?? 0;
+    if (gridWidth === 0 || gridHeight === 0) return;
+
     let isMounted = true;
     let animationFrameId = 0;
 
     const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     const isSmallViewport = window.matchMedia("(max-width: 900px)").matches;
     const isMobile = isTouchDevice || isSmallViewport;
+    const maxDpr = isMobile ? 1.5 : 2;
 
-    // Improve mobile controls and prevent browser gesture conflict while playing.
     currentMount.style.touchAction = "none";
     currentMount.style.overscrollBehavior = "none";
 
-    const maxDpr = isMobile ? 1.5 : 2;
     const initialWidth = Math.max(currentMount.clientWidth, 1);
     const initialHeight = Math.max(currentMount.clientHeight, 1);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0520);
-    scene.fog = new THREE.FogExp2(0x0a0520, 0.015);
+    scene.background = new THREE.Color(activeLevel.theme.fogColor || 0x0a0520);
+    scene.fog = new THREE.FogExp2(new THREE.Color(activeLevel.theme.fogColor || 0x0a0520), 0.03);
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      initialWidth / initialHeight,
-      0.1,
-      1000,
-    );
-    camera.position.set(0, 5, 10);
-    camera.lookAt(0, 2, 0);
+    const camera = new THREE.PerspectiveCamera(78, initialWidth / initialHeight, 0.1, 400);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !isMobile,
@@ -128,472 +127,567 @@ export function HyperboreaGame({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     currentMount.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0x4060ff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0x5577aa, 0.55);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0x80c0ff, 0.8);
-    directionalLight.position.set(10, 20, 10);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = isMobile ? 1024 : 2048;
-    directionalLight.shadow.mapSize.height = isMobile ? 1024 : 2048;
-    scene.add(directionalLight);
+    const moonLight = new THREE.DirectionalLight(0x99bbff, 0.75);
+    moonLight.position.set(10, 22, 10);
+    moonLight.castShadow = true;
+    moonLight.shadow.mapSize.width = isMobile ? 1024 : 2048;
+    moonLight.shadow.mapSize.height = isMobile ? 1024 : 2048;
+    scene.add(moonLight);
 
-    const rimLight1 = new THREE.PointLight(0x00ffaa, 0.6, 50);
-    rimLight1.position.set(-15, 8, -20);
-    scene.add(rimLight1);
+    const mysticLight = new THREE.PointLight(0x00ffaa, 0.7, 55);
+    mysticLight.position.set(-8, 3.2, -6);
+    scene.add(mysticLight);
 
-    const rimLight2 = new THREE.PointLight(0xff00aa, 0.6, 50);
-    rimLight2.position.set(15, 8, -20);
-    scene.add(rimLight2);
+    const portalLight = new THREE.PointLight(0x77ccff, 0.4, 45);
+    portalLight.position.set(8, 2.6, 7);
+    scene.add(portalLight);
 
-    const LANE_WIDTH = 3.5;
-    const lanes = [-LANE_WIDTH, 0, LANE_WIDTH];
-    let currentLane = 1;
-
-    const playerGeometry = new THREE.CapsuleGeometry(0.4, 1.2, 8, 16);
-    const playerMaterial = new THREE.MeshStandardMaterial({
-      color: 0x00e0ff,
-      emissive: 0x00e0ff,
-      emissiveIntensity: 0.5,
-      roughness: 0.3,
-      metalness: 0.7,
+    const gridToWorld = (x: number, y: number) => ({
+      x: (x - gridWidth / 2 + 0.5) * CELL_SIZE,
+      z: (y - gridHeight / 2 + 0.5) * CELL_SIZE,
     });
-    const player = new THREE.Mesh(playerGeometry, playerMaterial);
-    player.position.set(lanes[currentLane], 1.2, 0);
-    player.castShadow = true;
-    scene.add(player);
 
-    const auraGeometry = new THREE.SphereGeometry(0.7, 16, 16);
-    const auraMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
-      transparent: true,
-      opacity: 0.2,
-      side: THREE.BackSide,
+    const worldToGrid = (x: number, z: number) => ({
+      x: Math.floor(x / CELL_SIZE + gridWidth / 2),
+      y: Math.floor(z / CELL_SIZE + gridHeight / 2),
     });
-    const aura = new THREE.Mesh(auraGeometry, auraMaterial);
-    player.add(aura);
 
-    const trackSegments: TrackSegment[] = [];
-    const obstacles: Obstacle[] = [];
-    const collectibles: Collectible[] = [];
-    const powerUps: PowerUp[] = [];
-    const trailParticles: TrailParticle[] = [];
-    const maxTrailParticles = isMobile ? 40 : 80;
+    const isInsideGrid = (x: number, y: number) => x >= 0 && y >= 0 && x < gridWidth && y < gridHeight;
+    const isWallCell = (x: number, y: number) => !isInsideGrid(x, y) || layout[y][x] === "#";
 
-    const createRuneParticle = (position: THREE.Vector3) => {
-      if (trailParticles.length >= maxTrailParticles) {
-        const oldest = trailParticles.shift();
-        if (oldest) {
-          scene.remove(oldest.mesh);
-          oldest.mesh.geometry.dispose();
-          (oldest.mesh.material as THREE.Material).dispose();
-        }
+    const blockedCells = new Set<string>();
+    const collectedArtifactIds = new Set<string>();
+    const activatedPuzzleIds = new Set<string>();
+
+    const floorGeometry = new THREE.PlaneGeometry(gridWidth * CELL_SIZE, gridHeight * CELL_SIZE);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x10233a,
+      roughness: 0.85,
+      metalness: 0.1,
+    });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const ceilingGeometry = new THREE.PlaneGeometry(gridWidth * CELL_SIZE, gridHeight * CELL_SIZE);
+    const ceilingMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0d1321,
+      roughness: 0.65,
+      metalness: 0.25,
+      side: THREE.DoubleSide,
+    });
+    const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = WALL_HEIGHT;
+    ceiling.receiveShadow = false;
+    scene.add(ceiling);
+
+    const wallGeometry = new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE);
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: 0x1f2e4a,
+      roughness: 0.62,
+      metalness: 0.25,
+      emissive: 0x060b16,
+      emissiveIntensity: 0.25,
+    });
+
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < gridWidth; x++) {
+        if (layout[y][x] !== "#") continue;
+        const position = gridToWorld(x, y);
+        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+        wall.position.set(position.x, WALL_HEIGHT / 2, position.z);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
+        scene.add(wall);
       }
-
-      const particleGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.15);
-      const particleMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00ffff,
-        transparent: true,
-        opacity: 0.8,
-      });
-      const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-      particle.position.copy(position);
-
-      const velocity = new THREE.Vector3(
-        (Math.random() - 0.5) * 0.1,
-        Math.random() * 0.1,
-        Math.random() * 0.2,
-      );
-
-      scene.add(particle);
-      trailParticles.push({ mesh: particle, velocity, life: 1.0 });
-    };
-
-    const createTrackSegment = (zPos: number): TrackSegment => {
-      const trackGeometry = new THREE.BoxGeometry(12, 0.3, 12);
-      const trackMaterial = new THREE.MeshStandardMaterial({
-        color: 0x1a2550,
-        roughness: 0.2,
-        metalness: 0.8,
-        emissive: 0x0a1530,
-        emissiveIntensity: 0.3,
-      });
-      const track = new THREE.Mesh(trackGeometry, trackMaterial);
-      track.position.set(0, 0, zPos);
-      track.receiveShadow = true;
-      track.castShadow = true;
-      scene.add(track);
-
-      const decorations: THREE.Mesh[] = [];
-
-      for (const side of [-5.5, 5.5]) {
-        const pillarGeometry = new THREE.CylinderGeometry(0.2, 0.3, 2, 8);
-        const pillarMaterial = new THREE.MeshStandardMaterial({
-          color: 0x3060a0,
-          emissive: 0x2050ff,
-          emissiveIntensity: 0.4,
-        });
-        const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
-        pillar.position.set(side, 1, zPos);
-        scene.add(pillar);
-        decorations.push(pillar);
-      }
-
-      if (Math.random() < 0.3) {
-        const crystalGeometry = new THREE.OctahedronGeometry(0.3);
-        const crystalMaterial = new THREE.MeshStandardMaterial({
-          color: 0x00ffaa,
-          emissive: 0x00ffaa,
-          emissiveIntensity: 1.0,
-        });
-        const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
-        crystal.position.set((Math.random() - 0.5) * 8, 2 + Math.random(), zPos - 5);
-        scene.add(crystal);
-        decorations.push(crystal);
-      }
-
-      return { mesh: track, zPosition: zPos, decorations };
-    };
-
-    const createObstacle = (
-      zPos: number,
-      lane: number,
-      type: ObstacleType,
-    ): Obstacle => {
-      let geometry: THREE.BufferGeometry;
-      let yPos = 0;
-
-      if (type === "icespike") {
-        geometry = new THREE.ConeGeometry(0.6, 2, 8);
-        yPos = 1;
-      } else if (type === "frostwall") {
-        geometry = new THREE.BoxGeometry(2, 2, 0.6);
-        yPos = 1;
-      } else {
-        geometry = new THREE.BoxGeometry(2, 0.5, 0.8);
-        yPos = 0.25;
-      }
-
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xff3060,
-        emissive: 0xff0040,
-        emissiveIntensity: 0.6,
-        roughness: 0.4,
-        metalness: 0.6,
-      });
-
-      const obstacleMesh = new THREE.Mesh(geometry, material);
-      obstacleMesh.position.set(lanes[lane], yPos, zPos);
-      obstacleMesh.castShadow = true;
-      scene.add(obstacleMesh);
-
-      return { mesh: obstacleMesh, lane, zPosition: zPos, type };
-    };
-
-    const createCollectible = (zPos: number, lane: number): Collectible => {
-      const geometry = new THREE.TorusKnotGeometry(0.25, 0.08, 32, 8);
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xffdd00,
-        emissive: 0xffdd00,
-        emissiveIntensity: 1.2,
-        roughness: 0.2,
-        metalness: 0.9,
-      });
-      const rune = new THREE.Mesh(geometry, material);
-      rune.position.set(lanes[lane], 1.5, zPos);
-      scene.add(rune);
-      return { mesh: rune, lane, zPosition: zPos, collected: false };
-    };
-
-    const createPowerUp = (
-      zPos: number,
-      lane: number,
-      type: PowerUpType,
-    ): PowerUp => {
-      const geometry = new THREE.IcosahedronGeometry(0.5, 0);
-      const colors: Record<PowerUpType, number> = {
-        odins_shield: 0x00ddff,
-        thors_magnet: 0xff00ff,
-        freyas_double: 0xff8800,
-      };
-      const material = new THREE.MeshStandardMaterial({
-        color: colors[type],
-        emissive: colors[type],
-        emissiveIntensity: 1.5,
-        roughness: 0,
-        metalness: 1,
-      });
-      const powerUpMesh = new THREE.Mesh(geometry, material);
-      powerUpMesh.position.set(lanes[lane], 2, zPos);
-      scene.add(powerUpMesh);
-      return { mesh: powerUpMesh, lane, zPosition: zPos, type, collected: false };
-    };
-
-    const emitPowerUps = (active: Array<{ type: PowerUpType; timeLeft: number }>) => {
-      onPowerUpChange?.(
-        active.map((value) => ({
-          type: value.type,
-          timeLeft: value.timeLeft,
-        })),
-      );
-    };
-
-    const getClosestLane = () => {
-      let bestIndex = 0;
-      let bestDistance = Number.POSITIVE_INFINITY;
-      for (let i = 0; i < lanes.length; i++) {
-        const distance = Math.abs(player.position.x - lanes[i]);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          bestIndex = i;
-        }
-      }
-      return bestIndex;
-    };
-
-    const initialTrackSegments = isMobile ? 18 : 25;
-    for (let i = 0; i < initialTrackSegments; i++) {
-      trackSegments.push(createTrackSegment(-i * 12));
     }
 
-    const baseSpeed = levelDefinition?.spawnProfile.baseSpeed ?? 0.18;
-    let gameSpeed = baseSpeed;
-    let distance = 0;
+    const puzzleColorMap: Record<string, number> = {
+      key: 0xffd166,
+      lock: 0xff6677,
+      switch: 0xff9f1c,
+      pressure_plate: 0x76c893,
+      rune_gate: 0x8a5cf6,
+      artifact_pedestal: 0x00d4ff,
+      secret_wall: 0x8f6d54,
+    };
+
+    const puzzleInstances: PuzzleInstance[] = [];
+    for (const node of activeLevel.puzzleNodes) {
+      let geometry: THREE.BufferGeometry;
+      let y = 1.0;
+
+      if (node.kind === "pressure_plate") {
+        geometry = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 24);
+        y = 0.11;
+      } else if (node.kind === "key") {
+        geometry = new THREE.TetrahedronGeometry(0.5);
+        y = 1.1;
+      } else if (node.kind === "lock") {
+        geometry = new THREE.BoxGeometry(1.6, 2.4, 0.5);
+        y = 1.2;
+      } else if (node.kind === "rune_gate") {
+        geometry = new THREE.OctahedronGeometry(0.9);
+        y = 1.45;
+      } else if (node.kind === "artifact_pedestal") {
+        geometry = new THREE.CylinderGeometry(0.65, 0.85, 1.2, 20);
+        y = 0.6;
+      } else if (node.kind === "secret_wall") {
+        geometry = new THREE.BoxGeometry(1.7, 2.2, 0.45);
+        y = 1.1;
+      } else {
+        geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+        y = 0.9;
+      }
+
+      const material = new THREE.MeshStandardMaterial({
+        color: puzzleColorMap[node.kind] ?? 0xffffff,
+        emissive: puzzleColorMap[node.kind] ?? 0xffffff,
+        emissiveIntensity: 0.35,
+        roughness: 0.35,
+        metalness: 0.65,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      const world = gridToWorld(node.position.x, node.position.y);
+      mesh.position.set(world.x, y, world.z);
+      mesh.castShadow = true;
+      scene.add(mesh);
+
+      let blockedCellKey: string | undefined;
+      if (node.kind === "lock" || node.kind === "rune_gate") {
+        blockedCellKey = cellKey(node.position.x, node.position.y);
+        blockedCells.add(blockedCellKey);
+      }
+
+      puzzleInstances.push({
+        data: node,
+        mesh,
+        activated: false,
+        blockedCellKey,
+      });
+    }
+
+    const rarityColorMap: Record<string, number> = {
+      common: 0x7bffb2,
+      rare: 0x5bc0ff,
+      epic: 0xd77bff,
+      mythic: 0xffb86b,
+    };
+    const artifactInstances: ArtifactInstance[] = [];
+    for (const artifact of activeLevel.artifacts) {
+      const geometry = new THREE.DodecahedronGeometry(0.46);
+      const color = rarityColorMap[artifact.rarity] ?? 0xffffff;
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 0.95,
+        roughness: 0.22,
+        metalness: 0.84,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      const world = gridToWorld(artifact.position.x, artifact.position.y);
+      mesh.position.set(world.x, 1.1, world.z);
+      mesh.castShadow = true;
+      scene.add(mesh);
+      artifactInstances.push({ data: artifact, mesh, collected: false });
+    }
+
+    const exitWorld = gridToWorld(activeLevel.exit.x, activeLevel.exit.y);
+    const portalGeometry = new THREE.TorusGeometry(1.08, 0.16, 18, 48);
+    const portalMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff6688,
+      emissive: 0xff6688,
+      emissiveIntensity: 0.42,
+      roughness: 0.1,
+      metalness: 0.9,
+    });
+    const portalMesh = new THREE.Mesh(portalGeometry, portalMaterial);
+    portalMesh.position.set(exitWorld.x, 1.4, exitWorld.z);
+    portalMesh.rotation.x = Math.PI / 2;
+    scene.add(portalMesh);
+
+    const startWorld = gridToWorld(activeLevel.start.x, activeLevel.start.y);
+    let playerX = startWorld.x;
+    let playerZ = startWorld.z;
+    let playerYaw = Math.atan2(exitWorld.x - startWorld.x, exitWorld.z - startWorld.z);
+    let bobTimer = 0;
+
+    let energy = 25;
     let score = 0;
-    let runesCollected = 0;
+    let relicsCollected = 0;
     let combo = 0;
     let comboTimer = 0;
-    let energy = 0;
-    let isJumping = false;
-    let jumpVelocity = 0;
-    let isSliding = false;
-    let slideTimer = 0;
-    let isDead = false;
-    let hasEmittedGameOver = false;
-    let frameCount = 0;
+    let energyDecayClock = 0;
+    let exitUnlocked = false;
+    let missionComplete = false;
 
-    const activePowerUps: Array<{ type: PowerUpType; timeLeft: number }> = [];
-    let hasShield = false;
-    let hasMagnet = false;
-    let hasDouble = false;
+    const keyState: Record<string, boolean> = {};
+    const virtualControlState: Record<ControlAction, boolean> = {
+      forward: false,
+      backward: false,
+      turn_left: false,
+      turn_right: false,
+      use: false,
+    };
 
-    let lastSpawnZ = -60;
-    const spawnInterval = levelDefinition?.spawnProfile.spawnInterval ?? (isMobile ? 20 : 18);
-    const obstacleTypes: ObstacleType[] = ["icespike", "frostwall", "lowbarrier"];
-    const powerUpTypes: PowerUpType[] = ["odins_shield", "thors_magnet", "freyas_double"];
-    const artifactQueue = [...(levelDefinition?.artifacts ?? [])];
-    const artifactMilestones = levelDefinition?.spawnProfile.artifactMilestones ?? [];
-    let artifactMilestoneIndex = 0;
-    const obstacleBias = levelDefinition?.spawnProfile.obstacleBias;
+    let touchRotating = false;
+    let touchLastX = 0;
+    let swipeStartX = 0;
+    let swipeStartY = 0;
 
-    let touchStartX = 0;
-    let touchStartY = 0;
+    const simulationClock = new THREE.Clock();
     let simulationAccumulator = 0;
     const fixedStepSeconds = 1 / 60;
-    const maxSubSteps = 3;
-    const simulationClock = new THREE.Clock();
+    const maxSubSteps = 4;
+    let simulationFrame = 0;
+    let lastScoreSent = Number.NaN;
+    let lastComboSent = Number.NaN;
+
+    const emitStatus = (message: string) => {
+      onStatusChange?.(message);
+    };
+
+    const emitScore = (force = false) => {
+      const roundedScore = Math.round(score);
+      if (!force && roundedScore === lastScoreSent && combo === lastComboSent) {
+        return;
+      }
+      lastScoreSent = roundedScore;
+      lastComboSent = combo;
+      onScoreChange?.(roundedScore, combo);
+    };
+
+    const emitRelics = () => {
+      onCloverCollect?.(relicsCollected);
+    };
 
     const updateEnergy = (nextValue: number) => {
-      const normalized = Math.max(0, Math.min(100, Math.round(nextValue)));
+      const normalized = clamp(Math.round(nextValue), 0, 100);
       if (normalized !== energy) {
         energy = normalized;
         onEnergyChange?.(energy);
       }
     };
 
-    const emitArtifactCollected = () => {
-      if (!onArtifactCollected || artifactQueue.length === 0) return;
-      const milestone =
-        artifactMilestones[artifactMilestoneIndex] ?? 120 + artifactMilestoneIndex * 220;
-      if (score < milestone) return;
+    const requirementSatisfied = (id: string) =>
+      activatedPuzzleIds.has(id) || collectedArtifactIds.has(id);
 
-      const artifact = artifactQueue.shift();
-      if (!artifact) return;
+    const requirementsMet = (requirements?: string[]) =>
+      !requirements || requirements.every(requirementSatisfied);
 
+    const canOccupy = (worldX: number, worldZ: number) => {
+      const offsets: Array<[number, number]> = [
+        [0, 0],
+        [PLAYER_RADIUS, 0],
+        [-PLAYER_RADIUS, 0],
+        [0, PLAYER_RADIUS],
+        [0, -PLAYER_RADIUS],
+        [PLAYER_RADIUS * 0.7, PLAYER_RADIUS * 0.7],
+        [PLAYER_RADIUS * 0.7, -PLAYER_RADIUS * 0.7],
+        [-PLAYER_RADIUS * 0.7, PLAYER_RADIUS * 0.7],
+        [-PLAYER_RADIUS * 0.7, -PLAYER_RADIUS * 0.7],
+      ];
+
+      for (const [dx, dz] of offsets) {
+        const grid = worldToGrid(worldX + dx, worldZ + dz);
+        if (isWallCell(grid.x, grid.y)) return false;
+        if (blockedCells.has(cellKey(grid.x, grid.y))) return false;
+      }
+
+      return true;
+    };
+
+    const setPortalState = (unlocked: boolean) => {
+      if (unlocked) {
+        portalMaterial.color.set(0x66e0ff);
+        portalMaterial.emissive.set(0x66e0ff);
+        portalMaterial.emissiveIntensity = 0.95;
+        portalLight.intensity = 1.1;
+      } else {
+        portalMaterial.color.set(0xff6688);
+        portalMaterial.emissive.set(0xff6688);
+        portalMaterial.emissiveIntensity = 0.42;
+        portalLight.intensity = 0.4;
+      }
+    };
+
+    const maybeUnlockExit = () => {
+      if (exitUnlocked) return;
+      const pedestalNodes = puzzleInstances.filter(
+        (instance) => instance.data.kind === "artifact_pedestal",
+      );
+      const pedestalReady =
+        pedestalNodes.length === 0 || pedestalNodes.every((instance) => instance.activated);
+      const requiredRelics = Math.min(3, artifactInstances.length);
+
+      if (pedestalReady && collectedArtifactIds.size >= requiredRelics) {
+        exitUnlocked = true;
+        setPortalState(true);
+        emitStatus("Astral portal unlocked. Reach the exit ring and press Use.");
+      }
+    };
+
+    const activatePuzzle = (instance: PuzzleInstance, fromAuto = false) => {
+      if (instance.activated) return;
+
+      if (!requirementsMet(instance.data.requires)) {
+        if (!fromAuto) {
+          emitStatus(`Locked: ${instance.data.label}. Solve prerequisites first.`);
+        }
+        return;
+      }
+
+      instance.activated = true;
+      activatedPuzzleIds.add(instance.data.id);
+
+      const material = instance.mesh.material as THREE.MeshStandardMaterial;
+      material.color.set(0x32ffb4);
+      material.emissive.set(0x32ffb4);
+      material.emissiveIntensity = 0.7;
+      instance.mesh.scale.set(1.08, 1.08, 1.08);
+
+      if (instance.blockedCellKey) {
+        blockedCells.delete(instance.blockedCellKey);
+      }
+
+      score += 45;
+      combo += 1;
+      comboTimer = 240;
+      updateEnergy(energy + 8);
+      emitScore(true);
+      emitStatus(`${instance.data.label} activated.`);
+      maybeUnlockExit();
+    };
+
+    const emitArtifactEvent = (artifact: LevelArtifact) => {
+      if (!onArtifactCollected) return;
       const event: ArtifactCollectionEvent = {
-        eventId: `${sessionId}-${artifact.id}-${Date.now()}-${artifactMilestoneIndex}`,
+        eventId: `${sessionId}-${artifact.id}-${Date.now()}`,
         sessionId,
-        levelId: levelDefinition?.id ?? "endless-labyrinth",
+        levelId: activeLevel.id,
         artifactId: artifact.id,
         artifactName: artifact.name,
         pantheon: artifact.pantheon,
         rarity: artifact.rarity,
-        playerScore: score,
+        playerScore: Math.round(score),
         combo,
         tokenRewardUnits: artifact.tokenRewardUnits,
-        claimEndpoint: levelDefinition?.tokenConfig.claimEndpoint ?? "/api/game/claim-artifact",
-        web5Collection: levelDefinition?.tokenConfig.web5Collection ?? "hyperborea/relic-claims",
+        claimEndpoint: activeLevel.tokenConfig.claimEndpoint,
+        web5Collection: activeLevel.tokenConfig.web5Collection,
         collectedAt: new Date().toISOString(),
       };
-
       onArtifactCollected(event);
-      artifactMilestoneIndex += 1;
     };
 
-    const selectObstacleType = (): ObstacleType => {
-      if (!obstacleBias) {
-        return obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+    const collectArtifact = (instance: ArtifactInstance) => {
+      if (instance.collected) return;
+      if (!requirementsMet(instance.data.puzzleRequirementIds)) {
+        emitStatus(`Cannot claim ${instance.data.name} yet. Complete required puzzle nodes.`);
+        return;
       }
 
-      const weightedEntries: Array<{ type: ObstacleType; weight: number }> = [
-        { type: "icespike", weight: Math.max(obstacleBias.icespike, 0.01) },
-        { type: "frostwall", weight: Math.max(obstacleBias.frostwall, 0.01) },
-        { type: "lowbarrier", weight: Math.max(obstacleBias.lowbarrier, 0.01) },
-      ];
-      const totalWeight = weightedEntries.reduce((sum, entry) => sum + entry.weight, 0);
-      let roll = Math.random() * totalWeight;
-      for (const entry of weightedEntries) {
-        roll -= entry.weight;
-        if (roll <= 0) return entry.type;
-      }
-      return weightedEntries[weightedEntries.length - 1].type;
+      instance.collected = true;
+      collectedArtifactIds.add(instance.data.id);
+      instance.mesh.visible = false;
+
+      relicsCollected = collectedArtifactIds.size;
+      emitRelics();
+
+      score += 120 + instance.data.tokenRewardUnits * 2;
+      combo += 1;
+      comboTimer = 240;
+      const rarityEnergyBonus =
+        instance.data.rarity === "mythic"
+          ? 24
+          : instance.data.rarity === "epic"
+            ? 18
+            : instance.data.rarity === "rare"
+              ? 13
+              : 9;
+      updateEnergy(energy + rarityEnergyBonus);
+      emitScore(true);
+
+      emitArtifactEvent(instance.data);
+      emitStatus(
+        `Relic recovered: ${instance.data.name} (+${instance.data.tokenRewardUnits} ${activeLevel.tokenConfig.l2TokenSymbol})`,
+      );
+      maybeUnlockExit();
     };
 
-    const applyControlAction = (action: "move_left" | "move_right" | "jump" | "slide") => {
-      if (isDead) return;
-
-      if (action === "move_left" && currentLane > 0) {
-        currentLane--;
-      }
-      if (action === "move_right" && currentLane < 2) {
-        currentLane++;
-      }
-      if (action === "jump" && !isJumping && !isSliding) {
-        isJumping = true;
-        jumpVelocity = 0.3;
-      }
-      if (action === "slide" && !isJumping && !isSliding) {
-        isSliding = true;
-        slideTimer = 25;
-      }
+    const getForwardAlignment = (targetX: number, targetZ: number) => {
+      const dx = targetX - playerX;
+      const dz = targetZ - playerZ;
+      const magnitude = Math.hypot(dx, dz);
+      if (magnitude < 0.0001) return 1;
+      const fx = Math.sin(playerYaw);
+      const fz = Math.cos(playerYaw);
+      return (fx * dx + fz * dz) / magnitude;
     };
 
-    const spawnObjects = () => {
-      if (trackSegments.length === 0) return;
-      const nearestTrack = trackSegments[trackSegments.length - 1].zPosition;
-      if (Math.abs(lastSpawnZ) - Math.abs(nearestTrack) >= spawnInterval) return;
+    const tryInteract = () => {
+      if (missionComplete) return;
 
-      lastSpawnZ -= spawnInterval;
-      const pattern = Math.random();
+      type Candidate =
+        | { type: "artifact"; distance: number; instance: ArtifactInstance }
+        | { type: "puzzle"; distance: number; instance: PuzzleInstance }
+        | { type: "exit"; distance: number };
 
-      if (pattern < 0.6) {
-        const lane = Math.floor(Math.random() * 3);
-        const type = selectObstacleType();
-        obstacles.push(createObstacle(lastSpawnZ, lane, type));
+      const candidates: Candidate[] = [];
+
+      for (const artifact of artifactInstances) {
+        if (artifact.collected) continue;
+        const dx = artifact.mesh.position.x - playerX;
+        const dz = artifact.mesh.position.z - playerZ;
+        const distance = Math.hypot(dx, dz);
+        if (distance > INTERACT_DISTANCE) continue;
+        if (getForwardAlignment(artifact.mesh.position.x, artifact.mesh.position.z) < 0.2) continue;
+        candidates.push({ type: "artifact", distance, instance: artifact });
       }
 
-      if (Math.random() < 0.7) {
-        const runeZ = lastSpawnZ - 6;
-        const patternType = Math.floor(Math.random() * 3);
+      for (const puzzle of puzzleInstances) {
+        if (puzzle.activated) continue;
+        const dx = puzzle.mesh.position.x - playerX;
+        const dz = puzzle.mesh.position.z - playerZ;
+        const distance = Math.hypot(dx, dz);
+        if (distance > INTERACT_DISTANCE) continue;
+        if (getForwardAlignment(puzzle.mesh.position.x, puzzle.mesh.position.z) < 0.15) continue;
+        candidates.push({ type: "puzzle", distance, instance: puzzle });
+      }
 
-        if (patternType === 0) {
-          const lane = Math.floor(Math.random() * 3);
-          for (let i = 0; i < 5; i++) {
-            collectibles.push(createCollectible(runeZ - i * 2, lane));
-          }
-        } else if (patternType === 1) {
-          for (let lane = 0; lane < 3; lane++) {
-            collectibles.push(createCollectible(runeZ, lane));
-          }
-        } else {
-          for (let i = 0; i < 5; i++) {
-            collectibles.push(createCollectible(runeZ - i * 2, i % 3));
-          }
+      const exitDistance = Math.hypot(exitWorld.x - playerX, exitWorld.z - playerZ);
+      if (exitDistance <= INTERACT_DISTANCE && getForwardAlignment(exitWorld.x, exitWorld.z) >= 0.1) {
+        candidates.push({ type: "exit", distance: exitDistance });
+      }
+
+      if (candidates.length === 0) {
+        emitStatus("No interactable object in range. Move closer and press Use.");
+        return;
+      }
+
+      candidates.sort((a, b) => a.distance - b.distance);
+      const nearest = candidates[0];
+
+      if (nearest.type === "artifact") {
+        collectArtifact(nearest.instance);
+        return;
+      }
+
+      if (nearest.type === "puzzle") {
+        activatePuzzle(nearest.instance);
+        return;
+      }
+
+      if (!exitUnlocked) {
+        emitStatus("Portal is sealed. Recover relics and complete pedestal/gate puzzles first.");
+        return;
+      }
+
+      missionComplete = true;
+      score += 650;
+      emitScore(true);
+      updateEnergy(100);
+      onPowerUpChange?.([]);
+      emitStatus("Level complete. Portal traversal confirmed.");
+    };
+
+    const applyControlHold = (action: ControlAction, pressed: boolean) => {
+      if (action === "use") {
+        if (pressed) {
+          tryInteract();
         }
+        return;
       }
-
-      if (Math.random() < 0.15) {
-        const lane = Math.floor(Math.random() * 3);
-        const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
-        powerUps.push(createPowerUp(lastSpawnZ - 10, lane, type));
-      }
+      virtualControlState[action] = pressed;
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (isDead) return;
-      const shouldPreventDefault =
-        event.key === "ArrowLeft" ||
-        event.key === "ArrowRight" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown" ||
-        event.key === " " ||
-        event.code === "Space";
-      if (shouldPreventDefault) {
+      const key = event.key.toLowerCase();
+      const navigationKeys = new Set([
+        "w",
+        "a",
+        "s",
+        "d",
+        "arrowup",
+        "arrowdown",
+        "arrowleft",
+        "arrowright",
+        "e",
+        "f",
+        "enter",
+      ]);
+
+      if (navigationKeys.has(key)) {
         event.preventDefault();
       }
 
-      if (event.key === "ArrowLeft" || event.key === "a") {
-        applyControlAction("move_left");
-      }
-      if (event.key === "ArrowRight" || event.key === "d") {
-        applyControlAction("move_right");
-      }
-      if (
-        event.key === "ArrowUp" ||
-        event.key === "w" ||
-        event.key === " " ||
-        event.code === "Space"
-      ) {
-        applyControlAction("jump");
-      }
-      if (event.key === "ArrowDown" || event.key === "s") {
-        applyControlAction("slide");
+      keyState[key] = true;
+      if (key === "e" || key === "f" || key === "enter") {
+        tryInteract();
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      const shouldPreventDefault =
-        event.key === "ArrowLeft" ||
-        event.key === "ArrowRight" ||
-        event.key === "ArrowUp" ||
-        event.key === "ArrowDown" ||
-        event.key === " " ||
-        event.code === "Space";
-      if (shouldPreventDefault) {
-        event.preventDefault();
-      }
+      const key = event.key.toLowerCase();
+      keyState[key] = false;
     };
 
     const handleTouchStart = (event: TouchEvent) => {
       if (event.touches.length === 0) return;
-      touchStartX = event.touches[0].clientX;
-      touchStartY = event.touches[0].clientY;
+      touchRotating = true;
+      touchLastX = event.touches[0].clientX;
+      swipeStartX = event.touches[0].clientX;
+      swipeStartY = event.touches[0].clientY;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!touchRotating || event.touches.length === 0) return;
+      event.preventDefault();
+      const nextX = event.touches[0].clientX;
+      const deltaX = nextX - touchLastX;
+      touchLastX = nextX;
+      playerYaw -= deltaX * 0.0045;
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
-      if (isDead || event.changedTouches.length === 0) return;
-      const touchEndX = event.changedTouches[0].clientX;
-      const touchEndY = event.changedTouches[0].clientY;
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 40) applyControlAction("move_right");
-        if (deltaX < -40) applyControlAction("move_left");
+      if (event.changedTouches.length === 0) {
+        touchRotating = false;
         return;
       }
-
-      if (deltaY < -40) applyControlAction("jump");
-      if (deltaY > 40) applyControlAction("slide");
+      const deltaX = event.changedTouches[0].clientX - swipeStartX;
+      const deltaY = event.changedTouches[0].clientY - swipeStartY;
+      if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
+        tryInteract();
+      }
+      touchRotating = false;
     };
 
     const handleExternalControl = (event: Event) => {
-      const controlEvent = event as CustomEvent<{
-        action?: "move_left" | "move_right" | "jump" | "slide";
-      }>;
-      const action = controlEvent.detail?.action;
+      const detail = (event as CustomEvent<ExternalControlDetail>).detail;
+      const action = detail?.action;
       if (!action) return;
-      applyControlAction(action);
+
+      if (typeof detail.pressed === "boolean") {
+        applyControlHold(action, detail.pressed);
+        return;
+      }
+
+      applyControlHold(action, true);
+      window.setTimeout(() => applyControlHold(action, false), 120);
     };
 
     const handleResize = () => {
       if (!isMounted) return;
-      const nextWidth = Math.max(currentMount.clientWidth, 1);
-      const nextHeight = Math.max(currentMount.clientHeight, 1);
-      camera.aspect = nextWidth / nextHeight;
+      const width = Math.max(currentMount.clientWidth, 1);
+      const height = Math.max(currentMount.clientHeight, 1);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
-      renderer.setSize(nextWidth, nextHeight, false);
+      renderer.setSize(width, height, false);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -601,227 +695,109 @@ export function HyperboreaGame({
     window.addEventListener("resize", handleResize);
     window.addEventListener("hyperborea-control", handleExternalControl as EventListener);
     currentMount.addEventListener("touchstart", handleTouchStart, { passive: true });
+    currentMount.addEventListener("touchmove", handleTouchMove, { passive: false });
     currentMount.addEventListener("touchend", handleTouchEnd, { passive: true });
 
-    const stepSimulation = () => {
-      frameCount++;
-      gameSpeed = baseSpeed + Math.min(distance * 0.000008, 0.15);
-      distance += gameSpeed;
+    const stepSimulation = (dt: number) => {
+      portalMesh.rotation.z += 0.01;
+      portalMesh.scale.setScalar(1 + Math.sin(performance.now() * 0.003) * 0.04);
 
-      const targetX = lanes[currentLane];
-      player.position.x += (targetX - player.position.x) * 0.2;
+      if (pausedRef.current) {
+        return;
+      }
 
-      if (isJumping) {
-        player.position.y += jumpVelocity;
-        jumpVelocity -= 0.018;
-        if (player.position.y <= 1.2) {
-          player.position.y = 1.2;
-          isJumping = false;
-          jumpVelocity = 0;
+      const turnLeft =
+        keyState["a"] ||
+        keyState["arrowleft"] ||
+        virtualControlState.turn_left;
+      const turnRight =
+        keyState["d"] ||
+        keyState["arrowright"] ||
+        virtualControlState.turn_right;
+      const forward =
+        keyState["w"] ||
+        keyState["arrowup"] ||
+        virtualControlState.forward;
+      const backward =
+        keyState["s"] ||
+        keyState["arrowdown"] ||
+        virtualControlState.backward;
+
+      const turnInput = (turnLeft ? 1 : 0) - (turnRight ? 1 : 0);
+      const moveInput = (forward ? 1 : 0) - (backward ? 1 : 0);
+
+      if (!missionComplete) {
+        playerYaw += turnInput * 2.25 * dt;
+      }
+
+      const moveSpeed = missionComplete ? 0 : 4.2;
+      const desiredDx = Math.sin(playerYaw) * moveInput * moveSpeed * dt;
+      const desiredDz = Math.cos(playerYaw) * moveInput * moveSpeed * dt;
+
+      let appliedDx = 0;
+      let appliedDz = 0;
+      if (canOccupy(playerX + desiredDx, playerZ)) {
+        playerX += desiredDx;
+        appliedDx = desiredDx;
+      }
+      if (canOccupy(playerX, playerZ + desiredDz)) {
+        playerZ += desiredDz;
+        appliedDz = desiredDz;
+      }
+
+      const movedDistance = Math.hypot(appliedDx, appliedDz);
+      if (movedDistance > 0.0002) {
+        bobTimer += dt * 7.5;
+        score += movedDistance * 2.4;
+      } else {
+        bobTimer += dt * 1.8;
+      }
+
+      for (const puzzle of puzzleInstances) {
+        if (puzzle.activated || puzzle.data.kind !== "pressure_plate") continue;
+        const distance = Math.hypot(puzzle.mesh.position.x - playerX, puzzle.mesh.position.z - playerZ);
+        if (distance < 0.8) {
+          activatePuzzle(puzzle, true);
         }
       }
 
-      if (isSliding) {
-        player.scale.y = 0.5;
-        player.position.y = 0.7;
-        slideTimer--;
-        if (slideTimer <= 0) {
-          isSliding = false;
-          player.scale.y = 1;
-          player.position.y = 1.2;
-        }
-      }
-
-      aura.rotation.y += 0.05;
-      const pulse = 1 + Math.sin(frameCount * 0.05) * 0.1;
-      aura.scale.set(pulse, pulse, pulse);
-
-      if (frameCount % (isMobile ? 4 : 3) === 0) {
-        createRuneParticle(player.position.clone());
-      }
-
-      for (let i = trailParticles.length - 1; i >= 0; i--) {
-        const particle = trailParticles[i];
-        particle.mesh.position.add(particle.velocity);
-        particle.life -= 0.02;
-        const material = particle.mesh.material as THREE.MeshBasicMaterial;
-        material.opacity = particle.life;
-        if (particle.life <= 0) {
-          scene.remove(particle.mesh);
-          particle.mesh.geometry.dispose();
-          material.dispose();
-          trailParticles.splice(i, 1);
-        }
-      }
-
-      for (const segment of trackSegments) {
-        segment.zPosition += gameSpeed;
-        segment.mesh.position.z = segment.zPosition;
-        for (const decoration of segment.decorations) {
-          decoration.position.z += gameSpeed;
-          decoration.rotation.y += 0.02;
-        }
-      }
-
-      for (const segment of trackSegments) {
-        if (segment.zPosition <= 25) continue;
-        const farthestZ = trackSegments.reduce(
-          (lowestZ, current) => Math.min(lowestZ, current.zPosition),
-          Number.POSITIVE_INFINITY,
-        );
-        segment.zPosition = farthestZ - 12;
-        segment.mesh.position.z = segment.zPosition;
-        for (const decoration of segment.decorations) {
-          decoration.position.z = segment.zPosition;
-        }
-      }
-
-      const playerLane = getClosestLane();
-
-      for (let i = obstacles.length - 1; i >= 0; i--) {
-        const obstacle = obstacles[i];
-        obstacle.zPosition += gameSpeed;
-        obstacle.mesh.position.z = obstacle.zPosition;
-        obstacle.mesh.rotation.y += 0.03;
-
-        if (
-          Math.abs(obstacle.zPosition - player.position.z) < 1.2 &&
-          obstacle.lane === playerLane
-        ) {
-          let hit = false;
-          if (obstacle.type === "frostwall" && !isJumping) hit = true;
-          if (obstacle.type === "lowbarrier" && !isSliding && player.position.y < 2) hit = true;
-          if (obstacle.type === "icespike" && !isJumping && !isSliding) hit = true;
-
-          if (hit) {
-            if (!hasShield) {
-              isDead = true;
-            } else {
-              hasShield = false;
-              scene.remove(obstacle.mesh);
-              obstacle.mesh.geometry.dispose();
-              (obstacle.mesh.material as THREE.Material).dispose();
-              obstacles.splice(i, 1);
-            }
-          }
-        }
-
-        if (obstacle.zPosition > 15) {
-          scene.remove(obstacle.mesh);
-          obstacle.mesh.geometry.dispose();
-          (obstacle.mesh.material as THREE.Material).dispose();
-          obstacles.splice(i, 1);
-        }
-      }
-
-      for (let i = collectibles.length - 1; i >= 0; i--) {
-        const collectible = collectibles[i];
-        if (!collectible.collected) {
-          collectible.zPosition += gameSpeed;
-          collectible.mesh.position.z = collectible.zPosition;
-          collectible.mesh.rotation.x += 0.05;
-          collectible.mesh.rotation.y += 0.08;
-
-          const magnetRange = hasMagnet ? 4 : 1;
-          if (Math.abs(collectible.zPosition - player.position.z) < magnetRange) {
-            const laneDistance = Math.abs(collectible.lane - playerLane);
-            if (laneDistance <= (hasMagnet ? 1 : 0)) {
-              collectible.collected = true;
-              scene.remove(collectible.mesh);
-              collectible.mesh.geometry.dispose();
-              (collectible.mesh.material as THREE.Material).dispose();
-              runesCollected++;
-              score += hasDouble ? 20 : 10;
-              combo++;
-              comboTimer = 120;
-              updateEnergy(energy + 5);
-              onCloverCollect?.(runesCollected);
-              onScoreChange?.(score, combo);
-              emitArtifactCollected();
-            }
-          }
-        }
-
-        if (collectible.zPosition > 15 || collectible.collected) {
-          if (!collectible.collected) {
-            scene.remove(collectible.mesh);
-            collectible.mesh.geometry.dispose();
-            (collectible.mesh.material as THREE.Material).dispose();
-          }
-          collectibles.splice(i, 1);
-        }
-      }
-
-      if (comboTimer > 0) {
-        comboTimer--;
-      } else if (combo > 0) {
+      comboTimer -= 1;
+      if (comboTimer <= 0 && combo > 0) {
         combo = Math.max(0, combo - 1);
-        onScoreChange?.(score, combo);
+        emitScore(true);
       }
 
-      for (let i = powerUps.length - 1; i >= 0; i--) {
-        const powerUp = powerUps[i];
-        if (!powerUp.collected) {
-          powerUp.zPosition += gameSpeed;
-          powerUp.mesh.position.z = powerUp.zPosition;
-          powerUp.mesh.rotation.y += 0.1;
-          powerUp.mesh.position.y = 2 + Math.sin(frameCount * 0.05 + i) * 0.3;
-
-          if (
-            Math.abs(powerUp.zPosition - player.position.z) < 1.2 &&
-            powerUp.lane === playerLane
-          ) {
-            powerUp.collected = true;
-            scene.remove(powerUp.mesh);
-            powerUp.mesh.geometry.dispose();
-            (powerUp.mesh.material as THREE.Material).dispose();
-            activePowerUps.push({ type: powerUp.type, timeLeft: 360 });
-
-            if (powerUp.type === "odins_shield") hasShield = true;
-            if (powerUp.type === "thors_magnet") hasMagnet = true;
-            if (powerUp.type === "freyas_double") hasDouble = true;
-            emitPowerUps(activePowerUps);
-          }
-        }
-
-        if (powerUp.zPosition > 15 || powerUp.collected) {
-          if (!powerUp.collected) {
-            scene.remove(powerUp.mesh);
-            powerUp.mesh.geometry.dispose();
-            (powerUp.mesh.material as THREE.Material).dispose();
-          }
-          powerUps.splice(i, 1);
+      if (!missionComplete) {
+        energyDecayClock += dt;
+        if (energyDecayClock >= 1.2) {
+          energyDecayClock = 0;
+          updateEnergy(energy - 1);
         }
       }
 
-      for (let i = activePowerUps.length - 1; i >= 0; i--) {
-        const powerUp = activePowerUps[i];
-        powerUp.timeLeft -= 1;
-        if (powerUp.timeLeft > 0) continue;
+      maybeUnlockExit();
 
-        if (powerUp.type === "odins_shield") hasShield = false;
-        if (powerUp.type === "thors_magnet") hasMagnet = false;
-        if (powerUp.type === "freyas_double") hasDouble = false;
-        activePowerUps.splice(i, 1);
-        emitPowerUps(activePowerUps);
+      const bobAmplitude = movedDistance > 0.0002 ? 0.04 : 0.015;
+      const bobOffset = Math.sin(bobTimer) * bobAmplitude;
+      camera.position.set(playerX, EYE_HEIGHT + bobOffset, playerZ);
+      const lookX = playerX + Math.sin(playerYaw);
+      const lookZ = playerZ + Math.cos(playerYaw);
+      camera.lookAt(lookX, EYE_HEIGHT + bobOffset * 0.45, lookZ);
+
+      for (const artifact of artifactInstances) {
+        if (artifact.collected) continue;
+        artifact.mesh.rotation.y += 0.035;
+        artifact.mesh.position.y = 1.1 + Math.sin(performance.now() * 0.004 + artifact.mesh.position.x) * 0.08;
       }
 
-      spawnObjects();
-
-      score += Math.floor(gameSpeed * 5);
-      if (frameCount % 15 === 0) {
-        onScoreChange?.(score, combo);
+      for (const puzzle of puzzleInstances) {
+        puzzle.mesh.rotation.y += puzzle.data.kind === "pressure_plate" ? 0 : 0.009;
       }
 
-      // Passive energy decay keeps the meter active and visible in long runs.
-      if (frameCount % 60 === 0) {
-        updateEnergy(energy - 1);
+      simulationFrame += 1;
+      if (simulationFrame % 6 === 0) {
+        emitScore();
       }
-
-      camera.position.x += (player.position.x - camera.position.x) * 0.1;
-      camera.position.z += (player.position.z + 10 - camera.position.z) * 0.05;
-      rimLight1.intensity = 0.6 + Math.sin(frameCount * 0.02) * 0.2;
-      rimLight2.intensity = 0.6 + Math.cos(frameCount * 0.02) * 0.2;
     };
 
     const animate = () => {
@@ -829,25 +805,11 @@ export function HyperboreaGame({
       animationFrameId = window.requestAnimationFrame(animate);
 
       const deltaSeconds = Math.min(simulationClock.getDelta(), 0.05);
-
-      if (pausedRef.current) {
-        renderer.render(scene, camera);
-        return;
-      }
-
-      if (isDead) {
-        if (!hasEmittedGameOver) {
-          hasEmittedGameOver = true;
-          emitPowerUps([]);
-        }
-        renderer.render(scene, camera);
-        return;
-      }
-
       simulationAccumulator += deltaSeconds;
+
       let subSteps = 0;
       while (simulationAccumulator >= fixedStepSeconds && subSteps < maxSubSteps) {
-        stepSimulation();
+        stepSimulation(fixedStepSeconds);
         simulationAccumulator -= fixedStepSeconds;
         subSteps++;
       }
@@ -855,10 +817,16 @@ export function HyperboreaGame({
       renderer.render(scene, camera);
     };
 
-    updateEnergy(0);
-    onCloverCollect?.(0);
-    onScoreChange?.(0, 0);
-    emitPowerUps([]);
+    updateEnergy(energy);
+    emitRelics();
+    emitScore(true);
+    onPowerUpChange?.([]);
+    setPortalState(false);
+    emitStatus(
+      isMobile
+        ? "Use on-screen Forward/Back/Turn and tap Use near runes."
+        : "W/S move, A/D turn, E use. Solve gates and recover relics.",
+    );
     animate();
 
     return () => {
@@ -869,6 +837,7 @@ export function HyperboreaGame({
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("hyperborea-control", handleExternalControl as EventListener);
       currentMount.removeEventListener("touchstart", handleTouchStart);
+      currentMount.removeEventListener("touchmove", handleTouchMove);
       currentMount.removeEventListener("touchend", handleTouchEnd);
 
       scene.traverse((object) => {
@@ -878,11 +847,9 @@ export function HyperboreaGame({
         }
         const materialOrMaterials = mesh.material;
         if (!materialOrMaterials) return;
-
         const materials = Array.isArray(materialOrMaterials)
           ? materialOrMaterials
           : [materialOrMaterials];
-
         for (const material of materials) {
           for (const value of Object.values(material as unknown as Record<string, unknown>)) {
             if (isTexture(value)) {
@@ -905,6 +872,7 @@ export function HyperboreaGame({
     onEnergyChange,
     onPowerUpChange,
     onScoreChange,
+    onStatusChange,
     sessionId,
   ]);
 
@@ -912,7 +880,7 @@ export function HyperboreaGame({
     <div
       ref={mountRef}
       className="w-full h-full"
-      aria-label="Hyperborea Game Canvas"
+      aria-label="Hyperborea first-person dungeon canvas"
     />
   );
 }

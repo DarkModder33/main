@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type ControlAction = "move_left" | "move_right" | "jump" | "slide";
+type ControlAction = "forward" | "backward" | "turn_left" | "turn_right" | "use";
 
 function createSessionId() {
   return `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -56,6 +56,7 @@ export default function GamePage() {
   const [levelLoadMessage, setLevelLoadMessage] = useState<string>("");
   const [artifactFeed, setArtifactFeed] = useState<ArtifactCollectionEvent[]>([]);
   const [claimFeedback, setClaimFeedback] = useState<string>("");
+  const [gameHint, setGameHint] = useState("Loading controls...");
 
   const topArtifacts = useMemo(() => artifactFeed.slice(0, 3), [artifactFeed]);
 
@@ -106,17 +107,27 @@ export default function GamePage() {
     };
   }, []);
 
-  const emitControlAction = useCallback((action: ControlAction) => {
+  const emitControlAction = useCallback((action: ControlAction, pressed?: boolean) => {
     if (typeof window === "undefined") return;
-    if ("vibrate" in navigator) {
+    if (pressed !== false && "vibrate" in navigator) {
       navigator.vibrate(8);
     }
     window.dispatchEvent(
       new CustomEvent("hyperborea-control", {
-        detail: { action },
+        detail: { action, pressed },
       }),
     );
   }, []);
+
+  const getHoldButtonHandlers = useCallback(
+    (action: Exclude<ControlAction, "use">) => ({
+      onPointerDown: () => emitControlAction(action, true),
+      onPointerUp: () => emitControlAction(action, false),
+      onPointerCancel: () => emitControlAction(action, false),
+      onPointerLeave: () => emitControlAction(action, false),
+    }),
+    [emitControlAction],
+  );
 
   const handleArtifactCollected = useCallback(
     async (event: ArtifactCollectionEvent) => {
@@ -159,6 +170,7 @@ export default function GamePage() {
     setSessionId(createSessionId());
     setArtifactFeed([]);
     setClaimFeedback("");
+    setGameHint("W/S move, A/D turn, E interact. Recover relics to unlock the portal.");
 
     // Show tutorial for first-time players
     if (!hasPlayedBefore) {
@@ -180,6 +192,7 @@ export default function GamePage() {
     setSessionId(createSessionId());
     setArtifactFeed([]);
     setClaimFeedback("");
+    setGameHint("Level restarted. Follow rune hints and use E to interact.");
   };
 
   const handleExit = () => {
@@ -213,6 +226,7 @@ export default function GamePage() {
             }}
             onPowerUpChange={setActivePowerUps}
             onArtifactCollected={handleArtifactCollected}
+            onStatusChange={setGameHint}
             levelDefinition={activeLevel}
             sessionId={sessionId}
             isPaused={isPaused}
@@ -275,6 +289,12 @@ export default function GamePage() {
               {claimFeedback}
             </div>
           )}
+
+          {gameHint && (
+            <div className="rounded-lg border border-blue-400/40 bg-black/80 p-2 text-xs text-blue-100 backdrop-blur">
+              {gameHint}
+            </div>
+          )}
         </div>
 
         {/* Game Controls */}
@@ -309,43 +329,55 @@ export default function GamePage() {
         <div className="absolute top-4 left-4 z-20 hidden sm:block pointer-events-none">
           <div className="rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-xs text-gray-100 backdrop-blur">
             <div className="font-bold text-emerald-300">Controls</div>
-            <div>Move: A/D or ← →</div>
-            <div>Jump: W / SPACE / ↑</div>
-            <div>Slide: S / ↓</div>
-            <div className="text-emerald-200">Mobile: Swipe or tap buttons below</div>
+            <div>Move: W/S or ↑/↓</div>
+            <div>Turn: A/D or ←/→</div>
+            <div>Use/Interact: E or ENTER</div>
+            <div className="text-emerald-200">Mobile: hold direction buttons + tap Use</div>
           </div>
         </div>
 
-        {/* Mobile touch buttons: explicit controls for first-time players */}
+        {/* Center crosshair for first-person interaction clarity */}
+        <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+          <div className="h-5 w-5 rounded-full border border-cyan-300/70 bg-cyan-100/10" />
+        </div>
+
+        {/* Mobile touch buttons: explicit first-person controls */}
         <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center px-3 sm:hidden pointer-events-none">
           <div className="pointer-events-auto grid grid-cols-3 gap-2 rounded-xl border border-white/20 bg-black/70 p-3 backdrop-blur-md">
             <button
               type="button"
-              onClick={() => emitControlAction("move_left")}
+              {...getHoldButtonHandlers("turn_left")}
               className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
             >
-              ← Left
+              Turn L
             </button>
             <button
               type="button"
-              onClick={() => emitControlAction("jump")}
+              {...getHoldButtonHandlers("forward")}
               className="rounded-lg bg-emerald-600/90 px-3 py-3 text-white font-semibold"
             >
-              ↑ Jump
+              Forward
             </button>
             <button
               type="button"
-              onClick={() => emitControlAction("move_right")}
+              {...getHoldButtonHandlers("turn_right")}
               className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
             >
-              Right →
+              Turn R
             </button>
             <button
               type="button"
-              onClick={() => emitControlAction("slide")}
-              className="col-span-3 rounded-lg bg-pink-600/90 px-3 py-3 text-white font-semibold"
+              {...getHoldButtonHandlers("backward")}
+              className="col-span-2 rounded-lg bg-slate-600/90 px-3 py-3 text-white font-semibold"
             >
-              ↓ Slide
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => emitControlAction("use", true)}
+              className="rounded-lg bg-pink-600/90 px-3 py-3 text-white font-semibold"
+            >
+              Use
             </button>
           </div>
         </div>
@@ -373,8 +405,8 @@ export default function GamePage() {
                     🎯 Objective
                   </h3>
                   <p className="text-sm sm:text-base">
-                    Dodge hazards, collect clovers for energy, and trigger relic
-                    milestones to recover Norse and Celtic artifacts.
+                    Explore the fortress, solve shrine puzzles, and recover
+                    Norse/Celtic relics to unlock the portal.
                   </p>
                 </div>
 
@@ -384,44 +416,34 @@ export default function GamePage() {
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        W A S D
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        W / ↑
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        WASD
-                      </span>
-                      <span>or</span>
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        ARROWS
-                      </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        ↑↓←→
-                      </span>
-                      <span>Switch lanes</span>
+                      <span>Move forward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        W / SPACE
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        S / ↓
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        W / SPACE
-                      </span>
-                      <span>Jump</span>
+                      <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        S / ↓
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        A / D or ← / →
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        S / ↓
-                      </span>
-                      <span>Slide</span>
+                      <span>Turn left or right</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
-                        👆 SWIPE
+                        E / ENTER
                       </span>
-                      <span>Left/Right switch lanes, Up jump, Down slide</span>
+                      <span>Use/interact with relics and puzzle nodes</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                        MOBILE
+                      </span>
+                      <span>Hold direction buttons and tap Use near the crosshair target</span>
                     </div>
                   </div>
                 </div>
@@ -431,17 +453,11 @@ export default function GamePage() {
                     ✨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
-                    <li>Each clover gives you +5 energy</li>
-                    <li>Artifacts unlock at score milestones shown in-session</li>
-                    <li>
-                      Build combos by collecting clovers quickly for bonus
-                      points!
-                    </li>
-                    <li>Collect power-ups: Shield, Magnet, and Double Score</li>
-                    <li>
-                      Avoid red obstacles - they drain energy and break combos
-                    </li>
-                    <li>The portal unlocks at 100 energy</li>
+                    <li>Stay near the center crosshair before pressing Use.</li>
+                    <li>Purple/red gate nodes block corridors until activated.</li>
+                    <li>Pressure plates activate when you stand directly on them.</li>
+                    <li>Relics boost energy and queue token claim events.</li>
+                    <li>Portal unlocks after relic and pedestal requirements are met.</li>
                     <li>Connect your wallet to mint NFT skins with rewards</li>
                   </ul>
                 </div>
@@ -517,7 +533,7 @@ export default function GamePage() {
                     <div className="text-white font-bold">
                       {cloversCollected}
                     </div>
-                    <div className="text-xs text-gray-400">Clovers</div>
+                    <div className="text-xs text-gray-400">Relics</div>
                   </div>
                   <div className="bg-blue-500/20 rounded-lg p-3">
                     <div className="text-2xl mb-1">🏆</div>
@@ -614,10 +630,10 @@ export default function GamePage() {
             </div>
             <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-gray-200">
               <div className="rounded-md border border-white/15 bg-black/40 p-2">
-                Desktop: A/D or arrows to move lanes, W/Space to jump, S to slide.
+                Desktop: W/S move, A/D turn, E to interact with nodes and relics.
               </div>
               <div className="rounded-md border border-white/15 bg-black/40 p-2">
-                Mobile: swipe or use on-screen left/jump/right/slide buttons.
+                Mobile: hold Forward/Back/Turn buttons and tap Use near a target.
               </div>
             </div>
           </div>
@@ -647,8 +663,8 @@ export default function GamePage() {
                   </h3>
                   <p className="text-sm sm:text-base">
                     Navigate the Escher-inspired impossible maze and collect
-                    magical clovers while solving shrine gates and relic routes.
-                    Reach 100 energy to unlock the portal path.
+                    relic artifacts while solving shrine gates and pedestal logic.
+                    Activate the final portal path to complete the level.
                   </p>
                 </div>
 
@@ -658,44 +674,34 @@ export default function GamePage() {
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        W A S D
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        W / ↑
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        WASD
-                      </span>
-                      <span>or</span>
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        ARROWS
-                      </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        ↑↓←→
-                      </span>
-                      <span>Switch lanes</span>
+                      <span>Move forward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        W / SPACE
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        S / ↓
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        W / SPACE
-                      </span>
-                      <span>Jump</span>
+                      <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="hidden sm:inline font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
-                        S / ↓
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                        A / D or ← / →
                       </span>
-                      <span className="sm:hidden font-mono bg-gray-800 px-2 py-1 rounded text-purple-400 text-xs font-bold">
-                        S / ↓
-                      </span>
-                      <span>Slide</span>
+                      <span>Turn left or right</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
-                        👆 SWIPE
+                        E / ENTER
                       </span>
-                      <span>Left/Right switch lanes, Up jump, Down slide</span>
+                      <span>Use/interact with relics and puzzle nodes</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                        MOBILE
+                      </span>
+                      <span>Hold direction buttons and tap Use near the crosshair target</span>
                     </div>
                   </div>
                 </div>
@@ -705,17 +711,11 @@ export default function GamePage() {
                     ✨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
-                    <li>Each clover gives you +5 energy</li>
-                    <li>Artifacts unlock at score milestones shown in-session</li>
-                    <li>
-                      Build combos by collecting clovers quickly for bonus
-                      points!
-                    </li>
-                    <li>Collect power-ups: Shield, Magnet, and Double Score</li>
-                    <li>
-                      Avoid red obstacles - they drain energy and break combos
-                    </li>
-                    <li>The portal unlocks at 100 energy</li>
+                    <li>Stay near the center crosshair before pressing Use.</li>
+                    <li>Purple/red gate nodes block corridors until activated.</li>
+                    <li>Pressure plates activate when you stand directly on them.</li>
+                    <li>Relics boost energy and queue token claim events.</li>
+                    <li>Portal unlocks after relic and pedestal requirements are met.</li>
                     <li>Connect your wallet to mint NFT skins with rewards</li>
                     <li>Use the pause button anytime to take a break</li>
                   </ul>
@@ -759,9 +759,9 @@ export default function GamePage() {
               Ready to Enter Hyperborea?
             </h2>
             <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-              Navigate the Escher-inspired impossible maze, collect magical
-              clovers, and unlock the wormhole portal. Mint legendary NFT skins
-              with your earned rewards!
+              Explore a first-person mythic fortress, solve Zelda-style lock and
+              pedestal puzzles, recover pantheon relics, and unlock the astral
+              portal.
             </p>
             <button
               onClick={handlePlayClick}

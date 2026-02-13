@@ -27,7 +27,7 @@ const POWER_UP_META: Record<
 export function GameHUD({ energy, cloversCollected, score, combo, walletConnected, activePowerUps = [] }: GameHUDProps) {
   const energyPercentage = Math.min((energy / 100) * 100, 100);
   const portalUnlocked = energy >= 100;
-  const cloversNeeded = Math.ceil((100 - energy) / 5);
+  const relicsLabel = cloversCollected === 1 ? "1 relic" : `${cloversCollected} relics`;
   const [showEnergyPulse, setShowEnergyPulse] = useState(false);
   const [showCloverPulse, setShowCloverPulse] = useState(false);
   const [lastEnergy, setLastEnergy] = useState(energy);
@@ -90,8 +90,8 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
             <div className="flex items-center gap-2">
               <span className={`text-2xl sm:text-3xl transition-transform ${showCloverPulse ? 'scale-125' : ''}`}>🍀</span>
               <div>
-                <div className="text-white font-bold text-sm sm:text-base">Clovers</div>
-                <div className="text-purple-400 text-xs sm:text-sm">{cloversCollected} collected</div>
+                <div className="text-white font-bold text-sm sm:text-base">Relics</div>
+                <div className="text-purple-400 text-xs sm:text-sm">{relicsLabel} collected</div>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
               <div className="text-blue-300 text-xs sm:text-sm">
-                <span className="font-bold">Objective:</span> Collect {cloversNeeded} more clover{cloversNeeded !== 1 ? 's' : ''} to unlock the portal!
+                <span className="font-bold">Objective:</span> Solve gates, recover relics, and charge energy to stabilize the portal.
               </div>
             </div>
           </div>
@@ -126,20 +126,20 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
         <div className="mt-2 sm:mt-4 bg-black/70 backdrop-blur-sm border border-gray-700 rounded-lg p-2 sm:p-3 max-w-md">
           <div className="text-gray-300 text-xs sm:text-sm space-y-1">
             <div className="hidden sm:flex items-center gap-2">
-              <span className="text-purple-400 font-mono font-bold">WASD / ARROWS</span>
-              <span>Lane Switch</span>
+              <span className="text-purple-400 font-mono font-bold">W/S + A/D</span>
+              <span>Move and Turn</span>
             </div>
             <div className="sm:hidden flex items-center gap-2">
-              <span className="text-purple-400 font-bold">👆 Swipe</span>
-              <span>to Move</span>
+              <span className="text-purple-400 font-bold">📱 Hold Buttons</span>
+              <span>for movement</span>
             </div>
             <div className="hidden sm:flex items-center gap-2">
-              <span className="text-purple-400 font-mono font-bold">W/SPACE + S</span>
-              <span>Jump / Slide</span>
+              <span className="text-purple-400 font-mono font-bold">E / ENTER</span>
+              <span>Interact / Use</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-pink-400 text-base">🍀</span>
-              <span>+5 energy each</span>
+              <span>Collect relics to power puzzle progression</span>
             </div>
           </div>
         </div>
