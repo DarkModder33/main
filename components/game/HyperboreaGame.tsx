@@ -777,6 +777,7 @@ export function HyperboreaGame({
 
     const handleTouchStart = (event: TouchEvent) => {
       if (event.touches.length === 0) return;
+      event.preventDefault();
       touchRotating = true;
       touchLastX = event.touches[0].clientX;
       swipeStartX = event.touches[0].clientX;
@@ -816,6 +817,19 @@ export function HyperboreaGame({
       }
       const deltaX = event.changedTouches[0].clientX - swipeStartX;
       const deltaY = event.changedTouches[0].clientY - swipeStartY;
+
+      // Fallback gestures for browsers where continuous touch controls are unreliable.
+      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) >= 36) {
+        const action: ControlAction = deltaY < 0 ? "forward" : "backward";
+        applyControlHold(action, true);
+        window.setTimeout(() => applyControlHold(action, false), 220);
+      }
+
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) >= 36) {
+        const turnDirection = deltaX > 0 ? -1 : 1;
+        playerYaw += turnDirection * 0.28;
+      }
+
       if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
         tryInteract();
       }
@@ -873,7 +887,7 @@ export function HyperboreaGame({
     window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("hyperborea-control", handleExternalControl as EventListener);
-    currentMount.addEventListener("touchstart", handleTouchStart, { passive: true });
+    currentMount.addEventListener("touchstart", handleTouchStart, { passive: false });
     currentMount.addEventListener("touchmove", handleTouchMove, { passive: false });
     currentMount.addEventListener("touchend", handleTouchEnd, { passive: true });
     window.requestAnimationFrame(handleResize);
@@ -1034,7 +1048,7 @@ export function HyperboreaGame({
     emitInteractionHint("Use crosshair + E (or Use button) near relics and runes.", false);
     emitStatus(
       isMobile
-        ? "Use on-screen controls, or drag up/down to move and drag left/right to turn. Tap Use near runes."
+        ? "Use on-screen controls. Fallback: swipe up/down to step move, swipe left/right to turn, tap Use near runes."
         : "W/S move, A/D turn, E use. Solve gates and recover relics.",
     );
     animate();
