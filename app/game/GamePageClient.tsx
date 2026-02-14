@@ -203,6 +203,7 @@ export default function GamePage() {
       },
       onTouchEnd: () => releaseMovementControl(action),
       onTouchCancel: () => releaseMovementControl(action),
+      onClick: () => emitControlAction(action),
       onContextMenu: (event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault(),
     }),
     [emitControlAction, releaseMovementControl],
@@ -483,7 +484,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_left")}
               aria-label="Turn left"
-              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
+              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
             >
               Turn L
             </button>
@@ -491,7 +492,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("forward")}
               aria-label="Move forward"
-              className="rounded-lg bg-emerald-600/90 px-3 py-3 text-white font-semibold"
+              className="rounded-lg bg-emerald-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
             >
               Forward
             </button>
@@ -499,7 +500,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_right")}
               aria-label="Turn right"
-              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold"
+              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
             >
               Turn R
             </button>
@@ -507,7 +508,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="col-span-2 rounded-lg bg-slate-600/90 px-3 py-3 text-white font-semibold"
+              className="col-span-2 rounded-lg bg-slate-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
             >
               Back
             </button>
@@ -519,7 +520,7 @@ export default function GamePage() {
                 isInteractionReady
                   ? "bg-emerald-500/95 shadow-[0_0_14px_rgba(16,185,129,0.8)] animate-pulse"
                   : "bg-pink-600/90"
-              }`}
+              } [touch-action:manipulation]`}
             >
               Use
             </button>
