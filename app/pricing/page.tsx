@@ -106,10 +106,8 @@ export default function PricingPage() {
               </ul>
               <Link
                 href={plan.cta}
-                className={`mt-2 inline-flex items-center justify-center rounded-lg px-4 py-2.5 font-semibold transition-colors ${
-                  plan.featured
-                    ? "bg-[#00ff41] text-black hover:bg-[#39ff14]"
-                    : "border border-[#00ff41]/50 bg-[#05120a] text-[#9bffc0] hover:border-[#00ff41]"
+                className={`theme-cta mt-2 px-4 py-2.5 ${
+                  plan.featured ? "theme-cta--loud" : "theme-cta--secondary"
                 }`}
               >
                 Choose Plan

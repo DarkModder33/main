@@ -645,7 +645,7 @@ export default function GamePage() {
         <div className="absolute bottom-4 left-4 flex gap-2 pointer-events-auto z-20">
           <button
             onClick={togglePause}
-            className="px-4 py-2 bg-blue-600/90 hover:bg-blue-700 text-white rounded-lg font-bold transition-all backdrop-blur-sm flex items-center gap-2"
+            className="theme-cta theme-cta--secondary theme-cta--compact px-4 py-2 backdrop-blur-sm flex items-center gap-2"
             title="Pause Game"
           >
             <Pause className="w-4 h-4" />
@@ -653,7 +653,7 @@ export default function GamePage() {
           </button>
           <button
             onClick={() => setShowTutorial(true)}
-            className="px-4 py-2 bg-purple-600/90 hover:bg-purple-700 text-white rounded-lg font-bold transition-all backdrop-blur-sm flex items-center gap-2"
+            className="theme-cta theme-cta--muted theme-cta--compact px-4 py-2 backdrop-blur-sm flex items-center gap-2"
             title="Show Help"
           >
             <HelpCircle className="w-4 h-4" />
@@ -661,7 +661,7 @@ export default function GamePage() {
           </button>
           <button
             onClick={handleExit}
-            className="px-4 py-2 bg-red-600/90 hover:bg-red-700 text-white rounded-lg font-bold transition-all backdrop-blur-sm flex items-center gap-2"
+            className="theme-cta theme-cta--loud theme-cta--compact px-4 py-2 backdrop-blur-sm flex items-center gap-2"
             title="Exit Game"
           >
             <X className="w-4 h-4" />
@@ -686,7 +686,7 @@ export default function GamePage() {
                   <button
                     type="button"
                     onClick={() => signIn("google")}
-                    className="rounded bg-white/90 px-2 py-1 text-black font-semibold inline-flex items-center gap-1"
+                    className="theme-cta theme-cta--compact px-2 py-1 text-xs inline-flex items-center gap-1"
                   >
                     <LogIn className="h-3 w-3" />
                     Google
@@ -694,7 +694,7 @@ export default function GamePage() {
                   <button
                     type="button"
                     onClick={() => signIn("facebook")}
-                    className="rounded bg-blue-600 px-2 py-1 text-white font-semibold inline-flex items-center gap-1"
+                    className="theme-cta theme-cta--secondary theme-cta--compact px-2 py-1 text-xs inline-flex items-center gap-1"
                   >
                     <LogIn className="h-3 w-3" />
                     Facebook
@@ -704,7 +704,7 @@ export default function GamePage() {
                 <button
                   type="button"
                   onClick={() => signOut()}
-                  className="rounded bg-slate-700 px-2 py-1 text-white font-semibold inline-flex items-center gap-1"
+                  className="theme-cta theme-cta--muted theme-cta--compact px-2 py-1 text-xs inline-flex items-center gap-1"
                 >
                   <LogOut className="h-3 w-3" />
                   Sign out ({oauthProvider})
@@ -770,7 +770,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_left")}
               aria-label="Turn left"
-              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
             >
               Turn L
             </button>
@@ -778,7 +778,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("forward")}
               aria-label="Move forward"
-              className="rounded-lg bg-emerald-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--loud theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
             >
               Forward
             </button>
@@ -786,7 +786,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_right")}
               aria-label="Turn right"
-              className="rounded-lg bg-indigo-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
             >
               Turn R
             </button>
@@ -794,7 +794,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="col-span-2 rounded-lg bg-slate-600/90 px-3 py-3 text-white font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--muted theme-cta--compact col-span-2 px-3 py-3 font-semibold [touch-action:manipulation]"
             >
               Back
             </button>
@@ -802,11 +802,11 @@ export default function GamePage() {
               type="button"
               aria-label="Use or interact"
               onClick={() => emitControlAction("use", true)}
-              className={`rounded-lg px-3 py-3 text-white font-semibold transition-all ${
+              className={`theme-cta theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation] ${
                 isInteractionReady
-                  ? "bg-emerald-500/95 shadow-[0_0_14px_rgba(16,185,129,0.8)] animate-pulse"
-                  : "bg-pink-600/90"
-              } [touch-action:manipulation]`}
+                  ? "theme-cta--loud animate-pulse"
+                  : "theme-cta--secondary"
+              }`}
             >
               Use
             </button>
@@ -828,7 +828,7 @@ export default function GamePage() {
                 <button
                   type="button"
                   onClick={() => setShowRunCompleteModal(false)}
-                  className="rounded bg-slate-700 px-3 py-1 text-white"
+                  className="theme-cta theme-cta--muted theme-cta--compact px-3 py-1"
                 >
                   Close
                 </button>
@@ -884,14 +884,14 @@ export default function GamePage() {
                 <button
                   type="button"
                   onClick={handleRestart}
-                  className="rounded bg-emerald-600 px-3 py-2 text-white font-semibold"
+                  className="theme-cta theme-cta--loud theme-cta--compact px-3 py-2"
                 >
                   Play Again
                 </button>
                 <button
                   type="button"
                   onClick={handleExit}
-                  className="rounded bg-slate-700 px-3 py-2 text-white font-semibold"
+                  className="theme-cta theme-cta--muted theme-cta--compact px-3 py-2"
                 >
                   Exit to Menu
                 </button>
@@ -986,7 +986,7 @@ export default function GamePage() {
               <div className="mt-6 flex justify-center">
                 <button
                   onClick={() => setShowTutorial(false)}
-                  className="px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-bold transition-all text-base sm:text-lg"
+                  className="theme-cta theme-cta--loud px-6 sm:px-8 py-3 text-base sm:text-lg"
                 >
                   Got it! Let&apos;s Play
                 </button>
@@ -1006,7 +1006,7 @@ export default function GamePage() {
               <div className="space-y-3">
                 <button
                   onClick={togglePause}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-base sm:text-lg"
+                  className="theme-cta theme-cta--loud w-full px-6 py-3 flex items-center justify-center gap-2 text-base sm:text-lg"
                 >
                   <Play className="w-5 h-5" />
                   Resume Game
@@ -1014,7 +1014,7 @@ export default function GamePage() {
 
                 <button
                   onClick={handleRestart}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-base sm:text-lg"
+                  className="theme-cta theme-cta--secondary w-full px-6 py-3 flex items-center justify-center gap-2 text-base sm:text-lg"
                 >
                   <RotateCcw className="w-5 h-5" />
                   Restart Game
@@ -1022,7 +1022,7 @@ export default function GamePage() {
 
                 <button
                   onClick={() => setShowTutorial(true)}
-                  className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-base sm:text-lg"
+                  className="theme-cta theme-cta--muted w-full px-6 py-3 flex items-center justify-center gap-2 text-base sm:text-lg"
                 >
                   <HelpCircle className="w-5 h-5" />
                   View Tutorial
@@ -1030,7 +1030,7 @@ export default function GamePage() {
 
                 <button
                   onClick={handleExit}
-                  className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-base sm:text-lg"
+                  className="theme-cta theme-cta--loud w-full px-6 py-3 flex items-center justify-center gap-2 text-base sm:text-lg"
                 >
                   <X className="w-5 h-5" />
                   Exit to Menu
@@ -1109,7 +1109,7 @@ export default function GamePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
             <button
               onClick={handlePlayClick}
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#00D100] to-[#00FF41] text-white rounded-xl font-bold text-lg hover:from-green-600 hover:to-green-500 transition-all shadow-lg hover:shadow-green-500/50 hover:scale-105 inline-flex items-center justify-center gap-3"
+              className="theme-cta theme-cta--loud w-full sm:w-auto px-8 py-4 text-lg inline-flex items-center justify-center gap-3"
             >
               <Gamepad2 className="w-6 h-6" />
               Quick Play (Free)
@@ -1117,7 +1117,7 @@ export default function GamePage() {
 
             <button
               onClick={() => setShowTutorial(true)}
-              className="w-full sm:w-auto px-6 py-3 bg-purple-600/20 border-2 border-purple-500 text-purple-300 rounded-xl font-bold hover:bg-purple-600/30 transition-all inline-flex items-center justify-center gap-2"
+              className="theme-cta theme-cta--secondary w-full sm:w-auto px-6 py-3 inline-flex items-center justify-center gap-2"
             >
               <HelpCircle className="w-5 h-5" />
               How to Play
@@ -1163,7 +1163,7 @@ export default function GamePage() {
                   <button
                     type="button"
                     onClick={() => signIn("google")}
-                    className="rounded bg-white/90 px-3 py-2 text-sm font-semibold text-black inline-flex items-center gap-2"
+                    className="theme-cta theme-cta--compact px-3 py-2 text-sm inline-flex items-center gap-2"
                   >
                     <LogIn className="h-4 w-4" />
                     Google OAuth
@@ -1171,7 +1171,7 @@ export default function GamePage() {
                   <button
                     type="button"
                     onClick={() => signIn("facebook")}
-                    className="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white inline-flex items-center gap-2"
+                    className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-2 text-sm inline-flex items-center gap-2"
                   >
                     <LogIn className="h-4 w-4" />
                     Facebook OAuth
@@ -1181,7 +1181,7 @@ export default function GamePage() {
                 <button
                   type="button"
                   onClick={() => signOut()}
-                  className="rounded bg-slate-700 px-3 py-2 text-sm font-semibold text-white inline-flex items-center gap-2"
+                  className="theme-cta theme-cta--muted theme-cta--compact px-3 py-2 text-sm inline-flex items-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out ({oauthProvider})
@@ -1321,13 +1321,13 @@ export default function GamePage() {
                     setShowTutorial(false);
                     handlePlayClick();
                   }}
-                  className="px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-bold transition-all text-base sm:text-lg"
+                  className="theme-cta theme-cta--loud px-6 sm:px-8 py-3 text-base sm:text-lg"
                 >
                   Start Playing Now!
                 </button>
                 <button
                   onClick={() => setShowTutorial(false)}
-                  className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition-all"
+                  className="theme-cta theme-cta--muted px-6 py-2"
                 >
                   Close
                 </button>
@@ -1358,7 +1358,7 @@ export default function GamePage() {
             </p>
             <button
               onClick={handlePlayClick}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-all inline-flex items-center gap-2"
+              className="theme-cta theme-cta--loud px-6 py-3 inline-flex items-center gap-2"
             >
               <Zap className="w-5 h-5" />
               Launch Game

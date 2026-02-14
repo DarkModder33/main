@@ -63,7 +63,7 @@ export function PremiumUpgrade() {
         {/* CTA Button */}
         <button
           onClick={handleUpgradeClick}
-          className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-purple-500/50 hover:scale-105"
+          className="theme-cta theme-cta--loud w-full md:w-auto px-8 py-4 text-lg"
         >
           Upgrade Now →
         </button>
@@ -120,7 +120,7 @@ export function PremiumBanner() {
       
       <button
         onClick={handleClick}
-        className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+        className="theme-cta theme-cta--secondary w-full px-4 py-2"
       >
         Upgrade Now
       </button>

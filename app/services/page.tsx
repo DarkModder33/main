@@ -332,7 +332,7 @@ export default function ServicesPage() {
               href="/portfolio"
               conversionId="open_portfolio"
               surface="services:cta_section"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold"
+              className="theme-cta theme-cta--secondary px-6 py-3"
             >
               View Portfolio
               <ArrowRight className="w-5 h-5" />
@@ -342,7 +342,7 @@ export default function ServicesPage() {
               conversionId="email_contact"
               surface="services:cta_section"
               external
-              className="inline-flex items-center gap-2 px-6 py-3 shamrock-button font-semibold"
+              className="theme-cta theme-cta--loud px-6 py-3"
             >
               Email Us
               <ArrowRight className="w-5 h-5" />
@@ -405,7 +405,7 @@ function ServiceCard({
           conversionId={ctaConversionId}
           surface={`services:card:${title.toLowerCase().replace(/\s+/g, "_")}`}
           external
-          className="inline-flex items-center gap-2 mt-4 rounded-lg border border-[#00ff41]/45 bg-[#041108] px-4 py-2.5 text-sm font-semibold text-[#b7ffd3] hover:border-[#00ff41] hover:text-[#d8ffe8] transition-colors"
+          className="theme-cta theme-cta--compact mt-4"
         >
           {ctaLabel}
           <ArrowRight className="w-4 h-4" />

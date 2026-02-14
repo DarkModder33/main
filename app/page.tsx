@@ -136,7 +136,7 @@ export default function Home() {
                   href="/schedule"
                   conversionId="open_schedule"
                   surface="home:hero"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
+                  className="theme-cta theme-cta--loud px-5 py-3"
                 >
                   Book Service
                   <ArrowRight className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default function Home() {
                   href="/crypto-project"
                   conversionId="open_crypto_project"
                   surface="home:hero"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
+                  className="theme-cta theme-cta--secondary px-5 py-3"
                 >
                   Open Crypto Project
                   <CircuitBoard className="w-4 h-4" />
@@ -214,7 +214,7 @@ export default function Home() {
                   conversionId="book_repair_quote"
                   surface="home:service_card"
                   external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
+                  className="theme-cta theme-cta--compact theme-cta--loud mt-1 self-start"
                 >
                   Request a Repair Quote
                 </TrackedCtaLink>
@@ -230,7 +230,7 @@ export default function Home() {
                   conversionId="book_guitar_lesson"
                   surface="home:service_card"
                   external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
+                  className="theme-cta theme-cta--compact theme-cta--secondary mt-1 self-start"
                 >
                   Reserve a Lesson Slot
                 </TrackedCtaLink>
@@ -246,7 +246,7 @@ export default function Home() {
                   conversionId="book_web3_consult"
                   surface="home:service_card"
                   external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
+                  className="theme-cta theme-cta--compact theme-cta--muted mt-1 self-start"
                 >
                   Start a Build Consultation
                 </TrackedCtaLink>
@@ -300,7 +300,7 @@ export default function Home() {
                   href="/schedule"
                   conversionId="open_schedule"
                   surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
+                  className="theme-cta theme-cta--compact theme-cta--loud mt-1 self-start"
                 >
                   Open Schedule
                 </TrackedCtaLink>
@@ -313,7 +313,7 @@ export default function Home() {
                   href="/crypto-project"
                   conversionId="open_crypto_project"
                   surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
+                  className="theme-cta theme-cta--compact theme-cta--secondary mt-1 self-start"
                 >
                   Mint Access
                 </TrackedCtaLink>
@@ -326,7 +326,7 @@ export default function Home() {
                   href="/pricing"
                   conversionId="open_pricing"
                   surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
+                  className="theme-cta theme-cta--compact mt-1 self-start"
                 >
                   View Tiers
                 </TrackedCtaLink>
@@ -339,7 +339,7 @@ export default function Home() {
                   href="/dashboard"
                   conversionId="open_dashboard"
                   surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
+                  className="theme-cta theme-cta--compact theme-cta--muted mt-1 self-start"
                 >
                   Launch Dashboard
                 </TrackedCtaLink>
