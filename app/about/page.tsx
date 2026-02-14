@@ -73,13 +73,13 @@ export default function AboutPage() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/services"
-              className="inline-flex items-center rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
+              className="theme-cta theme-cta--loud px-5 py-3"
             >
               View Services
             </Link>
             <Link
               href="/schedule"
-              className="inline-flex items-center rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
+              className="theme-cta theme-cta--secondary px-5 py-3"
             >
               Book a Session
             </Link>

@@ -19,7 +19,7 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           href="/schedule"
           conversionId="open_schedule"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00ff41]/55 bg-[#05120a] px-4 py-3 text-sm font-semibold text-[#ccffe0] hover:border-[#00ff41] transition-colors"
+          className="theme-cta theme-cta--compact w-full"
         >
           <CalendarClock className="w-4 h-4" />
           Book Service
@@ -28,7 +28,7 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           href="/crypto-project"
           conversionId="open_crypto_project"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#7af7c7]/45 bg-[#05161d] px-4 py-3 text-sm font-semibold text-[#d7f5ff] hover:border-[#8ef7d6] transition-colors"
+          className="theme-cta theme-cta--secondary theme-cta--compact w-full"
         >
           <Gem className="w-4 h-4" />
           Mint Access
@@ -37,7 +37,7 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           href="/pricing"
           conversionId="open_pricing"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-pink-500 px-4 py-3 text-sm font-semibold text-white hover:from-fuchsia-500 hover:to-pink-400 transition-colors"
+          className="theme-cta theme-cta--loud theme-cta--compact w-full"
         >
           <CreditCard className="w-4 h-4" />
           View Tiers
@@ -47,7 +47,7 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           conversionId="email_contact"
           surface={`${surface}:action_rail`}
           external
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00ff41]/45 bg-[#0b1015] px-4 py-3 text-sm font-semibold text-[#d8ffe8] hover:border-[#00ff41] transition-colors"
+          className="theme-cta theme-cta--muted theme-cta--compact w-full"
         >
           <Mail className="w-4 h-4" />
           Contact Direct

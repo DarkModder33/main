@@ -62,7 +62,7 @@ export default function PortfolioPage() {
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Link
               href="#contact"
-              className="shamrock-button inline-flex items-center gap-2 px-6 py-3 text-lg shadow-lg hover:shadow-[#0366d6]/50"
+              className="theme-cta theme-cta--loud px-6 py-3 text-lg"
             >
               <Mail className="w-5 h-5" />
               Hire Me

@@ -64,7 +64,7 @@ export default function CryptoProjectPage() {
               href="/game"
               conversionId="open_game"
               surface="crypto_project:hero"
-              className="inline-flex items-center gap-2 rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
+              className="theme-cta theme-cta--secondary px-5 py-3"
             >
               Open Hyperborea
               <Blocks className="w-4 h-4" />
@@ -73,7 +73,7 @@ export default function CryptoProjectPage() {
               href="/pricing"
               conversionId="open_pricing"
               surface="crypto_project:hero"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
+              className="theme-cta theme-cta--loud px-5 py-3"
             >
               Mint Upgrade Plans
             </TrackedCtaLink>

@@ -54,7 +54,7 @@ export default function SchedulePage() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[#9bffc0] font-semibold hover:text-[#00ff41] transition-colors"
+                className="theme-cta theme-cta--compact mt-1 self-start"
               >
                 Open Booking
                 <Link2 className="w-4 h-4" />
