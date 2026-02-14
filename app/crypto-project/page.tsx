@@ -1,4 +1,6 @@
 import { WalletButton } from "@/components/counter/WalletButton";
+import { ActionRail } from "@/components/monetization/ActionRail";
+import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import {
@@ -9,7 +11,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Crypto Project - TradeHax AI",
@@ -59,21 +60,27 @@ export default function CryptoProjectPage() {
             <div className="min-h-10">
               <WalletButton />
             </div>
-            <Link
+            <TrackedCtaLink
               href="/game"
+              conversionId="open_game"
+              surface="crypto_project:hero"
               className="inline-flex items-center gap-2 rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
             >
               Open Hyperborea
               <Blocks className="w-4 h-4" />
-            </Link>
-            <Link
+            </TrackedCtaLink>
+            <TrackedCtaLink
               href="/pricing"
+              conversionId="open_pricing"
+              surface="crypto_project:hero"
               className="inline-flex items-center gap-2 rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
             >
               Mint Upgrade Plans
-            </Link>
+            </TrackedCtaLink>
           </div>
         </section>
+
+        <ActionRail surface="crypto_project" className="mb-8" />
 
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {features.map(({ title, text, icon: Icon }) => (
