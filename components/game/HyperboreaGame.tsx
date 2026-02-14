@@ -65,6 +65,13 @@ function cellKey(x: number, y: number) {
   return `${x},${y}`;
 }
 
+function yawFromGridDirection(dx: number, dy: number) {
+  if (dx > 0) return Math.PI / 2;
+  if (dx < 0) return -Math.PI / 2;
+  if (dy < 0) return Math.PI;
+  return 0;
+}
+
 const FALLBACK_LEVEL = generateDefaultLevel001();
 const CELL_SIZE = 4;
 const WALL_HEIGHT = 3.5;
@@ -379,6 +386,31 @@ export function HyperboreaGame({
     let playerX = startWorld.x;
     let playerZ = startWorld.z;
     let playerYaw = Math.atan2(exitWorld.x - startWorld.x, exitWorld.z - startWorld.z);
+    const startGrid = activeLevel.start;
+    const exitGrid = activeLevel.exit;
+    const directions = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 },
+    ];
+    let bestDirection: { dx: number; dy: number } | null = null;
+    let bestDirectionScore = Number.NEGATIVE_INFINITY;
+    for (const direction of directions) {
+      const nextX = startGrid.x + direction.dx;
+      const nextY = startGrid.y + direction.dy;
+      if (isWallCell(nextX, nextY)) continue;
+      const towardExitX = exitGrid.x - startGrid.x;
+      const towardExitY = exitGrid.y - startGrid.y;
+      const score = direction.dx * towardExitX + direction.dy * towardExitY;
+      if (score > bestDirectionScore) {
+        bestDirectionScore = score;
+        bestDirection = direction;
+      }
+    }
+    if (bestDirection) {
+      playerYaw = yawFromGridDirection(bestDirection.dx, bestDirection.dy);
+    }
     let bobTimer = 0;
 
     let energy = 25;
@@ -409,6 +441,8 @@ export function HyperboreaGame({
     let touchLastX = 0;
     let swipeStartX = 0;
     let swipeStartY = 0;
+    let touchGestureForward = false;
+    let touchGestureBackward = false;
 
     const simulationClock = new THREE.Clock();
     let simulationAccumulator = 0;
@@ -445,6 +479,8 @@ export function HyperboreaGame({
       virtualControlState.turn_left = false;
       virtualControlState.turn_right = false;
       virtualControlState.use = false;
+      touchGestureForward = false;
+      touchGestureBackward = false;
     };
 
     const emitInteractionHint = (hint: string | null, actionable: boolean) => {
@@ -745,20 +781,37 @@ export function HyperboreaGame({
       touchLastX = event.touches[0].clientX;
       swipeStartX = event.touches[0].clientX;
       swipeStartY = event.touches[0].clientY;
+      touchGestureForward = false;
+      touchGestureBackward = false;
     };
 
     const handleTouchMove = (event: TouchEvent) => {
       if (!touchRotating || event.touches.length === 0) return;
       event.preventDefault();
-      const nextX = event.touches[0].clientX;
+      const nextTouch = event.touches[0];
+      const nextX = nextTouch.clientX;
       const deltaX = nextX - touchLastX;
       touchLastX = nextX;
       playerYaw -= deltaX * 0.0045;
+
+      const deltaYFromStart = swipeStartY - nextTouch.clientY;
+      if (deltaYFromStart > 24) {
+        touchGestureForward = true;
+        touchGestureBackward = false;
+      } else if (deltaYFromStart < -24) {
+        touchGestureForward = false;
+        touchGestureBackward = true;
+      } else {
+        touchGestureForward = false;
+        touchGestureBackward = false;
+      }
     };
 
     const handleTouchEnd = (event: TouchEvent) => {
       if (event.changedTouches.length === 0) {
         touchRotating = false;
+        touchGestureForward = false;
+        touchGestureBackward = false;
         return;
       }
       const deltaX = event.changedTouches[0].clientX - swipeStartX;
@@ -767,6 +820,8 @@ export function HyperboreaGame({
         tryInteract();
       }
       touchRotating = false;
+      touchGestureForward = false;
+      touchGestureBackward = false;
     };
 
     const handleExternalControl = (event: Event) => {
@@ -843,11 +898,13 @@ export function HyperboreaGame({
       const forward =
         keyState["w"] ||
         keyState["arrowup"] ||
-        virtualControlState.forward;
+        virtualControlState.forward ||
+        touchGestureForward;
       const backward =
         keyState["s"] ||
         keyState["arrowdown"] ||
-        virtualControlState.backward;
+        virtualControlState.backward ||
+        touchGestureBackward;
 
       const turnInput = (turnLeft ? 1 : 0) - (turnRight ? 1 : 0);
       const moveInput = (forward ? 1 : 0) - (backward ? 1 : 0);
@@ -977,7 +1034,7 @@ export function HyperboreaGame({
     emitInteractionHint("Use crosshair + E (or Use button) near relics and runes.", false);
     emitStatus(
       isMobile
-        ? "Use on-screen Forward/Back/Turn and tap Use near runes."
+        ? "Use on-screen controls, or drag up/down to move and drag left/right to turn. Tap Use near runes."
         : "W/S move, A/D turn, E use. Solve gates and recover relics.",
     );
     animate();

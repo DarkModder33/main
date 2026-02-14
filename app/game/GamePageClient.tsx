@@ -194,6 +194,15 @@ export default function GamePage() {
       onPointerCancel: () => releaseMovementControl(action),
       onPointerLeave: () => releaseMovementControl(action),
       onLostPointerCapture: () => releaseMovementControl(action),
+      onTouchStart: (event: React.TouchEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        if (!pressedControlsRef.current.has(action)) {
+          pressedControlsRef.current.add(action);
+          emitControlAction(action, true);
+        }
+      },
+      onTouchEnd: () => releaseMovementControl(action),
+      onTouchCancel: () => releaseMovementControl(action),
       onContextMenu: (event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault(),
     }),
     [emitControlAction, releaseMovementControl],
@@ -429,7 +438,7 @@ export default function GamePage() {
             <div>Move: W/S or ↑/↓</div>
             <div>Turn: A/D or ←/→</div>
             <div>Use/Interact: E, ENTER, or SPACE</div>
-            <div className="text-emerald-200">Mobile: hold direction buttons + tap Use</div>
+            <div className="text-emerald-200">Mobile: hold buttons or drag up/down to move, then tap Use</div>
           </div>
         </div>
 
@@ -578,7 +587,7 @@ export default function GamePage() {
                       <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
                         MOBILE
                       </span>
-                      <span>Hold direction buttons and tap Use near the crosshair target</span>
+                      <span>Hold direction buttons (or drag up/down) and tap Use near the crosshair target</span>
                     </div>
                   </div>
                 </div>
@@ -768,7 +777,7 @@ export default function GamePage() {
                 Desktop: W/S move, A/D turn, E/Space to interact with nodes and relics.
               </div>
               <div className="rounded-md border border-white/15 bg-black/40 p-2">
-                Mobile: hold Forward/Back/Turn buttons and tap Use near a target.
+                Mobile: hold Forward/Back/Turn buttons or drag up/down, then tap Use near a target.
               </div>
             </div>
           </div>
@@ -836,7 +845,7 @@ export default function GamePage() {
                       <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
                         MOBILE
                       </span>
-                      <span>Hold direction buttons and tap Use near the crosshair target</span>
+                      <span>Hold direction buttons (or drag up/down) and tap Use near the crosshair target</span>
                     </div>
                   </div>
                 </div>
