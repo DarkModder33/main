@@ -1,7 +1,9 @@
 import { WalletButton } from "@/components/counter/WalletButton";
 import { InContentAd, FooterBannerAd } from "@/components/monetization/AdSenseBlock";
+import { ActionRail } from "@/components/monetization/ActionRail";
 import { EmailCaptureModal } from "@/components/monetization/EmailCaptureModal";
 import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
+import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { bookingLinks } from "@/lib/booking";
@@ -130,26 +132,34 @@ export default function Home() {
                 </div>
               </div>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Link
+                <TrackedCtaLink
                   href="/schedule"
+                  conversionId="open_schedule"
+                  surface="home:hero"
                   className="inline-flex items-center gap-2 rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
                 >
                   Book Service
                   <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
+                </TrackedCtaLink>
+                <TrackedCtaLink
                   href="/crypto-project"
+                  conversionId="open_crypto_project"
+                  surface="home:hero"
                   className="inline-flex items-center gap-2 rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
                 >
                   Open Crypto Project
                   <CircuitBoard className="w-4 h-4" />
-                </Link>
+                </TrackedCtaLink>
                 <div className="min-h-10">
                   <WalletButton />
                 </div>
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
+          <ActionRail surface="home" />
         </section>
 
         <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
@@ -199,14 +209,15 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold">Phone and Device Repair</h3>
                 <p>Fast diagnostics, remote triage, and local repair scheduling.</p>
-                <a
+                <TrackedCtaLink
                   href={bookingLinks.techSupport}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  conversionId="book_repair_quote"
+                  surface="home:service_card"
+                  external
                   className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
                 >
                   Request a Repair Quote
-                </a>
+                </TrackedCtaLink>
               </article>
               <article className="theme-grid-card">
                 <div className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[#00ff41]/40 bg-[#06130c] text-[#7cf5ad]">
@@ -214,14 +225,15 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold">Remote Guitar Lessons</h3>
                 <p>Structured lesson tracks with live sessions and progress plans.</p>
-                <a
+                <TrackedCtaLink
                   href={bookingLinks.guitarLessons}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  conversionId="book_guitar_lesson"
+                  surface="home:service_card"
+                  external
                   className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
                 >
                   Reserve a Lesson Slot
-                </a>
+                </TrackedCtaLink>
               </article>
               <article className="theme-grid-card">
                 <div className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[#00ff41]/40 bg-[#06130c] text-[#7cf5ad]">
@@ -229,14 +241,15 @@ export default function Home() {
                 </div>
                 <h3 className="text-lg font-semibold">Digital and Web3 Services</h3>
                 <p>AI trading builds, Solana app work, and automation implementation.</p>
-                <a
+                <TrackedCtaLink
                   href={bookingLinks.webDevConsult}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  conversionId="book_web3_consult"
+                  surface="home:service_card"
+                  external
                   className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
                 >
                   Start a Build Consultation
-                </a>
+                </TrackedCtaLink>
               </article>
             </div>
           </div>
@@ -283,33 +296,53 @@ export default function Home() {
                 <HandCoins className="w-5 h-5 text-[#77f9a7]" />
                 <h3 className="font-semibold">Bookings</h3>
                 <p>Paid repair, lessons, and consulting appointments.</p>
-                <Link href="/schedule" className="text-[#8bffb7] text-sm font-semibold">
+                <TrackedCtaLink
+                  href="/schedule"
+                  conversionId="open_schedule"
+                  surface="home:monetization_lane"
+                  className="text-[#8bffb7] text-sm font-semibold"
+                >
                   Open Schedule
-                </Link>
+                </TrackedCtaLink>
               </article>
               <article className="theme-grid-card">
                 <Gem className="w-5 h-5 text-[#77f9a7]" />
                 <h3 className="font-semibold">NFT Mints</h3>
                 <p>Free entry mints with premium upgrade utilities.</p>
-                <Link href="/crypto-project" className="text-[#8bffb7] text-sm font-semibold">
+                <TrackedCtaLink
+                  href="/crypto-project"
+                  conversionId="open_crypto_project"
+                  surface="home:monetization_lane"
+                  className="text-[#8bffb7] text-sm font-semibold"
+                >
                   Mint Access
-                </Link>
+                </TrackedCtaLink>
               </article>
               <article className="theme-grid-card">
                 <CreditCard className="w-5 h-5 text-[#77f9a7]" />
                 <h3 className="font-semibold">Subscriptions</h3>
                 <p>Monthly tiers for insights, support, and premium sessions.</p>
-                <Link href="/pricing" className="text-[#8bffb7] text-sm font-semibold">
+                <TrackedCtaLink
+                  href="/pricing"
+                  conversionId="open_pricing"
+                  surface="home:monetization_lane"
+                  className="text-[#8bffb7] text-sm font-semibold"
+                >
                   View Tiers
-                </Link>
+                </TrackedCtaLink>
               </article>
               <article className="theme-grid-card">
                 <Gamepad2 className="w-5 h-5 text-[#77f9a7]" />
                 <h3 className="font-semibold">Cross-Upsells</h3>
                 <p>Game, dashboard, and service ecosystem conversion flow.</p>
-                <Link href="/dashboard" className="text-[#8bffb7] text-sm font-semibold">
+                <TrackedCtaLink
+                  href="/dashboard"
+                  conversionId="open_dashboard"
+                  surface="home:monetization_lane"
+                  className="text-[#8bffb7] text-sm font-semibold"
+                >
                   Launch Dashboard
-                </Link>
+                </TrackedCtaLink>
               </article>
             </div>
           </div>

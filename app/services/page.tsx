@@ -1,7 +1,11 @@
 import { EmailCapture } from "@/components/EmailCapture";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
+import { ActionRail } from "@/components/monetization/ActionRail";
+import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { bookingLinks } from "@/lib/booking";
+import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
     ArrowRight,
     CheckCircle2,
@@ -17,7 +21,6 @@ import {
     Zap,
 } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title:
@@ -73,6 +76,10 @@ export default function ServicesPage() {
           </p>
         </div>
 
+        <div className="mb-12">
+          <ActionRail surface="services" />
+        </div>
+
         {/* Ad Placement */}
         <div className="mb-16">
           <AdSenseBlock adSlot="services-top" adFormat="horizontal" />
@@ -92,6 +99,9 @@ export default function ServicesPage() {
               "NFT marketplace development",
             ]}
             pricing="Starting at $5,000"
+            ctaLabel="Book Web3 Discovery Call"
+            ctaHref={bookingLinks.webDevConsult}
+            ctaConversionId="book_web3_consult"
           />
 
           <ServiceCard
@@ -107,6 +117,9 @@ export default function ServicesPage() {
               "Live trading sessions & community (coming soon)",
             ]}
             pricing="Starting at $3,000"
+            ctaLabel="Book Trading Strategy Session"
+            ctaHref={bookingLinks.tradingConsult}
+            ctaConversionId="book_trading_consult"
           />
 
           <ServiceCard
@@ -121,6 +134,9 @@ export default function ServicesPage() {
               "Code review & audits",
             ]}
             pricing="$200/hour"
+            ctaLabel="Book Web3 Strategy Consult"
+            ctaHref={bookingLinks.webDevConsult}
+            ctaConversionId="book_web3_consult"
           />
 
           <ServiceCard
@@ -135,6 +151,9 @@ export default function ServicesPage() {
               "Performance optimization",
             ]}
             pricing="Starting at $4,000"
+            ctaLabel="Start Build Consultation"
+            ctaHref={bookingLinks.webDevConsult}
+            ctaConversionId="book_web3_consult"
           />
 
           <ServiceCard
@@ -150,6 +169,9 @@ export default function ServicesPage() {
               "OS installation & updates",
             ]}
             pricing="$50-100/hour"
+            ctaLabel="Book Repair / Support Intake"
+            ctaHref={bookingLinks.techSupport}
+            ctaConversionId="book_repair_quote"
           />
 
           <ServiceCard
@@ -165,6 +187,9 @@ export default function ServicesPage() {
               "Influencer outreach & partnerships",
             ]}
             pricing="Starting at $1,000/month"
+            ctaLabel="Book Marketing Strategy Call"
+            ctaHref={bookingLinks.socialMediaConsult}
+            ctaConversionId="book_social_media_consult"
           />
 
           <ServiceCard
@@ -180,6 +205,9 @@ export default function ServicesPage() {
               "24/7 technical support retainers",
             ]}
             pricing="Starting at $500/month"
+            ctaLabel="Book IT Management Consult"
+            ctaHref={bookingLinks.itManagement}
+            ctaConversionId="book_it_management_consult"
           />
 
           <ServiceCard
@@ -195,6 +223,9 @@ export default function ServicesPage() {
               "Ongoing maintenance & updates",
             ]}
             pricing="Starting at $8,000"
+            ctaLabel="Book App Development Consult"
+            ctaHref={bookingLinks.appDevelopment}
+            ctaConversionId="book_app_development_consult"
           />
 
           <ServiceCard
@@ -210,6 +241,9 @@ export default function ServicesPage() {
               "DevOps & CI/CD pipelines",
             ]}
             pricing="Starting at $3,500"
+            ctaLabel="Book Database Architecture Call"
+            ctaHref={bookingLinks.databaseConsult}
+            ctaConversionId="book_database_consult"
           />
 
           <ServiceCard
@@ -225,6 +259,9 @@ export default function ServicesPage() {
               "Conversion rate optimization",
             ]}
             pricing="Starting at $6,000"
+            ctaLabel="Book E-Commerce Build Session"
+            ctaHref={bookingLinks.ecommerceConsult}
+            ctaConversionId="book_ecommerce_consult"
           />
         </div>
 
@@ -291,20 +328,25 @@ export default function ServicesPage() {
           <EmailCapture />
 
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
+            <TrackedCtaLink
               href="/portfolio"
+              conversionId="open_portfolio"
+              surface="services:cta_section"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold"
             >
               View Portfolio
               <ArrowRight className="w-5 h-5" />
-            </Link>
-            <a
-              href="mailto:support@tradehaxai.tech"
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href="mailto:support@tradehaxai.tech?subject=TradeHax%20Services%20Inquiry"
+              conversionId="email_contact"
+              surface="services:cta_section"
+              external
               className="inline-flex items-center gap-2 px-6 py-3 shamrock-button font-semibold"
             >
               Email Us
               <ArrowRight className="w-5 h-5" />
-            </a>
+            </TrackedCtaLink>
           </div>
         </section>
 
@@ -325,12 +367,18 @@ function ServiceCard({
   description,
   features,
   pricing,
+  ctaLabel,
+  ctaHref,
+  ctaConversionId,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   features: string[];
   pricing: string;
+  ctaLabel: string;
+  ctaHref: string;
+  ctaConversionId: ServiceConversionId;
 }) {
   return (
     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 hover:border-[#0366d6]/50 transition-all">
@@ -352,6 +400,16 @@ function ServiceCard({
 
       <div className="pt-6 border-t border-gray-800">
         <p className="text-2xl font-bold text-white">{pricing}</p>
+        <TrackedCtaLink
+          href={ctaHref}
+          conversionId={ctaConversionId}
+          surface={`services:card:${title.toLowerCase().replace(/\s+/g, "_")}`}
+          external
+          className="inline-flex items-center gap-2 mt-4 rounded-lg border border-[#00ff41]/45 bg-[#041108] px-4 py-2.5 text-sm font-semibold text-[#b7ffd3] hover:border-[#00ff41] hover:text-[#d8ffe8] transition-colors"
+        >
+          {ctaLabel}
+          <ArrowRight className="w-4 h-4" />
+        </TrackedCtaLink>
       </div>
     </div>
   );

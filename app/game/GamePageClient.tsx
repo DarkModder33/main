@@ -76,20 +76,42 @@ export default function GamePage() {
     let isCancelled = false;
 
     const loadLevel = async () => {
+      const candidateLevels = [
+        "/levels/level-002-tutorial-astral-gate.json",
+        "/levels/level-001.json",
+      ];
+
+      let loadedLevel: HyperboreaLevelDefinition | null = null;
+      let loadedFrom = "";
+      let lastErrorMessage = "Unknown load error";
+
       try {
-        const response = await fetch("/levels/level-001.json");
-        if (!response.ok) {
-          throw new Error(`Level request failed (${response.status})`);
+        for (const levelPath of candidateLevels) {
+          const response = await fetch(levelPath);
+          if (!response.ok) {
+            lastErrorMessage = `Level request failed (${response.status})`;
+            continue;
+          }
+
+          const payload: unknown = await response.json();
+          if (!isHyperboreaLevelDefinition(payload)) {
+            lastErrorMessage = "Level format invalid";
+            continue;
+          }
+
+          loadedLevel = payload;
+          loadedFrom = levelPath.split("/").pop() ?? levelPath;
+          break;
         }
-        const payload = await response.json();
-        if (!isHyperboreaLevelDefinition(payload)) {
-          throw new Error("Level format invalid");
+
+        if (!loadedLevel) {
+          throw new Error(lastErrorMessage);
         }
 
         if (!isCancelled) {
-          setActiveLevel(payload);
+          setActiveLevel(loadedLevel);
           setLevelLoadState("ready");
-          setLevelLoadMessage(`Loaded: ${payload.name}`);
+          setLevelLoadMessage(`Loaded: ${loadedLevel.name} (${loadedFrom})`);
         }
       } catch (error) {
         if (!isCancelled) {
@@ -98,7 +120,7 @@ export default function GamePage() {
           setLevelLoadState("fallback");
           setLevelLoadMessage(
             `Using generated fallback level. ${
-              error instanceof Error ? error.message : "Unknown load error"
+              error instanceof Error ? error.message : lastErrorMessage
             }`,
           );
         }
