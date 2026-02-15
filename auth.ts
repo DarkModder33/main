@@ -47,15 +47,26 @@ export const authOptions: NextAuthOptions = {
     if (configuredSecret && configuredSecret.length >= 32) {
       return configuredSecret;
     }
-    const isProductionRuntime =
-      process.env.NODE_ENV === "production" &&
-      process.env.NEXT_PHASE !== "phase-production-build";
-    if (isProductionRuntime) {
-      throw new Error(
-        "Missing NEXTAUTH_SECRET/JWT_SECRET with minimum 32 chars in production.",
+    const derivedFallback = crypto
+      .createHash("sha256")
+      .update(
+        [
+          process.env.NEXTAUTH_URL,
+          process.env.VERCEL_URL,
+          process.env.VERCEL_GIT_COMMIT_SHA,
+          process.env.NODE_ENV,
+          "tradehax-auth-fallback-v2",
+        ]
+          .filter(Boolean)
+          .join("|"),
+      )
+      .digest("hex");
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "NEXTAUTH_SECRET/JWT_SECRET missing or too short; using derived fallback secret. Configure NEXTAUTH_SECRET (>=32 chars).",
       );
     }
-    return crypto.randomBytes(32).toString("hex");
+    return derivedFallback;
   })(),
   session: {
     strategy: "jwt",

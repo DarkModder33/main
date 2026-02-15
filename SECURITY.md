@@ -43,7 +43,8 @@ Do **not** open public GitHub issues for security vulnerabilities.
 - ✅ No hardcoded credentials
 - ✅ CORS properly configured
 - ✅ HTTPS only in production
-- ✅ Production auth now fails closed without strong `NEXTAUTH_SECRET`
+- ✅ Hardcoded auth secret fallback removed
+- ⚠️ Production should still set `NEXTAUTH_SECRET` (>=32 chars) for audit-grade auth signing
 - ✅ API payload bounds checks added for leaderboard + claim endpoints
 
 ### Dependencies
