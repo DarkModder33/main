@@ -622,8 +622,8 @@ export default function GamePage() {
 
         {/* Central score ribbon for instant readability on all devices */}
         <div className="absolute top-4 left-1/2 z-20 w-[min(95vw,860px)] -translate-x-1/2 px-2 pointer-events-none">
-          <div className="rounded-xl border border-cyan-400/30 bg-black/70 px-3 py-2 backdrop-blur-md">
-            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5 sm:text-sm">
+          <div className="theme-floating-panel theme-floating-panel--info px-3 py-2">
+            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-6 sm:text-sm">
               <div className="rounded border border-cyan-500/30 bg-black/45 px-2 py-1 text-cyan-100">
                 <div className="text-[10px] uppercase tracking-wide text-cyan-300/90">Score</div>
                 <div className="font-bold">{score.toLocaleString()}</div>
@@ -687,7 +687,7 @@ export default function GamePage() {
         {/* Session + Level Status */}
         <div className="absolute top-4 right-4 z-20 hidden w-80 max-w-[calc(100vw-1.5rem)] space-y-2 pointer-events-none sm:block">
           {activeLevel && (
-            <div className="rounded-lg border border-emerald-400/40 bg-black/75 p-3 text-xs sm:text-sm text-emerald-200 backdrop-blur">
+            <div className="theme-floating-panel theme-floating-panel--success p-3 text-xs sm:text-sm">
               <div className="font-bold text-emerald-300">{activeLevel.name}</div>
               <div className="text-emerald-100/80">
                 Zelda-like puzzle route: {activeLevel.puzzleNodes.length} nodes | Relics:{" "}
@@ -715,7 +715,7 @@ export default function GamePage() {
           {topArtifacts.map((artifact) => (
             <div
               key={artifact.eventId}
-              className="rounded-lg border border-cyan-400/40 bg-black/80 p-2 text-xs text-cyan-100 backdrop-blur"
+              className="theme-floating-panel theme-floating-panel--info p-2 text-xs text-cyan-100"
             >
               <div className="font-semibold">{artifact.artifactName}</div>
               <div>
@@ -737,13 +737,13 @@ export default function GamePage() {
           ))}
 
           {claimFeedback && (
-            <div className="rounded-lg border border-yellow-400/40 bg-black/80 p-2 text-xs text-yellow-200 backdrop-blur">
+            <div className="theme-floating-panel theme-floating-panel--warning p-2 text-xs text-yellow-200">
               {claimFeedback}
             </div>
           )}
 
           {gameHint && (
-            <div className="rounded-lg border border-blue-400/40 bg-black/80 p-2 text-xs text-blue-100 backdrop-blur">
+            <div className="theme-floating-panel theme-floating-panel--info p-2 text-xs text-blue-100">
               {gameHint}
             </div>
           )}
@@ -779,12 +779,12 @@ export default function GamePage() {
 
         {/* OAuth + Web5 Controls */}
         <div className="absolute top-4 left-4 sm:left-auto sm:right-[22rem] z-20 pointer-events-auto">
-          <div className="rounded-lg border border-emerald-400/40 bg-black/80 px-3 py-2 text-xs text-emerald-100 backdrop-blur space-y-2 min-w-[220px]">
+          <div className="theme-floating-panel theme-floating-panel--success px-3 py-2 text-xs text-emerald-100 space-y-2 min-w-[220px]">
             <div className="font-semibold text-emerald-300">Identity + Web5</div>
             <input
               value={playerAlias}
               onChange={(event) => setPlayerAlias(event.target.value.slice(0, 32))}
-              className="w-full rounded border border-emerald-500/40 bg-black/60 px-2 py-1 text-emerald-100 outline-none"
+              className="w-full rounded border border-emerald-500/40 bg-black/45 px-2 py-1 text-emerald-100 outline-none"
               placeholder="Leaderboard name"
               aria-label="Leaderboard display name"
             />
@@ -828,7 +828,7 @@ export default function GamePage() {
 
         {/* Always-visible controls primer */}
         <div className="absolute top-4 left-4 z-20 hidden sm:block pointer-events-none">
-          <div className="rounded-lg border border-white/20 bg-black/70 px-3 py-2 text-xs text-gray-100 backdrop-blur">
+          <div className="theme-floating-panel theme-floating-panel--info px-3 py-2 text-xs text-gray-100">
             <div className="font-bold text-emerald-300">Controls</div>
             <div>Move: W/S or ↑/↓</div>
             <div>Turn: A/D or ←/→</div>
@@ -841,7 +841,7 @@ export default function GamePage() {
         {/* Quick onboarding coach */}
         {showControlCoach && !isPaused && (
           <div className="absolute top-20 inset-x-0 z-20 pointer-events-none flex justify-center px-3">
-            <div className="max-w-xl rounded-xl border border-emerald-300/40 bg-black/75 px-4 py-3 text-xs sm:text-sm text-emerald-100 backdrop-blur">
+            <div className="theme-floating-panel theme-floating-panel--success max-w-xl px-4 py-3 text-xs sm:text-sm text-emerald-100">
               <div className="font-bold text-emerald-300">Quick Start</div>
               <div>1) Move with W/S and turn with A/D.</div>
               <div>2) Move close to relics to auto-pickup.</div>
@@ -874,7 +874,7 @@ export default function GamePage() {
 
         {/* Desktop fallback controls: helps when keyboard focus is lost */}
         <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 hidden -translate-x-1/2 sm:flex">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 bg-black/70 p-2 backdrop-blur-md">
+          <div className="theme-floating-panel theme-floating-panel--info pointer-events-auto flex items-center gap-2 p-2">
             <button
               type="button"
               {...getHoldButtonHandlers("turn_left")}
@@ -922,7 +922,7 @@ export default function GamePage() {
 
         {/* Mobile touch buttons: explicit first-person controls */}
         <div className="absolute bottom-0 inset-x-0 z-20 flex justify-between px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:hidden pointer-events-none">
-          <div className="pointer-events-auto grid grid-cols-2 gap-2 rounded-xl border border-white/20 bg-black/70 p-2 backdrop-blur-md">
+          <div className="theme-floating-panel theme-floating-panel--info pointer-events-auto grid grid-cols-2 gap-2 p-2">
             <button
               type="button"
               {...getHoldButtonHandlers("turn_left")}
@@ -972,8 +972,8 @@ export default function GamePage() {
 
         {/* Final Score + Leaderboard */}
         {showRunCompleteModal && runCompleteSummary && (
-          <div className="absolute inset-0 z-30 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto">
-            <div className="w-full max-w-3xl rounded-xl border border-emerald-400/50 bg-[#071014] p-5 text-emerald-100">
+          <div className="theme-overlay-shell absolute inset-0 z-30 flex items-center justify-center p-4 pointer-events-auto">
+            <div className="theme-panel w-full max-w-3xl p-5 text-emerald-100">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="text-lg font-bold text-emerald-300">Run Complete</div>
@@ -992,28 +992,28 @@ export default function GamePage() {
               </div>
 
               <div className="mt-4 grid gap-2 sm:grid-cols-3 text-sm">
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Score: {runCompleteSummary.score.toLocaleString()}
                 </div>
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Coins: {runCompleteSummary.coinsCollected} ({runCompleteSummary.coinPoints} pts)
                 </div>
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Runes: {runCompleteSummary.runesActivated} ({runCompleteSummary.runePoints} pts)
                 </div>
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Relics: {runCompleteSummary.relicsCollected} ({runCompleteSummary.relicPoints} pts)
                 </div>
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Explore: {runCompleteSummary.explorationPoints} pts
                 </div>
-                <div className="rounded border border-emerald-500/30 bg-black/40 p-2">
+                <div className="theme-floating-panel theme-floating-panel--success p-2">
                   Utility: {runCompleteSummary.utilityPoints} pts | {runCompleteSummary.projectedTokenUnits}{" "}
                   {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
                 </div>
               </div>
 
-              <div className="mt-4 rounded border border-cyan-400/30 bg-black/40 p-3">
+              <div className="theme-floating-panel theme-floating-panel--info mt-4 p-3">
                 <div className="mb-2 flex items-center gap-2 text-cyan-200 font-semibold">
                   <Medal className="h-4 w-4" />
                   Leaderboard Top 10
@@ -1023,7 +1023,7 @@ export default function GamePage() {
                   {leaderboardEntries.map((entry, index) => (
                     <div
                       key={entry.id}
-                      className="flex items-center justify-between rounded border border-cyan-500/20 bg-black/30 px-2 py-1"
+                      className="theme-floating-panel theme-floating-panel--info flex items-center justify-between px-2 py-1"
                     >
                       <div>
                         #{index + 1} {entry.displayName} ({entry.oauthProvider})
@@ -1059,24 +1059,24 @@ export default function GamePage() {
 
         {/* Tutorial Overlay */}
         {showTutorial && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-30 pointer-events-auto">
-            <div className="bg-gray-900 border-2 border-purple-500 rounded-xl p-6 sm:p-8 max-w-2xl mx-4 sm:mx-8">
+          <div className="theme-overlay-shell absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
+            <div className="theme-panel p-6 sm:p-8 max-w-2xl mx-4 sm:mx-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-                  <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+                  <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#8fffb6]" />
                   How to Play
                 </h2>
                 <button
                   onClick={() => setShowTutorial(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-[#99aebb] hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="space-y-6 text-gray-300">
-                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-purple-400 mb-3">
+              <div className="space-y-6 text-[#d8e6ef]">
+                <div className="theme-floating-panel theme-floating-panel--success p-4">
+                  <h3 className="text-xl font-bold text-[#88ffc0] mb-3">
                     🎯 Objective
                   </h3>
                   <p className="text-sm sm:text-base">
@@ -1085,37 +1085,37 @@ export default function GamePage() {
                   </p>
                 </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-blue-400 mb-3">
+                <div className="theme-floating-panel theme-floating-panel--info p-4">
+                  <h3 className="text-xl font-bold text-[#99ecff] mb-3">
                     🎮 Controls
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         W / ↑
                       </span>
                       <span>Move forward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         S / ↓
                       </span>
                       <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         A / D or ← / →
                       </span>
                       <span>Turn left or right</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold text-sm sm:text-base">
                         E / ENTER / SPACE
                       </span>
                       <span>Use/interact with puzzle nodes and portals (relics auto-pickup nearby)</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold text-sm sm:text-base">
                         MOBILE
                       </span>
                       <span>Hold a direction button ~1 second (or swipe up/down), move close to relics, then tap Use at rune targets</span>
@@ -1123,8 +1123,8 @@ export default function GamePage() {
                   </div>
                 </div>
 
-                <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-pink-400 mb-3">
+                <div className="theme-floating-panel theme-floating-panel--warning p-4">
+                  <h3 className="text-xl font-bold text-[#ffd188] mb-3">
                     ✨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
@@ -1154,8 +1154,8 @@ export default function GamePage() {
 
         {/* Pause Menu */}
         {isPaused && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-30 pointer-events-auto">
-            <div className="bg-gray-900 border-2 border-purple-500 rounded-xl p-6 sm:p-8 max-w-md mx-4">
+          <div className="theme-overlay-shell absolute inset-0 flex items-center justify-center z-30 pointer-events-auto">
+            <div className="theme-panel p-6 sm:p-8 max-w-md mx-4">
               <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-6">
                 Game Paused
               </h2>
@@ -1195,42 +1195,42 @@ export default function GamePage() {
               </div>
 
               {/* Stats Display */}
-              <div className="mt-6 pt-6 border-t border-gray-700">
+              <div className="mt-6 pt-6 border-t border-[#4f6b75]">
                 <h3 className="text-white font-bold mb-3 text-center">
                   Current Stats
                 </h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
-                  <div className="bg-purple-500/20 rounded-lg p-3">
+                  <div className="theme-floating-panel theme-floating-panel--warning p-3">
                     <div className="text-2xl mb-1">⚡</div>
                     <div className="text-white font-bold">{energy}</div>
-                    <div className="text-xs text-gray-400">Energy</div>
+                    <div className="text-xs text-[#9eb4c2]">Energy</div>
                   </div>
-                  <div className="bg-pink-500/20 rounded-lg p-3">
+                  <div className="theme-floating-panel theme-floating-panel--success p-3">
                     <div className="text-2xl mb-1">🍀</div>
                     <div className="text-white font-bold">
                       {cloversCollected}
                     </div>
-                    <div className="text-xs text-gray-400">Relics</div>
+                    <div className="text-xs text-[#9eb4c2]">Relics</div>
                   </div>
-                  <div className="bg-blue-500/20 rounded-lg p-3">
+                  <div className="theme-floating-panel theme-floating-panel--info p-3">
                     <div className="text-2xl mb-1">🏆</div>
                     <div className="text-white font-bold">
                       {score.toLocaleString()}
                     </div>
-                    <div className="text-xs text-gray-400">Score</div>
+                    <div className="text-xs text-[#9eb4c2]">Score</div>
                   </div>
-                  <div className="bg-yellow-500/20 rounded-lg p-3">
+                  <div className="theme-floating-panel theme-floating-panel--warning p-3">
                     <div className="text-2xl mb-1">🔥</div>
                     <div className="text-white font-bold">{combo}x</div>
-                    <div className="text-xs text-gray-400">Combo</div>
+                    <div className="text-xs text-[#9eb4c2]">Combo</div>
                   </div>
-                  <div className="col-span-2 bg-emerald-500/20 rounded-lg p-3">
+                  <div className="theme-floating-panel theme-floating-panel--success col-span-2 p-3">
                     <div className="text-2xl mb-1">🪙</div>
                     <div className="text-white font-bold">
                       {utilityPoints.toLocaleString()} pts | {projectedUtilityUnits}{" "}
                       {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"} projected
                     </div>
-                    <div className="text-xs text-gray-400">Web5 Utility Pipeline</div>
+                    <div className="text-xs text-[#9eb4c2]">Web5 Utility Pipeline</div>
                   </div>
                 </div>
               </div>
@@ -1248,12 +1248,12 @@ export default function GamePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+          <div className="theme-badge inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold mb-6">
             <Star className="w-4 h-4" />
             BETA VERSION - PLAY NOW!
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text mb-6">
+          <h1 className="theme-title text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
             Hyperborea
           </h1>
 
@@ -1360,27 +1360,27 @@ export default function GamePage() {
             )}
           </div>
 
-          <div className="mt-6 mx-auto max-w-3xl rounded-xl border border-emerald-500/30 bg-black/40 p-4 text-left">
+          <div className="theme-floating-panel theme-floating-panel--success mt-6 mx-auto max-w-3xl p-4 text-left">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
                 <div className="text-emerald-300 font-bold">Level Blueprint Status</div>
-                <div className="text-sm text-gray-300">
+                <div className="text-sm text-[#cfdeea]">
                   {levelLoadState === "loading"
                     ? "Loading puzzle level..."
                     : levelLoadMessage}
                 </div>
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-[#93adbb]">
                 {activeLevel
                   ? `${activeLevel.puzzleNodes.length} puzzle nodes | ${activeLevel.artifacts.length} artifacts`
                   : "Preparing level data"}
               </div>
             </div>
-            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-gray-200">
-              <div className="rounded-md border border-white/15 bg-black/40 p-2">
+            <div className="mt-3 grid sm:grid-cols-2 gap-2 text-xs text-[#d5e7f3]">
+              <div className="theme-floating-panel theme-floating-panel--info p-2">
                 Desktop: W/S move, A/D turn, E/Space for runes/portal. Relics auto-pickup when close.
               </div>
-              <div className="rounded-md border border-white/15 bg-black/40 p-2">
+              <div className="theme-floating-panel theme-floating-panel--info p-2">
                 Mobile: hold Forward/Back/Turn for ~1 second or swipe up/down, move near relics, then tap Use at rune targets.
               </div>
             </div>
@@ -1389,24 +1389,24 @@ export default function GamePage() {
 
         {/* Tutorial Modal (when not playing) */}
         {showTutorial && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 border-2 border-purple-500 rounded-xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="theme-overlay-shell fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="theme-panel p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
-                  <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+                  <HelpCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#8fffb6]" />
                   How to Play
                 </h2>
                 <button
                   onClick={() => setShowTutorial(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-[#9db2be] hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="space-y-6 text-gray-300">
-                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-purple-400 mb-3">
+              <div className="space-y-6 text-[#d8e6ef]">
+                <div className="theme-floating-panel theme-floating-panel--success p-4">
+                  <h3 className="text-xl font-bold text-[#88ffc0] mb-3">
                     🎯 Objective
                   </h3>
                   <p className="text-sm sm:text-base">
@@ -1416,37 +1416,37 @@ export default function GamePage() {
                   </p>
                 </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-blue-400 mb-3">
+                <div className="theme-floating-panel theme-floating-panel--info p-4">
+                  <h3 className="text-xl font-bold text-[#99ecff] mb-3">
                     🎮 Controls
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         W / ↑
                       </span>
                       <span>Move forward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         S / ↓
                       </span>
                       <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
                         A / D or ← / →
                       </span>
                       <span>Turn left or right</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold text-sm sm:text-base">
                         E / ENTER / SPACE
                       </span>
                       <span>Use/interact with puzzle nodes and portals (relics auto-pickup nearby)</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono bg-gray-800 px-3 py-1 rounded text-purple-400 font-bold text-sm sm:text-base">
+                      <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold text-sm sm:text-base">
                         MOBILE
                       </span>
                       <span>Hold a direction button ~1 second (or swipe up/down), move close to relics, then tap Use at rune targets</span>
@@ -1454,8 +1454,8 @@ export default function GamePage() {
                   </div>
                 </div>
 
-                <div className="bg-pink-500/10 border border-pink-500/30 rounded-lg p-4">
-                  <h3 className="text-xl font-bold text-pink-400 mb-3">
+                <div className="theme-floating-panel theme-floating-panel--warning p-4">
+                  <h3 className="text-xl font-bold text-[#ffd188] mb-3">
                     ✨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
@@ -1499,16 +1499,16 @@ export default function GamePage() {
         </div>
 
         {/* Game Preview */}
-        <div className="bg-gray-900/50 border-2 border-purple-500/30 rounded-xl p-8 mb-12 min-h-[600px] flex items-center justify-center relative overflow-hidden">
+        <div className="theme-panel p-8 mb-12 min-h-[600px] flex items-center justify-center relative">
           {/* Animated Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0c1a14]/55 via-transparent to-[#0f2530]/40 animate-pulse"></div>
 
           <div className="text-center relative z-10">
-            <Gamepad2 className="w-24 h-24 text-purple-400 mx-auto mb-6 animate-bounce" />
+            <Gamepad2 className="w-24 h-24 text-[#8fffb6] mx-auto mb-6 animate-bounce" />
             <h2 className="text-3xl font-bold text-white mb-4">
               Ready to Enter Hyperborea?
             </h2>
-            <p className="text-gray-400 mb-6 max-w-lg mx-auto">
+            <p className="theme-subtitle mb-6 max-w-lg mx-auto">
               Explore a first-person mythic fortress, solve Zelda-style lock and
               pedestal puzzles, recover pantheon relics, and unlock the astral
               portal.
@@ -1548,31 +1548,31 @@ export default function GamePage() {
         </div>
 
         {/* Game Info */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-12">
+        <div className="theme-panel p-8 mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">
             About Hyperborea
           </h2>
-          <div className="grid md:grid-cols-2 gap-8 text-gray-300">
+          <div className="grid md:grid-cols-2 gap-8 text-[#d8e6ef]">
             <div>
               <h3 className="text-lg font-semibold text-white mb-3">
                 Free Tier
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>3 lives per session</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>Access to basic levels</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>Standard achievements</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-gray-600 mt-1">✗</span>
-                  <span className="text-gray-500">Ad-supported gameplay</span>
+                  <span className="text-[#8ca2b0]">Ad-supported gameplay</span>
                 </li>
               </ul>
             </div>
@@ -1582,19 +1582,19 @@ export default function GamePage() {
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>Unlimited lives</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>All levels + bonus content</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>Exclusive NFT achievements</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">✓</span>
                   <span>Ad-free experience</span>
                 </li>
               </ul>
@@ -1623,12 +1623,12 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 text-center hover:border-purple-500/30 transition-all">
-      <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-400">
+    <div className="theme-panel p-6 text-center transition-all hover:shadow-[0_0_22px_rgba(95,255,175,0.16)]">
+      <div className="w-16 h-16 rounded-full border border-[#79efb6]/45 bg-[#0d261c]/82 flex items-center justify-center mx-auto mb-4 text-[#8fffb6]">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
-      <p className="text-gray-400">{description}</p>
+      <p className="theme-subtitle">{description}</p>
     </div>
   );
 }
