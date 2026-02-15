@@ -16,7 +16,17 @@ export type ServiceConversionId =
   | "book_app_development_consult"
   | "book_database_consult"
   | "book_ecommerce_consult"
-  | "email_contact";
+  | "email_contact"
+  | "contact_text"
+  | "contact_call"
+  | "open_google_calendar"
+  | "open_google_meet"
+  | "open_social_x"
+  | "open_social_youtube"
+  | "open_social_github"
+  | "open_social_facebook"
+  | "open_social_instagram"
+  | "open_affiliate_tools";
 
 type FunnelStage = "awareness" | "consideration" | "intent";
 
@@ -123,6 +133,66 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
     label: "support_email",
     value: 7,
     stage: "intent",
+  },
+  contact_text: {
+    action: "contact_text",
+    label: "sms_contact",
+    value: 8,
+    stage: "intent",
+  },
+  contact_call: {
+    action: "contact_call",
+    label: "phone_call",
+    value: 7,
+    stage: "intent",
+  },
+  open_google_calendar: {
+    action: "open_google_calendar",
+    label: "calendar_embed",
+    value: 3,
+    stage: "consideration",
+  },
+  open_google_meet: {
+    action: "open_google_meet",
+    label: "google_meet_booking",
+    value: 6,
+    stage: "intent",
+  },
+  open_social_x: {
+    action: "open_social_x",
+    label: "social_x",
+    value: 1,
+    stage: "awareness",
+  },
+  open_social_youtube: {
+    action: "open_social_youtube",
+    label: "social_youtube",
+    value: 2,
+    stage: "awareness",
+  },
+  open_social_github: {
+    action: "open_social_github",
+    label: "social_github",
+    value: 1,
+    stage: "awareness",
+  },
+  open_social_facebook: {
+    action: "open_social_facebook",
+    label: "social_facebook",
+    value: 1,
+    stage: "awareness",
+  },
+  open_social_instagram: {
+    action: "open_social_instagram",
+    label: "social_instagram",
+    value: 1,
+    stage: "awareness",
+  },
+  open_affiliate_tools: {
+    action: "open_affiliate_tools",
+    label: "affiliate_tools",
+    value: 3,
+    stage: "consideration",
   },
 };
 

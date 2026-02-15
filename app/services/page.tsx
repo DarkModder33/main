@@ -4,6 +4,7 @@ import { ActionRail } from "@/components/monetization/ActionRail";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
@@ -338,13 +339,23 @@ export default function ServicesPage() {
               <ArrowRight className="w-5 h-5" />
             </TrackedCtaLink>
             <TrackedCtaLink
-              href="mailto:support@tradehaxai.tech?subject=TradeHax%20Services%20Inquiry"
+              href={businessProfile.contactLinks.emailSales}
               conversionId="email_contact"
               surface="services:cta_section"
               external
               className="theme-cta theme-cta--loud px-6 py-3"
             >
               Email Us
+              <ArrowRight className="w-5 h-5" />
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href={businessProfile.contactLinks.text}
+              conversionId="contact_text"
+              surface="services:cta_section"
+              external
+              className="theme-cta theme-cta--muted px-6 py-3"
+            >
+              Text {businessProfile.contactPhoneDisplay}
               <ArrowRight className="w-5 h-5" />
             </TrackedCtaLink>
           </div>

@@ -6,6 +6,7 @@ import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
 import {
   ArrowRight,
@@ -18,6 +19,7 @@ import {
   HandCoins,
   House,
   Info,
+  MessageSquare,
   MonitorSmartphone,
   Wrench,
 } from "lucide-react";
@@ -149,6 +151,16 @@ export default function Home() {
                 >
                   Open Crypto Project
                   <CircuitBoard className="w-4 h-4" />
+                </TrackedCtaLink>
+                <TrackedCtaLink
+                  href={businessProfile.contactLinks.text}
+                  conversionId="contact_text"
+                  surface="home:hero"
+                  external
+                  className="theme-cta theme-cta--muted px-5 py-3"
+                >
+                  Text {businessProfile.contactPhoneDisplay}
+                  <MessageSquare className="w-4 h-4" />
                 </TrackedCtaLink>
                 <div className="min-h-10">
                   <WalletButton />
@@ -344,11 +356,24 @@ export default function Home() {
                   Launch Dashboard
                 </TrackedCtaLink>
               </article>
+              <article className="theme-grid-card">
+                <CircuitBoard className="w-5 h-5 text-[#77f9a7]" />
+                <h3 className="font-semibold">Affiliate Tools</h3>
+                <p>Keep users in-funnel, then route out through tracked referral links.</p>
+                <TrackedCtaLink
+                  href="/#recommended-tools"
+                  conversionId="open_affiliate_tools"
+                  surface="home:monetization_lane"
+                  className="theme-cta theme-cta--compact theme-cta--secondary mt-1 self-start"
+                >
+                  Open Tool Offers
+                </TrackedCtaLink>
+              </article>
             </div>
           </div>
         </section>
 
-        <section className="max-w-7xl mx-auto mb-12">
+        <section id="recommended-tools" className="max-w-7xl mx-auto mb-12">
           <RecommendedTools />
         </section>
 

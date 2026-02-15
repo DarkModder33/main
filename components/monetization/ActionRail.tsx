@@ -1,6 +1,7 @@
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { bookingLinks } from "@/lib/booking";
-import { CalendarClock, CreditCard, Gem, Mail } from "lucide-react";
+import { businessProfile } from "@/lib/business-profile";
+import { CalendarClock, CreditCard, Gem, MessageSquare } from "lucide-react";
 
 interface ActionRailProps {
   surface: string;
@@ -43,21 +44,31 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           View Tiers
         </TrackedCtaLink>
         <TrackedCtaLink
-          href="mailto:support@tradehaxai.tech?subject=TradeHax%20Project%20Inquiry"
-          conversionId="email_contact"
+          href={businessProfile.contactLinks.text}
+          conversionId="contact_text"
           surface={`${surface}:action_rail`}
           external
           className="theme-cta theme-cta--muted theme-cta--compact w-full"
         >
-          <Mail className="w-4 h-4" />
-          Contact Direct
+          <MessageSquare className="w-4 h-4" />
+          Text Direct
         </TrackedCtaLink>
       </div>
       <p className="mt-3 text-xs text-[#b4c7d6]">
-        Fast lane: schedule support, open mint path, compare plans, or contact directly.
+        Fast lane: schedule support, open mint path, compare plans, or text for quick help.
       </p>
       <p className="mt-1 text-[11px] text-[#9cb3c1]">
-        Prefer immediate tech support?{" "}
+        Prefer email?{" "}
+        <TrackedCtaLink
+          href={businessProfile.contactLinks.emailSales}
+          conversionId="email_contact"
+          surface={`${surface}:action_rail`}
+          external
+          className="text-[#9bffbf] font-semibold hover:text-[#00ff41] transition-colors"
+        >
+          Send project details
+        </TrackedCtaLink>
+        . Need immediate tech support?{" "}
         <TrackedCtaLink
           href={bookingLinks.techSupport}
           conversionId="book_repair_quote"

@@ -13,6 +13,8 @@ interface TrackedCtaLinkProps {
   external?: boolean;
   rel?: string;
   target?: string;
+  ariaLabel?: string;
+  title?: string;
 }
 
 export function TrackedCtaLink({
@@ -24,8 +26,15 @@ export function TrackedCtaLink({
   external = false,
   rel,
   target,
+  ariaLabel,
+  title,
 }: TrackedCtaLinkProps) {
-  const isExternal = external || href.startsWith("http") || href.startsWith("mailto:");
+  const isExternal =
+    external ||
+    href.startsWith("http") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("sms:");
   const computedTarget = target ?? (href.startsWith("http") ? "_blank" : undefined);
   const computedRel =
     rel ?? (computedTarget === "_blank" ? "noopener noreferrer" : undefined);
@@ -42,6 +51,8 @@ export function TrackedCtaLink({
         target={computedTarget}
         rel={computedRel}
         onClick={handleClick}
+        aria-label={ariaLabel}
+        title={title}
       >
         {children}
       </a>
@@ -49,7 +60,13 @@ export function TrackedCtaLink({
   }
 
   return (
-    <Link href={href} className={className} onClick={handleClick}>
+    <Link
+      href={href}
+      className={className}
+      onClick={handleClick}
+      aria-label={ariaLabel}
+      title={title}
+    >
       {children}
     </Link>
   );

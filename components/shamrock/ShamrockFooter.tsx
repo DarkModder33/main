@@ -1,4 +1,15 @@
-import { Github, Mail, Twitter, Youtube } from "lucide-react";
+import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+import { businessProfile } from "@/lib/business-profile";
+import {
+  Facebook,
+  Github,
+  Instagram,
+  Mail,
+  MessageSquare,
+  Phone,
+  Twitter,
+  Youtube,
+} from "lucide-react";
 import Link from "next/link";
 
 export function ShamrockFooter() {
@@ -24,33 +35,60 @@ export function ShamrockFooter() {
               services, guitar lessons, and digital project execution.
             </p>
             <div className="flex gap-2.5">
-              <a
-                href="https://x.com/tradehaxai"
-                target="_blank"
-                rel="noopener noreferrer"
+              <TrackedCtaLink
+                href={businessProfile.socialLinks.x}
+                conversionId="open_social_x"
+                surface="footer:social"
+                external
                 className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
-                aria-label="X"
+                ariaLabel="X"
               >
                 <Twitter className="w-4 h-4" />
-              </a>
-              <a
-                href="https://www.youtube.com/@tradehaxnet"
-                target="_blank"
-                rel="noopener noreferrer"
+              </TrackedCtaLink>
+              <TrackedCtaLink
+                href={businessProfile.socialLinks.youtube}
+                conversionId="open_social_youtube"
+                surface="footer:social"
+                external
                 className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
-                aria-label="YouTube"
+                ariaLabel="YouTube"
               >
                 <Youtube className="w-4 h-4" />
-              </a>
-              <a
-                href="https://github.com/DarkModder33/main"
-                target="_blank"
-                rel="noopener noreferrer"
+              </TrackedCtaLink>
+              <TrackedCtaLink
+                href={businessProfile.socialLinks.github}
+                conversionId="open_social_github"
+                surface="footer:social"
+                external
                 className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
-                aria-label="GitHub"
+                ariaLabel="GitHub"
               >
                 <Github className="w-4 h-4" />
-              </a>
+              </TrackedCtaLink>
+              {businessProfile.socialLinks.facebook && (
+                <TrackedCtaLink
+                  href={businessProfile.socialLinks.facebook}
+                  conversionId="open_social_facebook"
+                  surface="footer:social"
+                  external
+                  className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
+                  ariaLabel="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
+                </TrackedCtaLink>
+              )}
+              {businessProfile.socialLinks.instagram && (
+                <TrackedCtaLink
+                  href={businessProfile.socialLinks.instagram}
+                  conversionId="open_social_instagram"
+                  surface="footer:social"
+                  external
+                  className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
+                  ariaLabel="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </TrackedCtaLink>
+              )}
             </div>
           </div>
 
@@ -126,13 +164,40 @@ export function ShamrockFooter() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="mailto:support@tradehaxai.tech"
+                <TrackedCtaLink
+                  href={businessProfile.contactLinks.emailSales}
+                  conversionId="email_contact"
+                  surface="footer:company"
+                  external
                   className="inline-flex items-center gap-1 text-[#9cadcc] hover:text-[#8fffb6] transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  Contact
-                </a>
+                  {businessProfile.contactEmail}
+                </TrackedCtaLink>
+              </li>
+              <li>
+                <TrackedCtaLink
+                  href={businessProfile.contactLinks.text}
+                  conversionId="contact_text"
+                  surface="footer:company"
+                  external
+                  className="inline-flex items-center gap-1 text-[#9cadcc] hover:text-[#8fffb6] transition-colors"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Text {businessProfile.contactPhoneDisplay}
+                </TrackedCtaLink>
+              </li>
+              <li>
+                <TrackedCtaLink
+                  href={businessProfile.contactLinks.call}
+                  conversionId="contact_call"
+                  surface="footer:company"
+                  external
+                  className="inline-flex items-center gap-1 text-[#9cadcc] hover:text-[#8fffb6] transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  24/7 Call Line
+                </TrackedCtaLink>
               </li>
               <li className="text-[#7f8fac]">Serving Greater Philadelphia and remote clients</li>
             </ul>
