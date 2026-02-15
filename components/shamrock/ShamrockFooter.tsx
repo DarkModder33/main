@@ -117,6 +117,11 @@ export function ShamrockFooter() {
                   Hyperborea Game
                 </Link>
               </li>
+              <li>
+                <Link href="/preview" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
+                  Share Preview Links
+                </Link>
+              </li>
             </ul>
           </div>
 
