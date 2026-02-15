@@ -12,6 +12,8 @@ interface GameHUDProps {
   utilityPoints?: number;
   projectedTokenUnits?: number;
   tokenSymbol?: string;
+  elapsedSeconds?: number;
+  objectiveProgress?: number;
   activePowerUps?: Array<{ type: string; timeLeft: number }>;
 }
 
@@ -29,6 +31,13 @@ const POWER_UP_META: Record<
 
 const UTILITY_POINTS_PER_TOKEN_UNIT = 25;
 
+function formatElapsed(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = safeSeconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 export function GameHUD({
   energy,
   cloversCollected,
@@ -38,6 +47,8 @@ export function GameHUD({
   utilityPoints,
   projectedTokenUnits,
   tokenSymbol = "THX",
+  elapsedSeconds = 0,
+  objectiveProgress,
   activePowerUps = [],
 }: GameHUDProps) {
   const energyPercentage = Math.min((energy / 100) * 100, 100);
@@ -165,6 +176,25 @@ export function GameHUD({
               </div>
             </div>
           )}
+
+          <div className="bg-black/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-3 sm:p-4 w-full sm:min-w-[210px]">
+            <div className="text-cyan-200 text-xs sm:text-sm">Run Time</div>
+            <div className="text-white font-bold text-base sm:text-lg">{formatElapsed(elapsedSeconds)}</div>
+            {typeof objectiveProgress === "number" && (
+              <>
+                <div className="mt-2 text-cyan-200 text-xs sm:text-sm">Objective</div>
+                <div className="h-2 mt-1 overflow-hidden rounded-full bg-cyan-950/60">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-300 transition-all duration-300"
+                    style={{ width: `${Math.max(0, Math.min(objectiveProgress, 100))}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-[11px] sm:text-xs text-cyan-100">
+                  {Math.round(Math.max(0, Math.min(objectiveProgress, 100)))}% complete
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Progress Indicator */}
