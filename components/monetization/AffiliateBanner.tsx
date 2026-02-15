@@ -34,28 +34,28 @@ export function AffiliateBanner({
   };
 
   return (
-    <div className={`relative overflow-hidden bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-green-900/30 border border-green-500/30 rounded-xl p-6 ${className}`}>
+    <div className={`theme-panel relative p-6 ${className}`}>
       {badge && (
-        <div className="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full">
+        <div className="absolute top-4 right-4 rounded-full border border-[#ffd76e]/55 bg-[#2e2209]/92 px-3 py-1 text-xs font-bold text-[#ffe59d]">
           {badge}
         </div>
       )}
       
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+        <div className="flex-shrink-0 w-12 h-12 rounded-lg border border-[#79efb6]/48 bg-[#0d261c]/86 flex items-center justify-center">
           <TrendingUp className="w-6 h-6 text-white" />
         </div>
         
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-green-100 mb-2">
+          <h3 className="theme-title text-xl font-bold mb-2">
             {title}
           </h3>
-          <p className="text-gray-300 text-sm mb-4">
+          <p className="theme-subtitle text-sm mb-4">
             {description}
           </p>
           
           {disabled ? (
-            <span className="inline-flex items-center gap-2 px-6 py-2 bg-gray-700 text-gray-300 rounded-lg font-semibold cursor-not-allowed">
+            <span className="inline-flex items-center gap-2 rounded-lg border border-[#617683]/45 bg-[#18222a]/82 px-6 py-2 font-semibold text-[#a6bcc9] cursor-not-allowed">
               Configure Referral URL
             </span>
           ) : (
@@ -64,7 +64,7 @@ export function AffiliateBanner({
               target="_blank"
               rel="noopener noreferrer sponsored"
               onClick={handleClick}
-              className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-black rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all font-semibold shadow-lg hover:shadow-green-500/50"
+              className="theme-cta theme-cta--loud px-6 py-2"
             >
               {ctaText}
               <ExternalLink className="w-4 h-4" />
@@ -120,7 +120,7 @@ export function RecommendedTools() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-white mb-6">
+      <h2 className="theme-title text-2xl font-bold mb-6">
         🛠️ Recommended Trading Tools
       </h2>
       

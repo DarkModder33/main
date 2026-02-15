@@ -99,12 +99,12 @@ export function EmailCaptureModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-green-500/30 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+    <div className="theme-overlay-shell fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="theme-panel relative max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-[#93adbb] hover:text-white transition-colors"
           aria-label="Close"
         >
           <X className="w-6 h-6" />
@@ -115,13 +115,13 @@ export function EmailCaptureModal({
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text mb-4">
             {title}
           </h2>
-          <p className="text-gray-300 mb-6">
+          <p className="theme-subtitle mb-6">
             {description}
           </p>
 
           {status === 'success' ? (
             <div className="py-8">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full border border-[#75f0b0]/40 bg-[#0c2519]/80 flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
@@ -138,12 +138,12 @@ export function EmailCaptureModal({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 required
-                className="w-full px-4 py-3 bg-gray-800/50 border border-green-700 rounded-lg text-green-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-[#4aa978]/55 bg-[#081811]/82 px-4 py-3 text-[#d4ffe7] placeholder-[#7ca393] focus:outline-none focus:ring-2 focus:ring-[#76f3ad]/50 focus:border-transparent transition-all"
               />
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-black rounded-lg hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all shadow-lg hover:shadow-green-500/50"
+                className="theme-cta theme-cta--loud w-full px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? (
                   <span className="flex items-center justify-center gap-2">
@@ -165,7 +165,7 @@ export function EmailCaptureModal({
             </form>
           )}
 
-          <p className="text-gray-500 text-xs mt-4">
+          <p className="text-[#8ca4b2] text-xs mt-4">
             🔒 We respect your privacy. Unsubscribe anytime.
           </p>
         </div>
