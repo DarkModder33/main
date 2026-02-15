@@ -81,11 +81,11 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-home.svg",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "TradeHax AI services for web development, repair, music, and Web3",
-        type: "image/svg+xml",
+        type: "image/png",
       },
     ],
   },
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
     title: "TradeHax AI | Professional Digital and Local Service Support",
     description:
       "Book web development, repair, lessons, and Web3 services with a clear service path and fast response.",
-    images: ["/og-home.svg"],
+    images: ["/twitter-image"],
     creator: "@tradehaxai",
     site: "@tradehaxai",
   },
