@@ -2,6 +2,7 @@
 
 import { ExternalLink, TrendingUp } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
+import { getAffiliateLink, isAffiliateConfigured } from '@/lib/affiliates';
 
 interface AffiliateBannerProps {
   partner: string;
@@ -11,6 +12,7 @@ interface AffiliateBannerProps {
   href: string;
   badge?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -24,8 +26,10 @@ export function AffiliateBanner({
   href,
   badge,
   className = '',
+  disabled = false,
 }: AffiliateBannerProps) {
   const handleClick = () => {
+    if (disabled) return;
     trackEvent.affiliateClick(partner);
   };
 
@@ -50,16 +54,22 @@ export function AffiliateBanner({
             {description}
           </p>
           
-          <a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            onClick={handleClick}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-black rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all font-semibold shadow-lg hover:shadow-green-500/50"
-          >
-            {ctaText}
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          {disabled ? (
+            <span className="inline-flex items-center gap-2 px-6 py-2 bg-gray-700 text-gray-300 rounded-lg font-semibold cursor-not-allowed">
+              Configure Referral URL
+            </span>
+          ) : (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              onClick={handleClick}
+              className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-black rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all font-semibold shadow-lg hover:shadow-green-500/50"
+            >
+              {ctaText}
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -101,6 +111,13 @@ export function AffiliateLink({
  * Recommended tools section with affiliate links
  */
 export function RecommendedTools() {
+  const coinbase = getAffiliateLink('coinbase');
+  const binance = getAffiliateLink('binance');
+  const phantom = getAffiliateLink('phantom');
+  const coinbaseConfigured = isAffiliateConfigured('coinbase');
+  const binanceConfigured = isAffiliateConfigured('binance');
+  const phantomConfigured = isAffiliateConfigured('phantom');
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-white mb-6">
@@ -112,7 +129,8 @@ export function RecommendedTools() {
         title="Coinbase - Best for Beginners"
         description="Get $10 in Bitcoin when you buy $100 or more. Trusted by millions worldwide."
         ctaText="Get $10 Bonus"
-        href={process.env.NEXT_PUBLIC_COINBASE_REF || '#'}
+        href={coinbase?.url || '#'}
+        disabled={!coinbaseConfigured}
         badge="$10 BONUS"
       />
       
@@ -121,7 +139,8 @@ export function RecommendedTools() {
         title="Binance - Advanced Trading"
         description="Trade 350+ cryptocurrencies with the world's largest crypto exchange. Low fees and high liquidity."
         ctaText="Start Trading"
-        href={process.env.NEXT_PUBLIC_BINANCE_REF || '#'}
+        href={binance?.url || '#'}
+        disabled={!binanceConfigured}
       />
       
       <AffiliateBanner
@@ -129,7 +148,8 @@ export function RecommendedTools() {
         title="Phantom Wallet - Solana Wallet"
         description="The easiest way to store and swap tokens on Solana. Required for trading on our platform."
         ctaText="Download Phantom"
-        href={process.env.NEXT_PUBLIC_PHANTOM_REF || '#'}
+        href={phantom?.url || '#'}
+        disabled={!phantomConfigured}
       />
     </div>
   );
