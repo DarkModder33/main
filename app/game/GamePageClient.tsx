@@ -46,6 +46,13 @@ function createSessionId() {
 const LEADERBOARD_STORAGE_KEY = "hyperborea_leaderboard_v1";
 const UTILITY_POINTS_PER_TOKEN_UNIT = 25;
 
+function formatElapsed(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = safeSeconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
 function sortLeaderboard(entries: LeaderboardEntry[]) {
   entries.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
@@ -65,6 +72,7 @@ export default function GamePage() {
   const [combo, setCombo] = useState(0);
   const [utilityPoints, setUtilityPoints] = useState(0);
   const [projectedUtilityUnits, setProjectedUtilityUnits] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [scoreSnapshot, setScoreSnapshot] = useState<GameScoreSnapshot | null>(null);
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const [runCompleteSummary, setRunCompleteSummary] = useState<GameRunSummary | null>(null);
@@ -113,6 +121,14 @@ export default function GamePage() {
         : UTILITY_POINTS_PER_TOKEN_UNIT - utilityRemainder,
     [utilityRemainder],
   );
+  const objectiveProgress = useMemo(() => {
+    if (!activeLevel) return 0;
+    const requiredRelics = Math.max(1, Math.min(3, activeLevel.artifacts.length));
+    const runeTarget = Math.max(1, activeLevel.puzzleNodes.length);
+    const relicProgress = Math.min(cloversCollected / requiredRelics, 1);
+    const runeProgress = Math.min((scoreSnapshot?.runesActivated ?? 0) / runeTarget, 1);
+    return (relicProgress * 0.62 + runeProgress * 0.38) * 100;
+  }, [activeLevel, cloversCollected, scoreSnapshot?.runesActivated]);
 
   // Check localStorage after mount to avoid SSR/hydration issues
   useEffect(() => {
@@ -320,6 +336,18 @@ export default function GamePage() {
     }
   }, [isPaused, isPlaying, releaseAllMovementControls]);
 
+  useEffect(() => {
+    if (!isPlaying || isPaused || runCompleteSummary) {
+      return;
+    }
+    const timerId = window.setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [isPaused, isPlaying, runCompleteSummary]);
+
   useEffect(
     () => () => {
       releaseAllMovementControls();
@@ -340,6 +368,9 @@ export default function GamePage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(event),
         });
+        if ("vibrate" in navigator) {
+          navigator.vibrate(12);
+        }
 
         const result = await response.json();
         if (!response.ok || !result?.ok) {
@@ -377,6 +408,7 @@ export default function GamePage() {
     setShowRunCompleteModal(false);
     setUtilityPoints(0);
     setProjectedUtilityUnits(0);
+    setElapsedSeconds(0);
     setClaimFeedback("");
     setGameHint("W/S move, A/D turn, E interact. Move close to relics for auto-pickup.");
     setInteractionHint("Move close to a relic to auto-pickup, or align with runes and press Use.");
@@ -400,6 +432,7 @@ export default function GamePage() {
     setCombo(0);
     setUtilityPoints(0);
     setProjectedUtilityUnits(0);
+    setElapsedSeconds(0);
     setIsPaused(false);
     setGameSession((value) => value + 1);
     setSessionId(createSessionId());
@@ -424,6 +457,7 @@ export default function GamePage() {
     setShowRunCompleteModal(false);
     setUtilityPoints(0);
     setProjectedUtilityUnits(0);
+    setElapsedSeconds(0);
     setInteractionHint(null);
     setIsInteractionReady(false);
   };
@@ -582,15 +616,21 @@ export default function GamePage() {
           utilityPoints={utilityPoints}
           projectedTokenUnits={projectedUtilityUnits}
           tokenSymbol={activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+          elapsedSeconds={elapsedSeconds}
+          objectiveProgress={objectiveProgress}
         />
 
         {/* Central score ribbon for instant readability on all devices */}
         <div className="absolute top-4 left-1/2 z-20 w-[min(95vw,860px)] -translate-x-1/2 px-2 pointer-events-none">
           <div className="rounded-xl border border-cyan-400/30 bg-black/70 px-3 py-2 backdrop-blur-md">
-            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 sm:text-sm">
+            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5 sm:text-sm">
               <div className="rounded border border-cyan-500/30 bg-black/45 px-2 py-1 text-cyan-100">
                 <div className="text-[10px] uppercase tracking-wide text-cyan-300/90">Score</div>
                 <div className="font-bold">{score.toLocaleString()}</div>
+              </div>
+              <div className="rounded border border-blue-500/30 bg-black/45 px-2 py-1 text-blue-100">
+                <div className="text-[10px] uppercase tracking-wide text-blue-300/90">Time</div>
+                <div className="font-bold">{formatElapsed(elapsedSeconds)}</div>
               </div>
               <div className="rounded border border-emerald-500/30 bg-black/45 px-2 py-1 text-emerald-100">
                 <div className="text-[10px] uppercase tracking-wide text-emerald-300/90">Utility</div>
@@ -610,6 +650,10 @@ export default function GamePage() {
                     ? `${scoreSnapshot.relicsCollected} relics | ${scoreSnapshot.runesActivated} runes`
                     : `${cloversCollected} relics`}
                 </div>
+              </div>
+              <div className="rounded border border-indigo-500/30 bg-black/45 px-2 py-1 text-indigo-100">
+                <div className="text-[10px] uppercase tracking-wide text-indigo-300/90">Objective</div>
+                <div className="font-bold">{Math.round(objectiveProgress)}%</div>
               </div>
             </div>
             <div className="mt-2">
@@ -641,7 +685,7 @@ export default function GamePage() {
         </div>
 
         {/* Session + Level Status */}
-        <div className="absolute top-4 right-4 z-20 w-80 max-w-[calc(100vw-1.5rem)] space-y-2 pointer-events-none">
+        <div className="absolute top-4 right-4 z-20 hidden w-80 max-w-[calc(100vw-1.5rem)] space-y-2 pointer-events-none sm:block">
           {activeLevel && (
             <div className="rounded-lg border border-emerald-400/40 bg-black/75 p-3 text-xs sm:text-sm text-emerald-200 backdrop-blur">
               <div className="font-bold text-emerald-300">{activeLevel.name}</div>
@@ -877,48 +921,48 @@ export default function GamePage() {
         </div>
 
         {/* Mobile touch buttons: explicit first-person controls */}
-        <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center px-3 sm:hidden pointer-events-none">
-          <div className="pointer-events-auto grid grid-cols-3 gap-2 rounded-xl border border-white/20 bg-black/70 p-3 backdrop-blur-md">
+        <div className="absolute bottom-0 inset-x-0 z-20 flex justify-between px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:hidden pointer-events-none">
+          <div className="pointer-events-auto grid grid-cols-2 gap-2 rounded-xl border border-white/20 bg-black/70 p-2 backdrop-blur-md">
             <button
               type="button"
               {...getHoldButtonHandlers("turn_left")}
               aria-label="Turn left"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
             >
               Turn L
             </button>
             <button
               type="button"
-              {...getHoldButtonHandlers("forward")}
-              aria-label="Move forward"
-              className="theme-cta theme-cta--loud theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
-            >
-              Forward
-            </button>
-            <button
-              type="button"
               {...getHoldButtonHandlers("turn_right")}
               aria-label="Turn right"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
             >
               Turn R
             </button>
             <button
               type="button"
+              {...getHoldButtonHandlers("forward")}
+              aria-label="Move forward"
+              className="theme-cta theme-cta--loud theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
+            >
+              Forward
+            </button>
+            <button
+              type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="theme-cta theme-cta--muted theme-cta--compact col-span-2 px-3 py-3 font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--muted theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
             >
               Back
             </button>
+          </div>
+          <div className="pointer-events-auto ml-3 flex items-end">
             <button
               type="button"
               aria-label="Use or interact"
               onClick={() => emitControlAction("use", true)}
-              className={`theme-cta theme-cta--compact px-3 py-3 font-semibold [touch-action:manipulation] ${
-                isInteractionReady
-                  ? "theme-cta--loud animate-pulse"
-                  : "theme-cta--secondary"
+              className={`theme-cta theme-cta--compact min-h-20 min-w-20 px-4 py-4 text-sm font-bold [touch-action:manipulation] ${
+                isInteractionReady ? "theme-cta--loud animate-pulse" : "theme-cta--secondary"
               }`}
             >
               Use
