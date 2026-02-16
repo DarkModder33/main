@@ -72,8 +72,8 @@ export const GuitarStudio = () => {
                 <div className="w-20 h-20 rounded-2xl bg-zinc-800 mb-6 border border-white/10 flex items-center justify-center overflow-hidden">
                   <span className="text-3xl">🎸</span>
                 </div>
-                <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-1">Lead_Instructor</h4>
-                <p className="text-cyan-500 font-mono text-[10px] uppercase tracking-widest mb-6">TradeHax_Architect</p>
+                <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-1">Michael S. Flaherty</h4>
+                <p className="text-cyan-500 font-mono text-[10px] uppercase tracking-widest mb-6">Lead_Instructor // TradeHax_Architect</p>
                 
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between text-xs font-mono">

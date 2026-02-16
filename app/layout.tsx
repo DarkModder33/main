@@ -10,8 +10,23 @@ import { ConnectWalletBtn } from "@/components/ui/ConnectWalletBtn";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TRADEHAX | AI & Web3 Gaming Hub",
-  description: "Next-gen Solana trading insights and immersive NFT gaming.",
+  title: "Michael S. Flaherty | TradeHax Music & Guitar Instruction",
+  description: "25+ years of experience. Rock, Blues, Jazz, Metal. High-performance 1-on-1 guitar lessons in South Jersey/Philadelphia or online via TradeHax Neural Studio.",
+  openGraph: {
+    title: "Michael S. Flaherty | Guitar Instructor & Musician",
+    description: "25+ years of experience. Rock, Blues, Jazz, Metal. Professional lessons online or in-person.",
+    url: "https://tradehax.com/about",
+    siteName: "TradeHax Music",
+    images: [
+      {
+        url: "/og-image.jpg", // Placeholder for actual social share image
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -30,7 +45,7 @@ export default function RootLayout({
                 TRADE<span className="text-cyan-500">HAX</span>
               </div>
               <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
-                <a href="#" className="hover:text-white transition-colors uppercase">Analytics</a>
+                <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
                 <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
                 <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
                 <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
