@@ -19,9 +19,11 @@ export default function Home() {
           The cross-chain intersection of institutional-grade AI, decentralized gaming, and elite skill acquisition.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 relative z-10">
-          <button className="px-10 py-5 bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105">
-            LAUNCH_APP
-          </button>
+          <Link href="/about">
+            <button className="px-10 py-5 bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105">
+              MEET_INSTRUCTOR
+            </button>
+          </Link>
           <Link href="/game">
             <button className="px-10 py-5 border border-zinc-700 text-white font-black rounded-full hover:bg-zinc-800 transition-all">
               PLAY_RUNNER
