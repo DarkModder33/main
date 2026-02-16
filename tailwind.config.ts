@@ -5,6 +5,11 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/ui/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/landing/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/education/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/game/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/dashboard/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
