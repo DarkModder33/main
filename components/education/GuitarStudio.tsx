@@ -24,7 +24,7 @@ export const GuitarStudio = () => {
               {/* Replace with actual embed when ready */}
               <iframe 
                 className="w-full h-full relative z-10"
-                src="https://www.youtube.com/embed?listType=user_uploads&list=YOUR_CHANNEL_ID" 
+                src="https://www.youtube.com/embed?listType=user_uploads&list=tradehax" 
                 title="Latest Content"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -52,17 +52,10 @@ export const GuitarStudio = () => {
               <h4 className="text-xl font-black text-white italic mb-6 uppercase tracking-tight">System_Booking</h4>
               
               <div className="flex-1 bg-zinc-950 border border-white/10 rounded-2xl overflow-hidden mb-8 relative">
-                {/* Google Calendar Embed Placeholder */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                  <span className="text-4xl mb-4">📅</span>
-                  <p className="text-xs text-zinc-500 font-mono mb-6 uppercase">Sync_with_Google_Calendar</p>
-                  <button className="w-full py-4 bg-white text-black font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all">
-                    BOOK_YOUR_SLOT
-                  </button>
-                </div>
-                {/* When actual iframe is available: 
-                <iframe src="https://calendar.google.com/calendar/appointments/..." className="w-full h-full border-none" /> 
-                */}
+                <iframe 
+                  src="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" 
+                  className="w-full h-full border-none opacity-80 hover:opacity-100 transition-opacity" 
+                />
               </div>
 
               <div className="p-6 bg-cyan-500/5 border border-cyan-500/10 rounded-2xl">
