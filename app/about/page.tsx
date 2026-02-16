@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { DiscoveryPortal } from '@/components/education/DiscoveryPortal';
 
 export default function AboutPage() {
   const influences = [
@@ -77,35 +78,12 @@ export default function AboutPage() {
             </section>
           </div>
 
-          {/* Column 2: Booking & Meta */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="p-8 glass-panel rounded-[2.5rem] relative overflow-hidden group shadow-2xl neon-border-hover transition-all">
-              <div className="scanline" />
-              <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent" />
-              <div className="relative z-10">
-                <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-6">Neural_Session_Booking</h3>
-                
-                <div className="space-y-6 mb-8">
-                  <div className="flex justify-between items-center py-4 border-b border-white/5">
-                    <span className="text-xs font-mono text-zinc-500">Base Rate</span>
-                    <span className="text-xl font-black text-white">$45<span className="text-[10px] text-zinc-600">/60m</span></span>
-                  </div>
-                  <p className="text-zinc-400 text-xs leading-relaxed">
-                    Lessons available in-person (South Jersey / Philadelphia area) or online via high-quality video platforms.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <a href="/game" className="block w-full py-4 bg-white text-black text-center font-black rounded-xl hover:bg-cyan-500 hover:text-white transition-all uppercase italic">Book First Lesson</a>
-                  <a href="#" className="block w-full py-4 border border-zinc-800 text-zinc-400 text-center font-black rounded-xl hover:border-white hover:text-white transition-all uppercase italic">Discovery Call</a>
-                </div>
-                
-                <p className="text-[9px] text-zinc-600 font-mono mt-6 text-center tracking-widest">PACKAGE_DISCOUNTS_AVAILABLE_FOR_COMMITMENT</p>
-              </div>
-            </div>
-
-            <div className="p-8 bg-zinc-950 border border-white/5 rounded-[2.5rem]">
-              <h4 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Philosophy</h4>
+          {/* Column 2: Discovery Portal */}
+          <div className="lg:col-span-5">
+            <DiscoveryPortal />
+            
+            <div className="p-8 bg-zinc-950 border border-white/5 rounded-[2.5rem] mt-8">
+              <h4 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4 italic">Neural_Philosophy</h4>
               <p className="text-zinc-400 text-sm leading-relaxed italic">
                 "At TradeHax, music instruction is part of a bigger picture: helping people build skills, express themselves, and level up in whatever they pursue."
               </p>
