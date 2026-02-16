@@ -82,7 +82,13 @@ export const GuitarStudio = () => {
                   <span className="text-3xl">🎸</span>
                 </div>
                 <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter mb-1">Michael S. Flaherty</h4>
-                <p className="text-cyan-500 font-mono text-[10px] uppercase tracking-widest mb-6">Lead_Instructor // TradeHax_Architect</p>
+                <p className="text-cyan-500 font-mono text-[10px] uppercase tracking-widest mb-4">Lead_Instructor // TradeHax_Architect</p>
+                
+                <div className="flex flex-wrap gap-1.5 mb-6">
+                  {["SOAD", "PHISH", "HENDRIX", "SUBLIME", "STEELY_DAN", "A7X", "FLOYD", "YES"].map(tag => (
+                    <span key={tag} className="text-[8px] font-mono text-zinc-600 border border-zinc-800 px-2 py-0.5 rounded-sm">{tag}</span>
+                  ))}
+                </div>
                 
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between text-xs font-mono">
