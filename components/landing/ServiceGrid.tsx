@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export const ServiceGrid = () => {
   return (
@@ -61,7 +62,7 @@ export const ServiceGrid = () => {
           </div>
 
           {/* Music/Studio - New Card */}
-          <div className="md:col-span-6 lg:col-span-12 row-span-1 group relative overflow-hidden rounded-3xl bg-cyan-500/5 border border-cyan-500/20 px-10 py-8 hover:border-cyan-500 transition-all cursor-pointer flex items-center justify-between" onClick={() => window.location.href = '/music'}>
+          <Link href="/music" className="md:col-span-6 lg:col-span-12 row-span-1 group relative overflow-hidden rounded-3xl bg-cyan-500/5 border border-cyan-500/20 px-10 py-8 hover:border-cyan-500 transition-all cursor-pointer flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">Elite_Skill_Acquisition</span>
@@ -79,7 +80,7 @@ export const ServiceGrid = () => {
                 🎸
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </section>

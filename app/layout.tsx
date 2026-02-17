@@ -8,6 +8,8 @@ import { Toaster } from "sonner";
 import { MarketTicker } from "@/components/ui/MarketTicker";
 import { MobileMenu } from "@/components/ui/MobileMenu";
 import { WalletProvider } from "@/lib/wallet-provider";
+import { SolanaProvider } from "@/components/counter/provider/Solana";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ConnectWalletBtn } from "@/components/ui/ConnectWalletBtn";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { CyberCursor } from "@/components/ui/CyberCursor";
@@ -110,66 +112,70 @@ export default function RootLayout({
         )}
       </head>
       <body className={`${inter.className} bg-black antialiased`}>
-        <CyberCursor />
-        <WalletProvider>
-          <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
-            <MarketTicker />
-            <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="text-xl font-black tracking-tighter cursor-none">
-                <GlitchText text="TRADEHAX" />
+        <AuthProvider>
+          <CyberCursor />
+          <SolanaProvider>
+            <WalletProvider>
+              <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
+                <MarketTicker />
+                <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+                  <div className="text-xl font-black tracking-tighter cursor-none">
+                    <GlitchText text="TRADEHAX" />
+                  </div>
+                  <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
+                    <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
+                    <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
+                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
+                    <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
+                    <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
+                    <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
+                  </div>
+                  <div className="hidden md:block">
+                    <ConnectWalletBtn />
+                  </div>
+                  <MobileMenu />
+                </div>
+              </nav>
+              <div className="bg-cyber-grid pt-28">
+                <PageTransition>
+                  {children}
+                </PageTransition>
               </div>
-              <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
-                <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
-                <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
-                <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
-                <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
-                <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
-                <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
+            </WalletProvider>
+          </SolanaProvider>
+          <Toaster position="bottom-right" theme="dark" closeButton />
+          <Analytics />
+          <footer className="py-20 border-t border-white/5 bg-black">
+            <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+              <div className="col-span-1 md:col-span-2">
+                <div className="text-2xl font-black tracking-tighter mb-4">TRADEHAX</div>
+                <p className="text-zinc-500 text-sm max-w-xs leading-relaxed">
+                  The future of automated trading and decentralized gaming on Solana.
+                </p>
               </div>
-              <div className="hidden md:block">
-                <ConnectWalletBtn />
+              <div>
+                <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Platform</h4>
+                <ul className="text-zinc-500 text-sm space-y-2">
+                  <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
+                  <li><a href="/portfolio" className="hover:text-white transition-colors">Portfolio</a></li>
+                  <li><a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="hover:text-white transition-colors">Book Lessons</a></li>
+                </ul>
               </div>
-              <MobileMenu />
+              <div>
+                <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Social</h4>
+                <ul className="text-zinc-500 text-sm space-y-2">
+                  <li><a href={businessProfile.socialLinks.x} className="hover:text-white transition-colors">Twitter / X</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Telegram</a></li>
+                </ul>
+              </div>
             </div>
-          </nav>
-          <div className="bg-cyber-grid pt-28">
-            <PageTransition>
-              {children}
-            </PageTransition>
-          </div>
-        </WalletProvider>
-        <Toaster position="bottom-right" theme="dark" closeButton />
-        <Analytics />
-        <footer className="py-20 border-t border-white/5 bg-black">
-          <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="text-2xl font-black tracking-tighter mb-4">TRADEHAX</div>
-              <p className="text-zinc-500 text-sm max-w-xs leading-relaxed">
-                The future of automated trading and decentralized gaming on Solana.
-              </p>
+            <div className="container mx-auto px-6 mt-20 pt-8 border-t border-white/5 text-[10px] font-mono text-zinc-600 flex justify-between">
+              <span>© 2024 TRADEHAX_SYSTEMS_INC.</span>
+              <span>SYSTEM_STATUS: ALL_SYSTEMS_NOMINAL</span>
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Platform</h4>
-              <ul className="text-zinc-500 text-sm space-y-2">
-                <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
-                <li><a href="/portfolio" className="hover:text-white transition-colors">Portfolio</a></li>
-                <li><a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="hover:text-white transition-colors">Book Lessons</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Social</h4>
-              <ul className="text-zinc-500 text-sm space-y-2">
-                <li><a href={businessProfile.socialLinks.x} className="hover:text-white transition-colors">Twitter / X</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Telegram</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="container mx-auto px-6 mt-20 pt-8 border-t border-white/5 text-[10px] font-mono text-zinc-600 flex justify-between">
-            <span>© 2024 TRADEHAX_SYSTEMS_INC.</span>
-            <span>SYSTEM_STATUS: ALL_SYSTEMS_NOMINAL</span>
-          </div>
-        </footer>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
   );
