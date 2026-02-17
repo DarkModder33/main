@@ -47,7 +47,7 @@ export function EmailCapture() {
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all"
+          className="theme-cta theme-cta--secondary px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
         </button>

@@ -9,6 +9,11 @@ interface GameHUDProps {
   score: number;
   combo: number;
   walletConnected: boolean;
+  utilityPoints?: number;
+  projectedTokenUnits?: number;
+  tokenSymbol?: string;
+  elapsedSeconds?: number;
+  objectiveProgress?: number;
   activePowerUps?: Array<{ type: string; timeLeft: number }>;
 }
 
@@ -24,10 +29,45 @@ const POWER_UP_META: Record<
   double: { label: "Double", icon: "✨", borderColor: "#ff8800" },
 };
 
-export function GameHUD({ energy, cloversCollected, score, combo, walletConnected, activePowerUps = [] }: GameHUDProps) {
+const UTILITY_POINTS_PER_TOKEN_UNIT = 25;
+
+function formatElapsed(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = safeSeconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+export function GameHUD({
+  energy,
+  cloversCollected,
+  score,
+  combo,
+  walletConnected,
+  utilityPoints,
+  projectedTokenUnits,
+  tokenSymbol = "THX",
+  elapsedSeconds = 0,
+  objectiveProgress,
+  activePowerUps = [],
+}: GameHUDProps) {
   const energyPercentage = Math.min((energy / 100) * 100, 100);
   const portalUnlocked = energy >= 100;
   const relicsLabel = cloversCollected === 1 ? "1 relic" : `${cloversCollected} relics`;
+  const hasUtilityRewards =
+    typeof utilityPoints === "number" && typeof projectedTokenUnits === "number";
+  const utilityRemainder = hasUtilityRewards
+    ? ((utilityPoints % UTILITY_POINTS_PER_TOKEN_UNIT) + UTILITY_POINTS_PER_TOKEN_UNIT) %
+      UTILITY_POINTS_PER_TOKEN_UNIT
+    : 0;
+  const pointsToNextToken = hasUtilityRewards
+    ? utilityRemainder === 0
+      ? UTILITY_POINTS_PER_TOKEN_UNIT
+      : UTILITY_POINTS_PER_TOKEN_UNIT - utilityRemainder
+    : 0;
+  const utilityProgressPercent = hasUtilityRewards
+    ? Math.max(0, Math.min((utilityRemainder / UTILITY_POINTS_PER_TOKEN_UNIT) * 100, 100))
+    : 0;
   const [showEnergyPulse, setShowEnergyPulse] = useState(false);
   const [showCloverPulse, setShowCloverPulse] = useState(false);
   const [lastEnergy, setLastEnergy] = useState(energy);
@@ -77,7 +117,7 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
             {portalUnlocked && (
               <div className="mt-2 text-center">
                 <span className="text-cyan-400 text-xs sm:text-sm font-bold animate-pulse">
-                  🌀 PORTAL UNLOCKED!
+                  🌀 EXIT GATE OPEN
                 </span>
               </div>
             )}
@@ -108,6 +148,53 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
               )}
             </div>
           </div>
+
+          {hasUtilityRewards && (
+            <div className="bg-black/90 backdrop-blur-sm border border-emerald-500/40 rounded-lg p-3 sm:p-4 w-full sm:min-w-[280px]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-white font-bold text-sm sm:text-base">Utility Rewards</div>
+                  <div className="text-emerald-300 text-xs sm:text-sm">
+                    {utilityPoints.toLocaleString()} pts
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-white font-bold text-sm sm:text-base">
+                    {projectedTokenUnits.toLocaleString()} {tokenSymbol}
+                  </div>
+                  <div className="text-emerald-300 text-[11px] sm:text-xs">Projected reward units</div>
+                </div>
+              </div>
+              <div className="mt-2 h-2.5 rounded-full bg-emerald-950/60 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-400 via-cyan-300 to-emerald-400 transition-all duration-300"
+                  style={{ width: `${utilityProgressPercent}%` }}
+                />
+              </div>
+              <div className="mt-1 text-[11px] sm:text-xs text-emerald-200/90">
+                {pointsToNextToken} utility pts until +1 {tokenSymbol}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-black/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-3 sm:p-4 w-full sm:min-w-[210px]">
+            <div className="text-cyan-200 text-xs sm:text-sm">Run Time</div>
+            <div className="text-white font-bold text-base sm:text-lg">{formatElapsed(elapsedSeconds)}</div>
+            {typeof objectiveProgress === "number" && (
+              <>
+                <div className="mt-2 text-cyan-200 text-xs sm:text-sm">Objective</div>
+                <div className="h-2 mt-1 overflow-hidden rounded-full bg-cyan-950/60">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-300 transition-all duration-300"
+                    style={{ width: `${Math.max(0, Math.min(objectiveProgress, 100))}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-[11px] sm:text-xs text-cyan-100">
+                  {Math.round(Math.max(0, Math.min(objectiveProgress, 100)))}% complete
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Progress Indicator */}
@@ -116,7 +203,7 @@ export function GameHUD({ energy, cloversCollected, score, combo, walletConnecte
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
               <div className="text-blue-300 text-xs sm:text-sm">
-                <span className="font-bold">Objective:</span> Solve gates, recover relics, and charge energy to stabilize the portal.
+                <span className="font-bold">Objective:</span> Solve gates, recover relics, and charge energy to unlock the exit gate.
               </div>
             </div>
           </div>

@@ -95,9 +95,33 @@ export interface ArtifactCollectionEvent {
   playerScore: number;
   combo: number;
   tokenRewardUnits: number;
+  utilityPointsDelta?: number;
+  utilityPointsAfterEvent?: number;
+  utilityTokenBonusUnits?: number;
+  lockedAtPickup?: boolean;
   claimEndpoint: string;
   web5Collection: string;
   collectedAt: string;
+}
+
+export interface GameScoreSnapshot {
+  score: number;
+  combo: number;
+  coinsCollected: number;
+  runesActivated: number;
+  relicsCollected: number;
+  coinPoints: number;
+  runePoints: number;
+  relicPoints: number;
+  explorationPoints: number;
+  utilityPoints: number;
+  projectedTokenUnits: number;
+}
+
+export interface GameRunSummary extends GameScoreSnapshot {
+  sessionId: string;
+  levelId: string;
+  completedAt: string;
 }
 
 function isGridPoint(value: unknown): value is GridPoint {

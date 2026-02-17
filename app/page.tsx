@@ -1,364 +1,163 @@
+import { ServiceGrid } from '@/components/landing/ServiceGrid';
+import { Roadmap } from '@/components/landing/Roadmap';
+import { NeuralConsole } from '@/components/ui/NeuralConsole';
+import { LiveActivity } from '@/components/ui/LiveActivity';
+import { GlitchText } from '@/components/ui/GlitchText';
 import { WalletButton } from "@/components/counter/WalletButton";
-import { InContentAd, FooterBannerAd } from "@/components/monetization/AdSenseBlock";
-import { ActionRail } from "@/components/monetization/ActionRail";
-import { EmailCaptureModal } from "@/components/monetization/EmailCaptureModal";
-import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
 import {
   ArrowRight,
-  CalendarClock,
   CircuitBoard,
-  CreditCard,
-  Gamepad2,
-  Gem,
   Guitar,
   HandCoins,
-  House,
-  Info,
+  MessageSquare,
   MonitorSmartphone,
   Wrench,
 } from "lucide-react";
-import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: "TradeHax AI - Matrix Web3 Platform",
-  description:
-    "Professional matrix-themed Web3 platform with Solana trading, NFT mint utilities, repair bookings, guitar lessons, and digital services.",
-};
-
-const menuCards = [
+const intentLanes = [
   {
-    href: "/",
-    title: "Home",
-    description: "Return to mission control for TradeHax AI.",
-    icon: House,
-  },
-  {
-    href: "/crypto-project",
-    title: "Crypto Project",
-    description: "Devnet mint flow, wallet onboarding, and NFT access.",
-    icon: Gem,
-  },
-  {
-    href: "/schedule",
-    title: "Schedule",
-    description: "Book repair, lessons, and consulting sessions fast.",
-    icon: CalendarClock,
-  },
-  {
-    href: "/pricing",
-    title: "Pricing",
-    description: "Clear tiers for service retainers and subscriptions.",
-    icon: CreditCard,
-  },
-  {
-    href: "/about",
-    title: "About",
-    description: "Legacy, customer trust, and execution standards.",
-    icon: Info,
-  },
-  {
-    href: "/services",
-    title: "Services",
-    description: "Repair, music instruction, and digital Web3 builds.",
+    title: "Need Service Now",
+    detail: "Phone/computer repair, optimization, and urgent troubleshooting with rapid intake.",
+    href: bookingLinks.techSupport,
+    external: true,
+    conversionId: "book_repair_quote",
+    surface: "home:intent_lane",
+    cta: "Start Tech Support Intake",
     icon: Wrench,
   },
-] as const;
-
-const pipeline = [
   {
-    title: "Signal Intake",
-    detail:
-      "Capture market, client, and service requests into one operating lane.",
+    title: "Need a Build Partner",
+    detail: "Website creation, app development, blockchain/crypto systems, and AI automation delivery.",
+    href: bookingLinks.webDevConsult,
+    external: true,
+    conversionId: "book_web3_consult",
+    surface: "home:intent_lane",
+    cta: "Book Build Consultation",
+    icon: MonitorSmartphone,
   },
   {
-    title: "AI + Human Review",
-    detail:
-      "Blend automation with operator checks before execution for reliability.",
+    title: "Music Lessons and Artist Growth",
+    detail: "Private guitar lessons, platform growth, and scholarship/reward infrastructure.",
+    href: "/music",
+    external: false,
+    conversionId: "open_music",
+    surface: "home:intent_lane",
+    cta: "Explore Music Services",
+    icon: Guitar,
   },
   {
-    title: "Execution Layer",
-    detail:
-      "Run trading actions, booking flows, and delivery tasks with auditable status.",
+    title: "Trading Research and Token Roadmap",
+    detail: "Follow market discussions, project updates, and utility-token roadmap progress.",
+    href: "/crypto-project",
+    external: false,
+    conversionId: "open_crypto_project",
+    surface: "home:intent_lane",
+    cta: "Review Crypto Project",
+    icon: CircuitBoard,
   },
-  {
-    title: "Revenue Loop",
-    detail:
-      "Monetize through mint upgrades, bookings, subscriptions, and referrals.",
-  },
-] as const;
-
-const galleryItems = [
-  { src: "/reference-hyperborea-thumb.jpg", caption: "Hyperborea Original Visual" },
-  { src: "/og-home.svg", caption: "Main Platform Portal" },
-  { src: "/og-game.svg", caption: "Escher Maze Game Interface" },
-  { src: "/og-dashboard.svg", caption: "Trading Dashboard Surface" },
-  { src: "/og-services.svg", caption: "Service Booking Presentation" },
-  { src: "/og-music.svg", caption: "Music and Lessons Hub" },
 ] as const;
 
 export default function Home() {
   return (
-    <>
-      <ShamrockHeader />
+    <main className="min-h-screen bg-black">
+      {/* Hero Section */}
+      <section className="h-[80vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+        
+        <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-6 italic uppercase">
+          <GlitchText text="TRADEHAX" />
+        </h1>
+        <p className="text-zinc-500 max-w-xl text-lg mb-10 font-medium leading-relaxed">
+          The cross-chain intersection of institutional-grade AI, decentralized gaming, and elite skill acquisition.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 relative z-10 items-center">
+          <TrackedCtaLink
+            href="/schedule"
+            conversionId="open_schedule"
+            surface="home:hero"
+            className="px-10 py-5 bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105"
+          >
+            BOOK_SERVICE
+          </TrackedCtaLink>
+          <Link href="/game">
+            <button className="px-10 py-5 border border-zinc-700 text-white font-black rounded-full hover:bg-zinc-800 transition-all">
+              PLAY_RUNNER
+            </button>
+          </Link>
+          <div className="min-h-10">
+            <WalletButton />
+          </div>
+        </div>
+      </section>
 
-      <main className="min-h-screen px-4 sm:px-6 py-8 sm:py-10">
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="theme-panel p-6 sm:p-8 md:p-10">
-            <div className="max-w-4xl">
-              <span className="theme-kicker mb-4">TradeHax Matrix Core</span>
-              <div className="theme-hero-sign p-5 sm:p-7 md:p-8">
-                <p className="theme-rune text-xs sm:text-sm mb-3">
-                  TECH RUNES | SOLANA PIPELINE | DIGITAL WORKSHOP
-                </p>
-                <h1 className="theme-title text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4">
-                  Expert Repairs, Guitar Lessons, and{" "}
-                  <span className="theme-title-accent">Web3 Services</span>
-                </h1>
-                <p className="theme-subtitle text-sm sm:text-base mb-6">
-                  Serving Greater Philadelphia and remote clients with a
-                  professional matrix-style platform for booking, trading, and
-                  Solana-native project execution.
-                </p>
-                <div className="flex flex-wrap gap-2.5">
-                  <span className="theme-badge">2h Response Goal</span>
-                  <span className="theme-badge">25+ Years Experience</span>
-                  <span className="theme-badge">Remote-First Workflow</span>
+      <LiveActivity />
+
+      {/* Intent Lanes Section */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="theme-panel p-8 md:p-12">
+          <span className="theme-kicker mb-4">Start Here</span>
+          <h2 className="theme-title text-4xl md:text-5xl mb-6">What Are You Here For Today?</h2>
+          <p className="text-zinc-500 max-w-2xl mb-12 text-lg">
+            Pick the path that matches your intent. Each route is optimized for clear next steps and fast booking.
+          </p>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {intentLanes.map((lane) => (
+              <article key={lane.title} className="theme-grid-card">
+                <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500 mb-4">
+                  <lane.icon className="w-6 h-6" />
                 </div>
-              </div>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <h3 className="text-xl font-bold text-white uppercase italic">{lane.title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">{lane.detail}</p>
                 <TrackedCtaLink
-                  href="/schedule"
-                  conversionId="open_schedule"
-                  surface="home:hero"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#00ff41] px-5 py-3 text-black font-semibold hover:bg-[#39ff14] transition-colors"
+                  href={lane.href}
+                  external={lane.external}
+                  conversionId={lane.conversionId}
+                  surface={lane.surface}
+                  className="theme-cta theme-cta--secondary mt-4 self-start"
                 >
-                  Book Service
+                  {lane.cta}
                   <ArrowRight className="w-4 h-4" />
                 </TrackedCtaLink>
-                <TrackedCtaLink
-                  href="/crypto-project"
-                  conversionId="open_crypto_project"
-                  surface="home:hero"
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#00ff41]/50 bg-[#05120a] px-5 py-3 text-[#9bffc0] font-semibold hover:border-[#00ff41] transition-colors"
-                >
-                  Open Crypto Project
-                  <CircuitBoard className="w-4 h-4" />
-                </TrackedCtaLink>
-                <div className="min-h-10">
-                  <WalletButton />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <ActionRail surface="home" />
-        </section>
-
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {menuCards.map(({ href, title, description, icon: Icon }) => (
-              <Link key={href} href={href} className="theme-grid-card">
-                <span className="inline-flex w-11 h-11 items-center justify-center rounded-xl border border-[#00ff41]/40 bg-[#06130c] text-[#8cf8b4]">
-                  <Icon className="w-5 h-5" />
-                </span>
-                <h2 className="text-lg font-semibold">{title}</h2>
-                <p>{description}</p>
-              </Link>
+              </article>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="theme-panel p-6 sm:p-8">
-            <span className="theme-kicker mb-3">Automation Pipeline</span>
-            <h2 className="theme-title text-2xl sm:text-3xl font-bold mb-6">
-              Keep New Features, Organized as One Pipeline
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {pipeline.map((step, index) => (
-                <article key={step.title} className="theme-grid-card">
-                  <span className="text-[#73fba8] text-xs tracking-widest font-semibold">
-                    STEP 0{index + 1}
-                  </span>
-                  <h3 className="text-white text-lg font-semibold">{step.title}</h3>
-                  <p>{step.detail}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+      {/* Service Grid Section */}
+      <ServiceGrid />
 
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="theme-panel p-6 sm:p-8">
-            <span className="theme-kicker mb-3">Core Services</span>
-            <h2 className="theme-title text-2xl sm:text-3xl font-bold mb-6">
-              Real-World Work + Solana Digital Execution
-            </h2>
-            <div className="grid gap-5 md:grid-cols-3">
-              <article className="theme-grid-card">
-                <div className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[#00ff41]/40 bg-[#06130c] text-[#7cf5ad]">
-                  <Wrench className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-semibold">Phone and Device Repair</h3>
-                <p>Fast diagnostics, remote triage, and local repair scheduling.</p>
-                <TrackedCtaLink
-                  href={bookingLinks.techSupport}
-                  conversionId="book_repair_quote"
-                  surface="home:service_card"
-                  external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
-                >
-                  Request a Repair Quote
-                </TrackedCtaLink>
-              </article>
-              <article className="theme-grid-card">
-                <div className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[#00ff41]/40 bg-[#06130c] text-[#7cf5ad]">
-                  <Guitar className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-semibold">Remote Guitar Lessons</h3>
-                <p>Structured lesson tracks with live sessions and progress plans.</p>
-                <TrackedCtaLink
-                  href={bookingLinks.guitarLessons}
-                  conversionId="book_guitar_lesson"
-                  surface="home:service_card"
-                  external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
-                >
-                  Reserve a Lesson Slot
-                </TrackedCtaLink>
-              </article>
-              <article className="theme-grid-card">
-                <div className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[#00ff41]/40 bg-[#06130c] text-[#7cf5ad]">
-                  <MonitorSmartphone className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-semibold">Digital and Web3 Services</h3>
-                <p>AI trading builds, Solana app work, and automation implementation.</p>
-                <TrackedCtaLink
-                  href={bookingLinks.webDevConsult}
-                  conversionId="book_web3_consult"
-                  surface="home:service_card"
-                  external
-                  className="text-[#8bffb7] text-sm font-semibold hover:text-[#00ff41] transition-colors"
-                >
-                  Start a Build Consultation
-                </TrackedCtaLink>
-              </article>
-            </div>
-          </div>
-        </section>
+      <NeuralConsole />
 
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="theme-panel p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div>
-                <span className="theme-kicker mb-2">Visual Archive</span>
-                <h2 className="theme-title text-2xl font-bold">Legacy Gallery Stream</h2>
-              </div>
-              <span className="theme-chip">Scroll Horizontally</span>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-1">
-              {galleryItems.map((item) => (
-                <figure key={item.caption} className="theme-gallery-card">
-                  <Image
-                    src={item.src}
-                    alt={item.caption}
-                    width={220}
-                    height={124}
-                    unoptimized={item.src.endsWith(".svg")}
-                  />
-                  <figcaption className="caption">{item.caption}</figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </section>
+      <Roadmap />
 
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <InContentAd />
-        </section>
-
-        <section className="max-w-7xl mx-auto mb-10 sm:mb-14">
-          <div className="theme-panel p-6 sm:p-8">
-            <span className="theme-kicker mb-3">Income Generation</span>
-            <h2 className="theme-title text-2xl sm:text-3xl font-bold mb-6">
-              Monetization Lanes Built Into the Platform
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <article className="theme-grid-card">
-                <HandCoins className="w-5 h-5 text-[#77f9a7]" />
-                <h3 className="font-semibold">Bookings</h3>
-                <p>Paid repair, lessons, and consulting appointments.</p>
-                <TrackedCtaLink
-                  href="/schedule"
-                  conversionId="open_schedule"
-                  surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
-                >
-                  Open Schedule
-                </TrackedCtaLink>
-              </article>
-              <article className="theme-grid-card">
-                <Gem className="w-5 h-5 text-[#77f9a7]" />
-                <h3 className="font-semibold">NFT Mints</h3>
-                <p>Free entry mints with premium upgrade utilities.</p>
-                <TrackedCtaLink
-                  href="/crypto-project"
-                  conversionId="open_crypto_project"
-                  surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
-                >
-                  Mint Access
-                </TrackedCtaLink>
-              </article>
-              <article className="theme-grid-card">
-                <CreditCard className="w-5 h-5 text-[#77f9a7]" />
-                <h3 className="font-semibold">Subscriptions</h3>
-                <p>Monthly tiers for insights, support, and premium sessions.</p>
-                <TrackedCtaLink
-                  href="/pricing"
-                  conversionId="open_pricing"
-                  surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
-                >
-                  View Tiers
-                </TrackedCtaLink>
-              </article>
-              <article className="theme-grid-card">
-                <Gamepad2 className="w-5 h-5 text-[#77f9a7]" />
-                <h3 className="font-semibold">Cross-Upsells</h3>
-                <p>Game, dashboard, and service ecosystem conversion flow.</p>
-                <TrackedCtaLink
-                  href="/dashboard"
-                  conversionId="open_dashboard"
-                  surface="home:monetization_lane"
-                  className="text-[#8bffb7] text-sm font-semibold"
-                >
-                  Launch Dashboard
-                </TrackedCtaLink>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-7xl mx-auto mb-12">
-          <RecommendedTools />
-        </section>
-
-        <section className="max-w-7xl mx-auto mb-8">
-          <FooterBannerAd />
-        </section>
-      </main>
-
-      <ShamrockFooter />
-      <EmailCaptureModal />
-    </>
+      {/* Quick Contact Rail */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex flex-wrap items-center justify-center gap-6 p-8 glass-panel rounded-3xl border border-white/5">
+          <p className="text-zinc-400 font-mono text-xs uppercase tracking-widest">Direct_Access:</p>
+          <TrackedCtaLink
+            href={businessProfile.contactLinks.text}
+            conversionId="contact_text"
+            surface="home:footer_rail"
+            external
+            className="flex items-center gap-2 text-white hover:text-cyan-500 transition-colors font-bold"
+          >
+            <MessageSquare className="w-4 h-4" />
+            TEXT {businessProfile.contactPhoneDisplay}
+          </TrackedCtaLink>
+          <div className="h-4 w-px bg-zinc-800 hidden md:block" />
+          <Link href="/about" className="text-zinc-400 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">
+            About + Trust
+          </Link>
+          <Link href="/portfolio" className="text-zinc-400 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">
+            Portfolio
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }

@@ -4,6 +4,7 @@ import { ActionRail } from "@/components/monetization/ActionRail";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
@@ -24,10 +25,16 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title:
-    "Professional Services - Web3 Development & Trading Consulting | TradeHax AI",
+    "Services | Web Development, Tech Repair, and Digital Support | TradeHax AI",
   description:
-    "Expert Web3 development, blockchain consulting, and automated trading system implementation. Custom solutions for your business needs.",
+    "Professional services including website development, app builds, device support, social media marketing, and Web3 consulting for Greater Philadelphia and remote clients.",
   keywords: [
+    "web development philadelphia",
+    "app development philadelphia",
+    "computer repair near philadelphia",
+    "tech support south jersey",
+    "website design south jersey",
+    "social media marketing services",
     "web3 development",
     "blockchain consulting",
     "trading systems",
@@ -35,8 +42,9 @@ export const metadata: Metadata = {
     "DApp development",
   ],
   openGraph: {
-    title: "Professional Services - TradeHax AI",
-    description: "Expert Web3 development and trading consulting services.",
+    title: "TradeHax AI Services | Web, Repair, Marketing, and Web3",
+    description:
+      "Explore web development, repair, marketing, and Web3 services with clear booking paths.",
     url: "https://tradehaxai.tech/services",
     type: "website",
     images: [
@@ -51,9 +59,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Professional Services - TradeHax AI",
+    title: "TradeHax AI Services",
     description:
-      "Web3 development, blockchain consulting, and trading system services.",
+      "Website development, repair support, marketing, and Web3 services.",
     images: ["/og-services.svg"],
   },
 };
@@ -72,7 +80,7 @@ export default function ServicesPage() {
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Complete technology solutions from Web3 development to hardware
             repair, social media marketing, and automated trading systems built
-            by experienced developers.
+            for businesses and individuals in Greater Philadelphia and remote.
           </p>
         </div>
 
@@ -106,7 +114,7 @@ export default function ServicesPage() {
 
           <ServiceCard
             icon={<LineChart className="w-10 h-10" />}
-            title="Trading System Development & Community"
+            title="Trading System Development"
             description="Automated trading bots, algorithmic strategies, real-time market analysis, and exclusive livestream trading sessions."
             features={[
               "Custom trading algorithms",
@@ -301,8 +309,8 @@ export default function ServicesPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <Benefit
-              title="Proven Expertise"
-              description="Successfully delivered 50+ Web3 and trading projects"
+              title="Cross-Domain Expertise"
+              description="Digital services, repair support, education, and Web3 consulting in one team"
             />
             <Benefit
               title="Fast Delivery"
@@ -332,19 +340,29 @@ export default function ServicesPage() {
               href="/portfolio"
               conversionId="open_portfolio"
               surface="services:cta_section"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold"
+              className="theme-cta theme-cta--secondary px-6 py-3"
             >
               View Portfolio
               <ArrowRight className="w-5 h-5" />
             </TrackedCtaLink>
             <TrackedCtaLink
-              href="mailto:support@tradehaxai.tech?subject=TradeHax%20Services%20Inquiry"
+              href={businessProfile.contactLinks.emailSales}
               conversionId="email_contact"
               surface="services:cta_section"
               external
-              className="inline-flex items-center gap-2 px-6 py-3 shamrock-button font-semibold"
+              className="theme-cta theme-cta--loud px-6 py-3"
             >
               Email Us
+              <ArrowRight className="w-5 h-5" />
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href={businessProfile.contactLinks.text}
+              conversionId="contact_text"
+              surface="services:cta_section"
+              external
+              className="theme-cta theme-cta--muted px-6 py-3"
+            >
+              Text {businessProfile.contactPhoneDisplay}
               <ArrowRight className="w-5 h-5" />
             </TrackedCtaLink>
           </div>
@@ -405,7 +423,7 @@ function ServiceCard({
           conversionId={ctaConversionId}
           surface={`services:card:${title.toLowerCase().replace(/\s+/g, "_")}`}
           external
-          className="inline-flex items-center gap-2 mt-4 rounded-lg border border-[#00ff41]/45 bg-[#041108] px-4 py-2.5 text-sm font-semibold text-[#b7ffd3] hover:border-[#00ff41] hover:text-[#d8ffe8] transition-colors"
+          className="theme-cta theme-cta--compact mt-4"
         >
           {ctaLabel}
           <ArrowRight className="w-4 h-4" />

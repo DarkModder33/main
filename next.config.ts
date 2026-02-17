@@ -1,17 +1,19 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  // Static export for GitHub Pages only (not for Vercel)
-  // Vercel automatically sets VERCEL=1 environment variable
-  ...(process.env.VERCEL !== "1" && { output: "export" }),
+const useStaticExport = process.env.NEXT_FORCE_STATIC_EXPORT === "1";
 
-  // Development optimizations - More permissive
-  reactStrictMode: false,
+const nextConfig: NextConfig = {
+  // Enable static export only when explicitly requested.
+  // Dynamic routes (OAuth, leaderboard APIs, claim queue) require server output.
+  ...(useStaticExport && { output: "export" }),
+
+  // Keep runtime checks active in development and production.
+  reactStrictMode: true,
 
   // Image optimization configuration
   images: {
-    // Use Next.js image optimization on Vercel; only disable when doing static export
-    unoptimized: process.env.VERCEL !== "1",
+    // Disable optimization only when forcing static export.
+    unoptimized: useStaticExport,
     remotePatterns: [
       {
         protocol: "https",
@@ -23,17 +25,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.vercel.app",
-      },
-      {
-        protocol: "https",
-        hostname: "**",
+        hostname: "**.vercel.app",
       },
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: "inline",
+    dangerouslyAllowSVG: false,
+    contentDispositionType: "attachment",
   },
 
   // Experimental features - Enable ALL
@@ -55,7 +53,40 @@ const nextConfig: NextConfig = {
   compress: true,
 
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
+  },
+
+  async headers() {
+    if (useStaticExport) {
+      return [];
+    }
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), usb=()",
+          },
+        ],
+      },
+    ];
   },
 
   // Webpack configuration - Maximum permissiveness

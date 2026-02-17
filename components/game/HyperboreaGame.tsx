@@ -3,6 +3,8 @@
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
 import type {
   ArtifactCollectionEvent,
+  GameRunSummary,
+  GameScoreSnapshot,
   HyperboreaLevelDefinition,
   LevelArtifact,
   LevelPuzzleNode,
@@ -14,6 +16,9 @@ interface HyperboreaGameProps {
   onEnergyChange?: (energy: number) => void;
   onCloverCollect?: (count: number) => void;
   onScoreChange?: (score: number, combo: number) => void;
+  onUtilityPointsChange?: (utilityPoints: number, projectedTokenUnits: number) => void;
+  onStructuredScoreChange?: (snapshot: GameScoreSnapshot) => void;
+  onRunComplete?: (summary: GameRunSummary) => void;
   onPowerUpChange?: (powerUps: Array<{ type: string; timeLeft: number }>) => void;
   onArtifactCollected?: (event: ArtifactCollectionEvent) => void;
   onStatusChange?: (message: string) => void;
@@ -77,7 +82,10 @@ const CELL_SIZE = 4;
 const WALL_HEIGHT = 3.5;
 const PLAYER_RADIUS = 0.38;
 const EYE_HEIGHT = 1.5;
-const INTERACT_DISTANCE = 2.7;
+const INTERACT_DISTANCE = 3.9;
+const AUTO_PICKUP_DISTANCE = 2.2;
+const AUTO_RUNE_DISTANCE = 1.25;
+const UTILITY_POINTS_PER_TOKEN_UNIT = 25;
 const NAVIGATION_KEYS = new Set([
   "w",
   "a",
@@ -100,6 +108,9 @@ export function HyperboreaGame({
   onEnergyChange,
   onCloverCollect,
   onScoreChange,
+  onUtilityPointsChange,
+  onStructuredScoreChange,
+  onRunComplete,
   onPowerUpChange,
   onArtifactCollected,
   onStatusChange,
@@ -131,7 +142,11 @@ export function HyperboreaGame({
     const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     const isSmallViewport = window.matchMedia("(max-width: 900px)").matches;
     const isMobile = isTouchDevice || isSmallViewport;
-    const maxDpr = isMobile ? 1.5 : 2;
+    const minDpr = isMobile ? 0.75 : 1;
+    const maxDpr = isMobile ? 1.35 : 2;
+    const interactionDistance = isMobile ? 4.6 : INTERACT_DISTANCE;
+    const autoPickupDistance = isMobile ? 2.8 : AUTO_PICKUP_DISTANCE;
+    const autoRuneDistance = isMobile ? 1.65 : AUTO_RUNE_DISTANCE;
     let currentDpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     let viewportWidth = Math.max(currentMount.clientWidth || window.innerWidth, 1);
     let viewportHeight = Math.max(currentMount.clientHeight || window.innerHeight, 1);
@@ -139,6 +154,21 @@ export function HyperboreaGame({
     currentMount.style.touchAction = "none";
     currentMount.style.overscrollBehavior = "none";
     currentMount.style.backgroundColor = "#0a1020";
+    currentMount.style.outline = "none";
+    currentMount.tabIndex = 0;
+    currentMount.setAttribute("role", "application");
+    currentMount.setAttribute("aria-label", "Hyperborea interactive game viewport");
+
+    const focusViewport = () => {
+      if (document.activeElement === currentMount) {
+        return;
+      }
+      try {
+        currentMount.focus({ preventScroll: true });
+      } catch {
+        currentMount.focus();
+      }
+    };
 
     const scene = new THREE.Scene();
     const fogColor = new THREE.Color(activeLevel.theme.fogColor || 0x0a0520);
@@ -415,6 +445,13 @@ export function HyperboreaGame({
 
     let energy = 25;
     let score = 0;
+    let utilityPoints = 0;
+    let coinsCollected = 0;
+    let runesActivated = 0;
+    let coinPoints = 0;
+    let runePoints = 0;
+    let relicPoints = 0;
+    let explorationPoints = 0;
     let relicsCollected = 0;
     let combo = 0;
     let comboTimer = 0;
@@ -423,6 +460,8 @@ export function HyperboreaGame({
     let missionComplete = false;
     let lastInteractionHint = "";
     let lastHintActionable = false;
+    let blockedMoveHintCooldownSeconds = 0;
+    let lastProgressTimestampMs = performance.now();
 
     let performanceCheckTimer = 0;
     let performanceFrameCounter = 0;
@@ -446,11 +485,14 @@ export function HyperboreaGame({
 
     const simulationClock = new THREE.Clock();
     let simulationAccumulator = 0;
-    const fixedStepSeconds = 1 / 60;
-    const maxSubSteps = 4;
+    const fixedStepSeconds = isMobile ? 1 / 55 : 1 / 60;
+    const maxSubSteps = isMobile ? 3 : 4;
     let simulationFrame = 0;
     let lastScoreSent = Number.NaN;
     let lastComboSent = Number.NaN;
+    let lastUtilityPointsSent = Number.NaN;
+    let lastProjectedTokenUnitsSent = Number.NaN;
+    let lastStructuredSnapshot = "";
 
     const emitStatus = (message: string) => {
       onStatusChange?.(message);
@@ -464,6 +506,48 @@ export function HyperboreaGame({
       lastScoreSent = roundedScore;
       lastComboSent = combo;
       onScoreChange?.(roundedScore, combo);
+    };
+
+    const toProjectedUtilityTokenUnits = (points: number) =>
+      Math.floor(Math.max(points, 0) / UTILITY_POINTS_PER_TOKEN_UNIT);
+
+    const emitUtilityPoints = (force = false) => {
+      if (!onUtilityPointsChange) return;
+      const roundedUtilityPoints = Math.round(Math.max(0, utilityPoints));
+      const projectedTokenUnits = toProjectedUtilityTokenUnits(roundedUtilityPoints);
+      if (
+        !force &&
+        roundedUtilityPoints === lastUtilityPointsSent &&
+        projectedTokenUnits === lastProjectedTokenUnitsSent
+      ) {
+        return;
+      }
+      lastUtilityPointsSent = roundedUtilityPoints;
+      lastProjectedTokenUnitsSent = projectedTokenUnits;
+      onUtilityPointsChange(roundedUtilityPoints, projectedTokenUnits);
+    };
+
+    const emitStructuredScore = (force = false) => {
+      if (!onStructuredScoreChange) return;
+      const snapshot: GameScoreSnapshot = {
+        score: Math.round(score),
+        combo,
+        coinsCollected,
+        runesActivated,
+        relicsCollected,
+        coinPoints: Math.round(coinPoints),
+        runePoints: Math.round(runePoints),
+        relicPoints: Math.round(relicPoints),
+        explorationPoints: Math.round(explorationPoints),
+        utilityPoints: Math.round(utilityPoints),
+        projectedTokenUnits: toProjectedUtilityTokenUnits(utilityPoints),
+      };
+      const serialized = JSON.stringify(snapshot);
+      if (!force && serialized === lastStructuredSnapshot) {
+        return;
+      }
+      lastStructuredSnapshot = serialized;
+      onStructuredScoreChange(snapshot);
     };
 
     const emitRelics = () => {
@@ -504,8 +588,23 @@ export function HyperboreaGame({
     const requirementSatisfied = (id: string) =>
       activatedPuzzleIds.has(id) || collectedArtifactIds.has(id);
 
+    const requirementLabelMap = new Map<string, string>();
+    for (const puzzle of activeLevel.puzzleNodes) {
+      requirementLabelMap.set(puzzle.id, puzzle.label);
+    }
+    for (const artifact of activeLevel.artifacts) {
+      requirementLabelMap.set(artifact.id, artifact.name);
+    }
+
     const requirementsMet = (requirements?: string[]) =>
       !requirements || requirements.every(requirementSatisfied);
+
+    const getMissingRequirements = (requirements?: string[]) => {
+      if (!requirements || requirements.length === 0) return [];
+      return requirements
+        .filter((id) => !requirementSatisfied(id))
+        .map((id) => requirementLabelMap.get(id) ?? id);
+    };
 
     const canOccupy = (worldX: number, worldZ: number) => {
       const offsets: Array<[number, number]> = [
@@ -553,8 +652,17 @@ export function HyperboreaGame({
 
       if (moved) {
         bobTimer += 0.65;
-        score += distance * 2.6;
+        const movementScore = distance * 2.6;
+        score += movementScore;
+        utilityPoints += distance * 4.2;
+        explorationPoints += movementScore;
+        lastProgressTimestampMs = performance.now();
         emitScore();
+        emitUtilityPoints();
+        emitStructuredScore();
+      } else if (direction > 0 && blockedMoveHintCooldownSeconds <= 0) {
+        blockedMoveHintCooldownSeconds = 2.4;
+        emitStatus("Path blocked. Turn left/right and align with open corridors or activate nearby runes.");
       }
 
       return moved;
@@ -595,7 +703,12 @@ export function HyperboreaGame({
 
       if (!requirementsMet(instance.data.requires)) {
         if (!fromAuto) {
-          emitStatus(`Locked: ${instance.data.label}. Solve prerequisites first.`);
+          const missing = getMissingRequirements(instance.data.requires);
+          emitStatus(
+            missing.length > 0
+              ? `Locked: ${instance.data.label}. Missing: ${missing.join(", ")}.`
+              : `Locked: ${instance.data.label}. Solve prerequisites first.`,
+          );
         }
         return;
       }
@@ -613,16 +726,26 @@ export function HyperboreaGame({
         blockedCells.delete(instance.blockedCellKey);
       }
 
+      runesActivated += 1;
+      runePoints += 45;
       score += 45;
+      utilityPoints += 32;
+      lastProgressTimestampMs = performance.now();
       combo += 1;
       comboTimer = 240;
       updateEnergy(energy + 8);
       emitScore(true);
+      emitUtilityPoints(true);
+      emitStructuredScore(true);
       emitStatus(`${instance.data.label} activated.`);
       maybeUnlockExit();
     };
 
-    const emitArtifactEvent = (artifact: LevelArtifact) => {
+    const emitArtifactEvent = (
+      artifact: LevelArtifact,
+      awardedTokenUnits: number,
+      lockedAtPickup: boolean,
+    ) => {
       if (!onArtifactCollected) return;
       const event: ArtifactCollectionEvent = {
         eventId: `${sessionId}-${artifact.id}-${Date.now()}`,
@@ -634,7 +757,11 @@ export function HyperboreaGame({
         rarity: artifact.rarity,
         playerScore: Math.round(score),
         combo,
-        tokenRewardUnits: artifact.tokenRewardUnits,
+        tokenRewardUnits: awardedTokenUnits,
+        utilityPointsDelta: 85 + awardedTokenUnits * 3,
+        utilityPointsAfterEvent: Math.round(utilityPoints),
+        utilityTokenBonusUnits: toProjectedUtilityTokenUnits(utilityPoints),
+        lockedAtPickup,
         claimEndpoint: activeLevel.tokenConfig.claimEndpoint,
         web5Collection: activeLevel.tokenConfig.web5Collection,
         collectedAt: new Date().toISOString(),
@@ -644,19 +771,26 @@ export function HyperboreaGame({
 
     const collectArtifact = (instance: ArtifactInstance) => {
       if (instance.collected) return;
-      if (!requirementsMet(instance.data.puzzleRequirementIds)) {
-        emitStatus(`Cannot claim ${instance.data.name} yet. Complete required puzzle nodes.`);
-        return;
-      }
+      const missingRequirements = getMissingRequirements(instance.data.puzzleRequirementIds);
+      const lockedAtPickup = missingRequirements.length > 0;
+      const awardedTokenUnits = lockedAtPickup ? 0 : instance.data.tokenRewardUnits;
 
       instance.collected = true;
       collectedArtifactIds.add(instance.data.id);
       instance.mesh.visible = false;
 
+      coinsCollected += 1;
       relicsCollected = collectedArtifactIds.size;
       emitRelics();
 
-      score += 120 + instance.data.tokenRewardUnits * 2;
+      const utilityDelta = 85 + awardedTokenUnits * 3;
+      coinPoints += Math.max(8, Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.35 : 1)));
+      const relicScoreGain =
+        (lockedAtPickup ? 70 : 120) + Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.8 : 2));
+      relicPoints += relicScoreGain;
+      utilityPoints += utilityDelta;
+      score += relicScoreGain;
+      lastProgressTimestampMs = performance.now();
       combo += 1;
       comboTimer = 240;
       const rarityEnergyBonus =
@@ -669,11 +803,19 @@ export function HyperboreaGame({
               : 9;
       updateEnergy(energy + rarityEnergyBonus);
       emitScore(true);
+      emitUtilityPoints(true);
+      emitStructuredScore(true);
 
-      emitArtifactEvent(instance.data);
-      emitStatus(
-        `Relic recovered: ${instance.data.name} (+${instance.data.tokenRewardUnits} ${activeLevel.tokenConfig.l2TokenSymbol})`,
-      );
+      emitArtifactEvent(instance.data, awardedTokenUnits, lockedAtPickup);
+      if (lockedAtPickup) {
+        emitStatus(
+          `Relic secured (dormant): ${instance.data.name}. Activate required runes for full token value. Missing: ${missingRequirements.join(", ")}.`,
+        );
+      } else {
+        emitStatus(
+          `Relic recovered: ${instance.data.name} (+${awardedTokenUnits} ${activeLevel.tokenConfig.l2TokenSymbol})`,
+        );
+      }
       maybeUnlockExit();
     };
 
@@ -695,8 +837,7 @@ export function HyperboreaGame({
         const dx = artifact.mesh.position.x - playerX;
         const dz = artifact.mesh.position.z - playerZ;
         const distance = Math.hypot(dx, dz);
-        if (distance > INTERACT_DISTANCE) continue;
-        if (getForwardAlignment(artifact.mesh.position.x, artifact.mesh.position.z) < 0.2) continue;
+        if (distance > interactionDistance) continue;
         candidates.push({ type: "artifact", distance, instance: artifact });
       }
 
@@ -705,13 +846,12 @@ export function HyperboreaGame({
         const dx = puzzle.mesh.position.x - playerX;
         const dz = puzzle.mesh.position.z - playerZ;
         const distance = Math.hypot(dx, dz);
-        if (distance > INTERACT_DISTANCE) continue;
-        if (getForwardAlignment(puzzle.mesh.position.x, puzzle.mesh.position.z) < 0.15) continue;
+        if (distance > interactionDistance) continue;
         candidates.push({ type: "puzzle", distance, instance: puzzle });
       }
 
       const exitDistance = Math.hypot(exitWorld.x - playerX, exitWorld.z - playerZ);
-      if (exitDistance <= INTERACT_DISTANCE && getForwardAlignment(exitWorld.x, exitWorld.z) >= 0.1) {
+      if (exitDistance <= interactionDistance && getForwardAlignment(exitWorld.x, exitWorld.z) >= -0.35) {
         candidates.push({ type: "exit", distance: exitDistance });
       }
 
@@ -727,7 +867,7 @@ export function HyperboreaGame({
       if (!candidate) return "";
       const actionVerb = isMobile ? "Tap Use" : "Press E";
       if (candidate.type === "artifact") {
-        return `${actionVerb}: collect ${candidate.instance.data.name}`;
+        return `${actionVerb}: collect ${candidate.instance.data.name} (or move closer to auto-collect)`;
       }
       if (candidate.type === "puzzle") {
         return `${actionVerb}: activate ${candidate.instance.data.label}`;
@@ -743,7 +883,7 @@ export function HyperboreaGame({
 
       const nearest = getNearestInteractionCandidate();
       if (!nearest) {
-        emitStatus("No interactable object in range. Move closer and press Use.");
+        emitStatus("No interactable object in range. Move closer to a relic or rune, then press Use.");
         emitInteractionHint("", false);
         return;
       }
@@ -767,11 +907,54 @@ export function HyperboreaGame({
 
       missionComplete = true;
       score += 650;
+      relicPoints += 650;
       emitScore(true);
       updateEnergy(100);
       onPowerUpChange?.([]);
       emitStatus("Level complete. Portal traversal confirmed.");
       emitInteractionHint("Portal traversal complete.", false);
+      utilityPoints += 220;
+      emitUtilityPoints(true);
+      emitStructuredScore(true);
+      onRunComplete?.({
+        sessionId,
+        levelId: activeLevel.id,
+        completedAt: new Date().toISOString(),
+        score: Math.round(score),
+        combo,
+        coinsCollected,
+        runesActivated,
+        relicsCollected,
+        coinPoints: Math.round(coinPoints),
+        runePoints: Math.round(runePoints),
+        relicPoints: Math.round(relicPoints),
+        explorationPoints: Math.round(explorationPoints),
+        utilityPoints: Math.round(utilityPoints),
+        projectedTokenUnits: toProjectedUtilityTokenUnits(utilityPoints),
+      });
+    };
+
+    const autoCollectNearbyArtifacts = () => {
+      if (missionComplete) return;
+      for (const artifact of artifactInstances) {
+        if (artifact.collected) continue;
+        const distance = Math.hypot(artifact.mesh.position.x - playerX, artifact.mesh.position.z - playerZ);
+        if (distance <= autoPickupDistance) {
+          collectArtifact(artifact);
+        }
+      }
+    };
+
+    const autoActivateNearbyRunes = () => {
+      if (missionComplete) return;
+      for (const puzzle of puzzleInstances) {
+        if (puzzle.activated) continue;
+        if (puzzle.data.kind === "pressure_plate") continue;
+        const distance = Math.hypot(puzzle.mesh.position.x - playerX, puzzle.mesh.position.z - playerZ);
+        if (distance <= autoRuneDistance) {
+          activatePuzzle(puzzle, true);
+        }
+      }
     };
 
     const applyControlHold = (action: ControlAction, pressed: boolean) => {
@@ -917,6 +1100,10 @@ export function HyperboreaGame({
       }
     };
 
+    const handleViewportPointerDown = () => {
+      focusViewport();
+    };
+
     const resizeObserver =
       typeof ResizeObserver !== "undefined"
         ? new ResizeObserver(() => {
@@ -931,10 +1118,14 @@ export function HyperboreaGame({
     window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("hyperborea-control", handleExternalControl as EventListener);
+    currentMount.addEventListener("pointerdown", handleViewportPointerDown);
     currentMount.addEventListener("touchstart", handleTouchStart, { passive: false });
     currentMount.addEventListener("touchmove", handleTouchMove, { passive: false });
     currentMount.addEventListener("touchend", handleTouchEnd, { passive: true });
-    window.requestAnimationFrame(handleResize);
+    window.requestAnimationFrame(() => {
+      handleResize();
+      focusViewport();
+    });
 
     const stepSimulation = (dt: number) => {
       const nowMs = performance.now();
@@ -989,7 +1180,11 @@ export function HyperboreaGame({
       const movedDistance = Math.hypot(appliedDx, appliedDz);
       if (movedDistance > 0.0002) {
         bobTimer += dt * 7.5;
-        score += movedDistance * 2.4;
+        const movementScore = movedDistance * 2.4;
+        score += movementScore;
+        utilityPoints += movedDistance * 3.4;
+        explorationPoints += movementScore;
+        lastProgressTimestampMs = performance.now();
       } else {
         bobTimer += dt * 1.8;
       }
@@ -1001,11 +1196,29 @@ export function HyperboreaGame({
           activatePuzzle(puzzle, true);
         }
       }
+      autoActivateNearbyRunes();
+      autoCollectNearbyArtifacts();
 
       comboTimer -= 1;
       if (comboTimer <= 0 && combo > 0) {
         combo = Math.max(0, combo - 1);
         emitScore(true);
+      }
+
+      if (blockedMoveHintCooldownSeconds > 0) {
+        blockedMoveHintCooldownSeconds = Math.max(0, blockedMoveHintCooldownSeconds - dt);
+      }
+
+      if (!missionComplete && simulationFrame % 120 === 0) {
+        const stalledMs = performance.now() - lastProgressTimestampMs;
+        if (stalledMs > 9000) {
+          emitStatus(
+            isMobile
+              ? "Tip: hold Forward, turn with Turn L/R, and tap Use near glowing rune nodes."
+              : "Tip: move with W/S, turn with A/D, and press E near glowing runes and portal.",
+          );
+          lastProgressTimestampMs = performance.now();
+        }
       }
 
       if (!missionComplete) {
@@ -1045,6 +1258,8 @@ export function HyperboreaGame({
       }
       if (simulationFrame % 6 === 0) {
         emitScore();
+        emitUtilityPoints();
+        emitStructuredScore();
       }
     };
 
@@ -1060,12 +1275,14 @@ export function HyperboreaGame({
 
       if (performanceCheckTimer >= 2 && performanceFrameCounter > 0 && performanceTimeAccumulator > 0) {
         const fps = performanceFrameCounter / performanceTimeAccumulator;
-        if (fps < 45 && currentDpr > 1) {
-          currentDpr = Math.max(1, currentDpr - 0.25);
+        const downscaleThreshold = isMobile ? 48 : 45;
+        const upscaleThreshold = isMobile ? 58 : 58;
+        if (fps < downscaleThreshold && currentDpr > minDpr) {
+          currentDpr = Math.max(minDpr, currentDpr - (isMobile ? 0.2 : 0.25));
           renderer.setPixelRatio(currentDpr);
           renderer.setSize(viewportWidth, viewportHeight);
-        } else if (fps > 58 && currentDpr < maxDpr) {
-          currentDpr = Math.min(maxDpr, currentDpr + 0.25);
+        } else if (fps > upscaleThreshold && currentDpr < maxDpr) {
+          currentDpr = Math.min(maxDpr, currentDpr + (isMobile ? 0.15 : 0.25));
           renderer.setPixelRatio(currentDpr);
           renderer.setSize(viewportWidth, viewportHeight);
         }
@@ -1087,13 +1304,15 @@ export function HyperboreaGame({
     updateEnergy(energy);
     emitRelics();
     emitScore(true);
+    emitUtilityPoints(true);
+    emitStructuredScore(true);
     onPowerUpChange?.([]);
     setPortalState(false);
-    emitInteractionHint("Use crosshair + E (or Use button) near relics and runes.", false);
+    emitInteractionHint("Move close to relics to auto-collect, or press Use near runes and portals.", false);
     emitStatus(
       isMobile
-        ? "Use on-screen controls. Fallback: swipe up/down to step move, swipe left/right to turn, tap Use near runes."
-        : "W/S move, A/D turn, E use. Solve gates and recover relics.",
+        ? "Use on-screen controls. Move close to relics for auto-pickup. Tap Use near rune nodes."
+        : "W/S move, A/D turn, E use. Move close to relics for auto-pickup and use runes to unlock paths.",
     );
     animate();
 
@@ -1106,6 +1325,7 @@ export function HyperboreaGame({
       window.removeEventListener("blur", handleWindowBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("hyperborea-control", handleExternalControl as EventListener);
+      currentMount.removeEventListener("pointerdown", handleViewportPointerDown);
       currentMount.removeEventListener("touchstart", handleTouchStart);
       currentMount.removeEventListener("touchmove", handleTouchMove);
       currentMount.removeEventListener("touchend", handleTouchEnd);
@@ -1146,6 +1366,9 @@ export function HyperboreaGame({
     onEnergyChange,
     onPowerUpChange,
     onScoreChange,
+    onUtilityPointsChange,
+    onStructuredScoreChange,
+    onRunComplete,
     onStatusChange,
     onInteractionHintChange,
     sessionId,

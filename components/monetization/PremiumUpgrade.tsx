@@ -21,23 +21,23 @@ export function PremiumUpgrade() {
   };
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/50 via-blue-900/50 to-purple-900/50 border-2 border-purple-500/50 rounded-2xl p-8 shadow-2xl">
+    <div className="theme-panel relative p-8">
       {/* Decorative background */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.08]" />
       
       <div className="relative z-10">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-full text-sm mb-6">
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#ffd86d]/60 bg-[#261d08]/90 px-4 py-2 text-sm font-bold text-[#ffe7a9] mb-6">
           <Crown className="w-4 h-4" />
           LIMITED OFFER
         </div>
 
         {/* Title */}
-        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text mb-4">
+        <h2 className="theme-title text-3xl md:text-4xl font-bold mb-4">
           Upgrade to Premium
         </h2>
         
-        <p className="text-gray-300 text-lg mb-6">
+        <p className="theme-subtitle text-lg mb-6">
           Unlock advanced trading signals, ad-free experience, and exclusive strategies used by professional traders.
         </p>
 
@@ -54,8 +54,8 @@ export function PremiumUpgrade() {
         {/* Pricing */}
         <div className="flex items-baseline gap-2 mb-6">
           <span className="text-5xl font-bold text-white">$9.99</span>
-          <span className="text-gray-400">/month</span>
-          <span className="ml-4 text-sm bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
+          <span className="text-[#afc4d1]">/month</span>
+          <span className="ml-4 rounded-full border border-[#73f5ab]/45 bg-[#0d2118]/85 px-3 py-1 text-sm text-[#92ffc0]">
             Save $20 vs. competitors
           </span>
         </div>
@@ -63,12 +63,12 @@ export function PremiumUpgrade() {
         {/* CTA Button */}
         <button
           onClick={handleUpgradeClick}
-          className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white rounded-xl font-bold text-lg hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-purple-500/50 hover:scale-105"
+          className="theme-cta theme-cta--loud w-full md:w-auto px-8 py-4 text-lg"
         >
           Upgrade Now →
         </button>
 
-        <p className="text-gray-500 text-sm mt-4">
+        <p className="text-[#8ca4b2] text-sm mt-4">
           🔒 Cancel anytime. No commitments.
         </p>
       </div>
@@ -78,8 +78,8 @@ export function PremiumUpgrade() {
 
 function Feature({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-3 text-gray-200">
-      <div className="flex-shrink-0 w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400">
+    <div className="flex items-center gap-3 text-[#e2f2ff]">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full border border-[#84efbc]/40 bg-[#0d2319]/80 flex items-center justify-center text-[#93ffbf]">
         {icon}
       </div>
       <span>{text}</span>
@@ -104,23 +104,23 @@ export function PremiumBanner() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6">
+    <div className="theme-panel p-6">
       <div className="flex items-center gap-2 mb-3">
-        <Crown className="w-5 h-5 text-yellow-400" />
-        <span className="text-yellow-400 font-bold text-sm">PREMIUM</span>
+        <Crown className="w-5 h-5 text-[#ffe08f]" />
+        <span className="text-[#ffe08f] font-bold text-sm">PREMIUM</span>
       </div>
       
       <h3 className="text-lg font-bold text-white mb-2">
         Go Ad-Free + Get Signals
       </h3>
       
-      <p className="text-gray-400 text-sm mb-4">
+      <p className="text-[#a3bac8] text-sm mb-4">
         Unlock advanced features for $9.99/mo
       </p>
       
       <button
         onClick={handleClick}
-        className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+        className="theme-cta theme-cta--secondary w-full px-4 py-2"
       >
         Upgrade Now
       </button>
