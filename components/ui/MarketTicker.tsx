@@ -9,7 +9,7 @@ export const MarketTicker = () => {
       script.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
       script.type = "text/javascript";
       script.async = true;
-      script.innerHTML = JSON.stringify({
+      script.textContent = JSON.stringify({
         "symbols": [
           { "proName": "BITSTAMP:BTCUSD", "title": "BTC" },
           { "proName": "BITSTAMP:ETHUSD", "title": "ETH" },
