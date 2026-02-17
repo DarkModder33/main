@@ -1,4 +1,5 @@
 import { Calendar, Clock, Video } from 'lucide-react';
+import { businessProfile } from '@/lib/business-profile';
 
 export function BookingCalendar() {
   return (
@@ -25,11 +26,14 @@ export function BookingCalendar() {
           Booking integration coming soon! For now, please contact us to schedule.
         </p>
         <a
-          href="mailto:support@tradehaxai.tech"
+          href={businessProfile.contactLinks.emailSales}
           className="shamrock-button inline-block px-6 py-3 font-semibold"
         >
           Contact to Book
         </a>
+        <p className="mt-3 text-xs text-gray-400">
+          Prefer texts: {businessProfile.contactPhoneDisplay}
+        </p>
       </div>
     </div>
   );

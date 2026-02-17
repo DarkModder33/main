@@ -25,6 +25,7 @@ const navigation: NavItem[] = [
       { name: 'Trading Dashboard', href: '/dashboard' },
       { name: 'Hyperborea Game', href: '/game' },
       { name: 'Music Platform', href: '/music' },
+      { name: 'Share Preview', href: '/preview' },
       { name: 'Portfolio', href: '/portfolio' },
       { name: 'Blog', href: '/blog' },
     ],

@@ -1,6 +1,7 @@
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { bookingLinks } from "@/lib/booking";
-import { CalendarClock, CreditCard, Gem, Mail } from "lucide-react";
+import { businessProfile } from "@/lib/business-profile";
+import { CalendarClock, CreditCard, Gem, MessageSquare } from "lucide-react";
 
 interface ActionRailProps {
   surface: string;
@@ -11,15 +12,15 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
   return (
     <section className={`theme-panel p-4 sm:p-5 ${className}`.trim()}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <span className="theme-kicker">Pipeline Shortcuts</span>
-        <span className="theme-chip">Book | Mint | Subscribe | Contact</span>
+        <span className="theme-kicker">Quick Actions</span>
+        <span className="theme-chip">Book | Explore | Pricing | Contact</span>
       </div>
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
         <TrackedCtaLink
           href="/schedule"
           conversionId="open_schedule"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00ff41]/55 bg-[#05120a] px-4 py-3 text-sm font-semibold text-[#ccffe0] hover:border-[#00ff41] transition-colors"
+          className="theme-cta theme-cta--compact w-full"
         >
           <CalendarClock className="w-4 h-4" />
           Book Service
@@ -28,7 +29,7 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           href="/crypto-project"
           conversionId="open_crypto_project"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#7af7c7]/45 bg-[#05161d] px-4 py-3 text-sm font-semibold text-[#d7f5ff] hover:border-[#8ef7d6] transition-colors"
+          className="theme-cta theme-cta--secondary theme-cta--compact w-full"
         >
           <Gem className="w-4 h-4" />
           Mint Access
@@ -37,27 +38,37 @@ export function ActionRail({ surface, className = "" }: ActionRailProps) {
           href="/pricing"
           conversionId="open_pricing"
           surface={`${surface}:action_rail`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-pink-500 px-4 py-3 text-sm font-semibold text-white hover:from-fuchsia-500 hover:to-pink-400 transition-colors"
+          className="theme-cta theme-cta--loud theme-cta--compact w-full"
         >
           <CreditCard className="w-4 h-4" />
           View Tiers
         </TrackedCtaLink>
         <TrackedCtaLink
-          href="mailto:support@tradehaxai.tech?subject=TradeHax%20Project%20Inquiry"
-          conversionId="email_contact"
+          href={businessProfile.contactLinks.text}
+          conversionId="contact_text"
           surface={`${surface}:action_rail`}
           external
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00ff41]/45 bg-[#0b1015] px-4 py-3 text-sm font-semibold text-[#d8ffe8] hover:border-[#00ff41] transition-colors"
+          className="theme-cta theme-cta--muted theme-cta--compact w-full"
         >
-          <Mail className="w-4 h-4" />
-          Contact Direct
+          <MessageSquare className="w-4 h-4" />
+          Text Direct
         </TrackedCtaLink>
       </div>
       <p className="mt-3 text-xs text-[#b4c7d6]">
-        Fast lane: schedule support, open mint path, compare plans, or contact directly.
+        Start with the action you need most: schedule a service, review options, or contact us directly.
       </p>
       <p className="mt-1 text-[11px] text-[#9cb3c1]">
-        Prefer immediate tech support?{" "}
+        Prefer email?{" "}
+        <TrackedCtaLink
+          href={businessProfile.contactLinks.emailSales}
+          conversionId="email_contact"
+          surface={`${surface}:action_rail`}
+          external
+          className="text-[#9bffbf] font-semibold hover:text-[#00ff41] transition-colors"
+        >
+          Send project details
+        </TrackedCtaLink>
+        . Need immediate tech support?{" "}
         <TrackedCtaLink
           href={bookingLinks.techSupport}
           conversionId="book_repair_quote"
