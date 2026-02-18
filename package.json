@@ -21,6 +21,7 @@
     "pipeline:local": "npm run pipeline:quality && npm run build",
     "pipeline:deploy-checks": "npm run check:vercel && npm run check:dns",
     "pipeline:ci": "node ./scripts/run-pipeline-ci.js",
+    "llm:prepare-dataset": "node ./scripts/prepare-custom-llm-dataset.js",
     "repo:status": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/repo-status.ps1",
     "repo:sync-mirror": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-mirror-from-canonical.ps1"
   },

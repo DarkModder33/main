@@ -74,11 +74,25 @@ export default function SchedulePage() {
               className="theme-cta theme-cta--muted px-5 py-3"
             >
               <Phone className="w-4 h-4" />
-              Call for Urgent Support
+              Call Primary Line
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href={businessProfile.contactLinks.cashApp}
+              conversionId="donate_cashapp"
+              surface="schedule:hero"
+              external
+              className="theme-cta theme-cta--secondary px-5 py-3"
+            >
+              Unlock Overnight Emergency Line
             </TrackedCtaLink>
           </div>
           <p className="mt-3 text-xs text-[#9ca9c5]">
             {businessProfile.textPreference}
+          </p>
+          <p className="mt-1 text-xs text-[#9ca9c5]">
+            Emergency line: {businessProfile.emergencyPhoneDisplay} after $
+            {businessProfile.contactPolicy.emergencyUnlockDonationUsd} Cash App donation (
+            {businessProfile.cashAppTag}).
           </p>
         </section>
 

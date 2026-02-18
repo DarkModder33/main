@@ -1,13 +1,27 @@
 import { bookingLinks } from "@/lib/booking";
 
-const defaultPhoneE164 = "+16094128878";
-const defaultPhoneDisplay = "(609) 412-8878";
+const defaultPhoneE164 = "+18563208570";
+const defaultPhoneDisplay = "(856) 320-8570";
+const defaultEmergencyPhoneE164 = "+16094128878";
+const defaultEmergencyPhoneDisplay = "(609) 412-8878";
 const defaultEmail = "irishmikeflaherty@gmail.com";
+const defaultCashAppTag = "$hackavelli88";
 
 const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || defaultEmail;
 const contactPhoneE164 = process.env.NEXT_PUBLIC_CONTACT_PHONE_E164 || defaultPhoneE164;
 const contactPhoneDisplay =
   process.env.NEXT_PUBLIC_CONTACT_PHONE_DISPLAY || defaultPhoneDisplay;
+const emergencyPhoneE164 =
+  process.env.NEXT_PUBLIC_EMERGENCY_PHONE_E164 || defaultEmergencyPhoneE164;
+const emergencyPhoneDisplay =
+  process.env.NEXT_PUBLIC_EMERGENCY_PHONE_DISPLAY || defaultEmergencyPhoneDisplay;
+const cashAppTag = process.env.NEXT_PUBLIC_CASHAPP_TAG || defaultCashAppTag;
+const emergencyUnlockDonationRaw = Number.parseFloat(
+  process.env.NEXT_PUBLIC_EMERGENCY_UNLOCK_DONATION_USD || "5",
+);
+const emergencyUnlockDonationUsd = Number.isFinite(emergencyUnlockDonationRaw)
+  ? emergencyUnlockDonationRaw
+  : 5;
 
 const textTemplate =
   process.env.NEXT_PUBLIC_TEXT_PREFILL ||
@@ -20,7 +34,15 @@ export const businessProfile = {
   contactPhoneE164,
   contactPhoneDisplay,
   textPreference:
-    "Prefer texts unless scheduled for a call. 24/7 on-call urgent calls are welcome.",
+    `Call/text primary line ${contactPhoneDisplay}. Overnight emergency line unlock: $${emergencyUnlockDonationUsd} Cash App donation.`,
+  emergencyPhoneE164,
+  emergencyPhoneDisplay,
+  cashAppTag,
+  contactPolicy: {
+    emergencyUnlockDonationUsd,
+    emergencyPolicy:
+      "Overnight emergency calls are accepted after donation confirmation to unlock the emergency line.",
+  },
   contactLinks: {
     email: `mailto:${contactEmail}`,
     emailSales: `mailto:${contactEmail}?subject=${encodeURIComponent(
@@ -28,6 +50,8 @@ export const businessProfile = {
     )}`,
     text: `sms:${contactPhoneE164}?body=${encodedTextTemplate}`,
     call: `tel:${contactPhoneE164}`,
+    emergencyCall: `tel:${emergencyPhoneE164}`,
+    cashApp: `https://cash.app/${cashAppTag.replace(/^\$/, "")}`,
   },
   socialLinks: {
     x: process.env.NEXT_PUBLIC_SOCIAL_X_URL || "https://x.com/tradehaxai",

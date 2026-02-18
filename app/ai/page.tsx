@@ -49,6 +49,16 @@ export default function AIHubPage() {
           </div>
         </div>
 
+        <div className="theme-panel mb-12 p-6">
+          <h3 className="font-bold text-cyan-200 mb-2">Custom TradeHax Model Path</h3>
+          <p className="text-cyan-100/80 text-sm mb-3">
+            A launch-ready custom route is available at <code className="bg-black/40 px-2 py-1 rounded">/api/ai/custom</code> with site-specific system prompting and monetization usage gating.
+          </p>
+          <p className="text-cyan-100/60 text-xs">
+            Prepare training data locally with <code className="bg-black/40 px-2 py-1 rounded">npm run llm:prepare-dataset</code> and follow <code className="bg-black/40 px-2 py-1 rounded">CUSTOM_LLM_MODEL_PLAN.md</code>.
+          </p>
+        </div>
+
         {/* Grid */}
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           {/* Chat */}
