@@ -1,6 +1,7 @@
 "use client";
 
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
+import { calculateUtilityYield } from "@/lib/game/scoring-engine";
 import type {
   ArtifactCollectionEvent,
   GameRunSummary,
@@ -120,6 +121,7 @@ export function HyperboreaGame({
   isPaused = false,
 }: HyperboreaGameProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const minimapRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(isPaused);
 
   useEffect(() => {
@@ -144,9 +146,9 @@ export function HyperboreaGame({
     const isMobile = isTouchDevice || isSmallViewport;
     const minDpr = isMobile ? 0.75 : 1;
     const maxDpr = isMobile ? 1.35 : 2;
-    const interactionDistance = isMobile ? 4.6 : INTERACT_DISTANCE;
-    const autoPickupDistance = isMobile ? 2.8 : AUTO_PICKUP_DISTANCE;
-    const autoRuneDistance = isMobile ? 1.65 : AUTO_RUNE_DISTANCE;
+    const interactionDistance = isMobile ? 5.2 : 4.4;
+    const autoPickupDistance = isMobile ? 3.4 : 2.8;
+    const autoRuneDistance = isMobile ? 2.2 : 1.8;
     let currentDpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     let viewportWidth = Math.max(currentMount.clientWidth || window.innerWidth, 1);
     let viewportHeight = Math.max(currentMount.clientHeight || window.innerHeight, 1);
@@ -386,16 +388,28 @@ export function HyperboreaGame({
       const material = new THREE.MeshStandardMaterial({
         color,
         emissive: color,
-        emissiveIntensity: 0.95,
-        roughness: 0.22,
-        metalness: 0.84,
+        emissiveIntensity: 1.2,
+        roughness: 0.1,
+        metalness: 0.9,
       });
       const mesh = new THREE.Mesh(geometry, material);
       const world = gridToWorld(artifact.position.x, artifact.position.y);
       mesh.position.set(world.x, 1.1, world.z);
       mesh.castShadow = true;
       scene.add(mesh);
-      artifactInstances.push({ data: artifact, mesh, collected: false });
+
+      // Add a small point light to each artifact to make it pop
+      const light = new THREE.PointLight(color, 0.8, 4);
+      light.position.set(world.x, 1.1, world.z);
+      scene.add(light);
+
+      artifactInstances.push({ 
+        data: artifact, 
+        mesh, 
+        collected: false,
+        // @ts-ignore - injecting light reference for cleanup
+        light 
+      });
     }
 
     const exitWorld = gridToWorld(activeLevel.exit.x, activeLevel.exit.y);
@@ -607,19 +621,19 @@ export function HyperboreaGame({
     };
 
     const canOccupy = (worldX: number, worldZ: number) => {
-      const offsets: Array<[number, number]> = [
-        [0, 0],
-        [PLAYER_RADIUS, 0],
-        [-PLAYER_RADIUS, 0],
-        [0, PLAYER_RADIUS],
-        [0, -PLAYER_RADIUS],
-        [PLAYER_RADIUS * 0.7, PLAYER_RADIUS * 0.7],
-        [PLAYER_RADIUS * 0.7, -PLAYER_RADIUS * 0.7],
-        [-PLAYER_RADIUS * 0.7, PLAYER_RADIUS * 0.7],
-        [-PLAYER_RADIUS * 0.7, -PLAYER_RADIUS * 0.7],
-      ];
+      // Use a more robust check by sampling more points around the player
+      const collisionRadius = PLAYER_RADIUS * 1.1; // Slight buffer
+      const samples = 8;
+      
+      // Center check
+      const centerGrid = worldToGrid(worldX, worldZ);
+      if (isWallCell(centerGrid.x, centerGrid.y) || blockedCells.has(cellKey(centerGrid.x, centerGrid.y))) return false;
 
-      for (const [dx, dz] of offsets) {
+      // Radial samples
+      for (let i = 0; i < samples; i++) {
+        const angle = (i / samples) * Math.PI * 2;
+        const dx = Math.cos(angle) * collisionRadius;
+        const dz = Math.sin(angle) * collisionRadius;
         const grid = worldToGrid(worldX + dx, worldZ + dz);
         if (isWallCell(grid.x, grid.y)) return false;
         if (blockedCells.has(cellKey(grid.x, grid.y))) return false;
@@ -633,39 +647,42 @@ export function HyperboreaGame({
 
       const stepDx = Math.sin(playerYaw) * direction * distance;
       const stepDz = Math.cos(playerYaw) * direction * distance;
-      let moved = false;
-
+      
+      // Try full move first
       if (canOccupy(playerX + stepDx, playerZ + stepDz)) {
         playerX += stepDx;
         playerZ += stepDz;
-        moved = true;
-      } else {
-        if (canOccupy(playerX + stepDx, playerZ)) {
-          playerX += stepDx;
-          moved = true;
-        }
-        if (canOccupy(playerX, playerZ + stepDz)) {
-          playerZ += stepDz;
-          moved = true;
-        }
-      }
-
-      if (moved) {
         bobTimer += 0.65;
-        const movementScore = distance * 2.6;
-        score += movementScore;
+        score += distance * 2.6;
         utilityPoints += distance * 4.2;
-        explorationPoints += movementScore;
+        explorationPoints += distance * 2.6;
         lastProgressTimestampMs = performance.now();
         emitScore();
         emitUtilityPoints();
         emitStructuredScore();
-      } else if (direction > 0 && blockedMoveHintCooldownSeconds <= 0) {
-        blockedMoveHintCooldownSeconds = 2.4;
-        emitStatus("Path blocked. Turn left/right and align with open corridors or activate nearby runes.");
+        return true;
+      }
+      
+      // Try sliding along X
+      if (canOccupy(playerX + stepDx, playerZ)) {
+        playerX += stepDx;
+        bobTimer += 0.45;
+        return true;
+      }
+      
+      // Try sliding along Z
+      if (canOccupy(playerX, playerZ + stepDz)) {
+        playerZ += stepDz;
+        bobTimer += 0.45;
+        return true;
       }
 
-      return moved;
+      if (direction > 0 && blockedMoveHintCooldownSeconds <= 0) {
+        blockedMoveHintCooldownSeconds = 2.4;
+        emitStatus("Path blocked. Turn left/right or find a way to unlock.");
+      }
+
+      return false;
     };
 
     const setPortalState = (unlocked: boolean) => {
@@ -778,12 +795,26 @@ export function HyperboreaGame({
       instance.collected = true;
       collectedArtifactIds.add(instance.data.id);
       instance.mesh.visible = false;
+      // @ts-ignore
+      if (instance.light) {
+        // @ts-ignore
+        scene.remove(instance.light);
+      }
 
       coinsCollected += 1;
       relicsCollected = collectedArtifactIds.size;
       emitRelics();
 
-      const utilityDelta = 85 + awardedTokenUnits * 3;
+      // Use the scoring engine for accumulation logic
+      const yieldData = calculateUtilityYield({
+        basePoints: instance.data.tokenRewardUnits,
+        rarity: instance.data.rarity,
+        combo,
+        timeElapsedSeconds: Math.floor((performance.now() - lastProgressTimestampMs) / 1000),
+        isLockedAtPickup: lockedAtPickup
+      });
+
+      const utilityDelta = yieldData.utilityPoints;
       coinPoints += Math.max(8, Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.35 : 1)));
       const relicScoreGain =
         (lockedAtPickup ? 70 : 120) + Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.8 : 2));
@@ -806,15 +837,14 @@ export function HyperboreaGame({
       emitUtilityPoints(true);
       emitStructuredScore(true);
 
-      emitArtifactEvent(instance.data, awardedTokenUnits, lockedAtPickup);
-      if (lockedAtPickup) {
-        emitStatus(
-          `Relic secured (dormant): ${instance.data.name}. Activate required runes for full token value. Missing: ${missingRequirements.join(", ")}.`,
-        );
-      } else {
-        emitStatus(
-          `Relic recovered: ${instance.data.name} (+${awardedTokenUnits} ${activeLevel.tokenConfig.l2TokenSymbol})`,
-        );
+      emitArtifactEvent({
+        ...instance.data,
+        tokenRewardUnits: yieldData.projectedTokens,
+      }, yieldData.projectedTokens, lockedAtPickup);
+      if (instance.data.rarity === "mythic") {
+        emitStatus("EMERGENT_AI_EVENT: Mythic artifact detected. Utility yield maximized.");
+        utilityPoints += 500;
+        updateEnergy(100);
       }
       maybeUnlockExit();
     };
@@ -936,11 +966,25 @@ export function HyperboreaGame({
 
     const autoCollectNearbyArtifacts = () => {
       if (missionComplete) return;
+      const magnetRange = autoPickupDistance * (combo >= 10 ? 2.5 : 1.0);
+      
       for (const artifact of artifactInstances) {
         if (artifact.collected) continue;
-        const distance = Math.hypot(artifact.mesh.position.x - playerX, artifact.mesh.position.z - playerZ);
-        if (distance <= autoPickupDistance) {
-          collectArtifact(artifact);
+        const dx = artifact.mesh.position.x - playerX;
+        const dz = artifact.mesh.position.z - playerZ;
+        const distance = Math.hypot(dx, dz);
+        
+        if (distance <= magnetRange) {
+          // Visual magnet effect: move mesh toward player
+          if (distance > 0.5) {
+            const lerpFactor = 0.12;
+            artifact.mesh.position.x -= dx * lerpFactor;
+            artifact.mesh.position.z -= dz * lerpFactor;
+          }
+          
+          if (distance <= 0.8 || (distance <= autoPickupDistance)) {
+            collectArtifact(artifact);
+          }
         }
       }
     };
@@ -1127,6 +1171,107 @@ export function HyperboreaGame({
       focusViewport();
     });
 
+    const drawMinimap = () => {
+      const canvas = minimapRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Map scale based on grid size
+      const scale = Math.min(w / gridWidth, h / gridHeight) * 0.85;
+      const offsetX = (w - gridWidth * scale) / 2;
+      const offsetY = (h - gridHeight * scale) / 2;
+
+      // Draw Grid/Walls
+      ctx.fillStyle = "rgba(6, 182, 212, 0.05)";
+      for (let gy = 0; gy < gridHeight; gy++) {
+        for (let gx = 0; gx < gridWidth; gx++) {
+          const isWall = layout[gy][gx] === "#";
+          if (isWall) {
+            ctx.fillStyle = "rgba(6, 182, 212, 0.25)";
+            ctx.fillRect(offsetX + gx * scale, offsetY + gy * scale, scale - 1, scale - 1);
+          } else {
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.05)";
+            ctx.strokeRect(offsetX + gx * scale, offsetY + gy * scale, scale, scale);
+          }
+        }
+      }
+
+      // Draw Puzzles/Gates
+      for (const puzzle of puzzleInstances) {
+        if (puzzle.activated && puzzle.data.kind !== "lock" && puzzle.data.kind !== "rune_gate") continue;
+        const gx = puzzle.data.position.x;
+        const gy = puzzle.data.position.y;
+        ctx.fillStyle = puzzle.activated ? "rgba(50, 255, 180, 0.2)" : "rgba(255, 159, 28, 0.6)";
+        if (puzzle.data.kind === "lock" || puzzle.data.kind === "rune_gate") {
+          ctx.fillStyle = puzzle.activated ? "rgba(50, 255, 180, 0.1)" : "rgba(138, 92, 246, 0.7)";
+        }
+        ctx.fillRect(offsetX + gx * scale + scale * 0.2, offsetY + gy * scale + scale * 0.2, scale * 0.6, scale * 0.6);
+      }
+
+      // Draw Artifacts
+      for (const artifact of artifactInstances) {
+        if (artifact.collected) continue;
+        const gx = artifact.data.position.x;
+        const gy = artifact.data.position.y;
+        const color = rarityColorMap[artifact.data.rarity] || 0xffffff;
+        const hex = `#${color.toString(16).padStart(6, "0")}`;
+        ctx.fillStyle = hex;
+        ctx.beginPath();
+        ctx.arc(offsetX + gx * scale + scale / 2, offsetY + gy * scale + scale / 2, scale * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        // Glow effect
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = hex;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw Exit
+      if (!missionComplete) {
+        const ex = activeLevel.exit.x;
+        const ey = activeLevel.exit.y;
+        ctx.strokeStyle = exitUnlocked ? "#66e0ff" : "#ff6688";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(offsetX + ex * scale + scale / 2, offsetY + ey * scale + scale / 2, scale * 0.4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Draw Player
+      const playerGridX = (playerX / CELL_SIZE) + gridWidth / 2 - 0.5;
+      const playerGridY = (playerZ / CELL_SIZE) + gridHeight / 2 - 0.5;
+      
+      const px = offsetX + playerGridX * scale + scale / 2;
+      const py = offsetY + playerGridY * scale + scale / 2;
+
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(-playerYaw); // Canvas rotates opposite to THREE.js yaw for top-down
+
+      // Player Arrow
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(0, -scale * 0.5);
+      ctx.lineTo(scale * 0.35, scale * 0.4);
+      ctx.lineTo(0, scale * 0.2);
+      ctx.lineTo(-scale * 0.35, scale * 0.4);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Player Glow
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#00ffff";
+      ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+      ctx.stroke();
+      
+      ctx.restore();
+    };
+
     const stepSimulation = (dt: number) => {
       const nowMs = performance.now();
       portalMesh.rotation.z += 0.01;
@@ -1162,7 +1307,10 @@ export function HyperboreaGame({
         playerYaw += turnInput * 2.25 * dt;
       }
 
-      const moveSpeed = missionComplete ? 0 : isMobile ? 6.8 : 4.2;
+    const moveSpeed = missionComplete ? 0 : (isMobile ? 6.8 : 4.2) * (combo >= 5 ? 1.5 : 1.0);
+    if (combo >= 5 && simulationFrame % 30 === 0) {
+      emitStatus("OVERCLOCK_ACTIVE: Movement speed x1.5");
+    }
       const desiredDx = Math.sin(playerYaw) * moveInput * moveSpeed * dt;
       const desiredDz = Math.cos(playerYaw) * moveInput * moveSpeed * dt;
 
@@ -1298,6 +1446,7 @@ export function HyperboreaGame({
         subSteps++;
       }
 
+      drawMinimap();
       renderer.render(scene, camera);
     };
 
@@ -1375,10 +1524,27 @@ export function HyperboreaGame({
   ]);
 
   return (
-    <div
-      ref={mountRef}
-      className="w-full h-full"
-      aria-label="Hyperborea first-person dungeon canvas"
-    />
+    <div className="relative w-full h-full group">
+      <div
+        ref={mountRef}
+        className="w-full h-full"
+        aria-label="Hyperborea first-person dungeon canvas"
+      />
+      
+      {/* Neural Minimap Overlay */}
+      <div className="absolute bottom-6 right-6 w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border border-cyan-500/30 bg-black/80 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.2)] pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-80">
+        <div className="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest">Neural_Map</span>
+        </div>
+        <canvas
+          ref={minimapRef}
+          width={256}
+          height={256}
+          className="w-full h-full opacity-90"
+        />
+        <div className="absolute inset-0 scanline opacity-10" />
+      </div>
+    </div>
   );
 }

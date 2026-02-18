@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import { ingestBehavior } from '@/lib/ai/data-ingestion';
 
 export const NeuralConsole = () => {
   const [input, setInput] = useState("");
@@ -16,47 +16,70 @@ export const NeuralConsole = () => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  const processCommand = (cmd: string) => {
-    const cleanCmd = cmd.toUpperCase().trim();
-    let response = "";
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isOverclocked, setIsOverclocked] = useState(false);
 
-    if (cleanCmd.startsWith("CALC ")) {
-      const amount = parseFloat(cleanCmd.split(" ")[1]);
-      if (!isNaN(amount)) {
-        const reward = amount * 1.25; // Simulated yield multiplier
-        response = `CALCULATION_COMPLETE: PROX_REWARD = ${reward.toLocaleString()} $HAX [ROI: 25%]`;
-        setProjectedValue(reward);
-      } else {
-        response = "ERROR: INVALID_INPUT_FORMAT. USE 'CALC [AMOUNT]'";
-      }
-    } else if (cleanCmd === "AI_STATUS") {
-      response = "LLM_STATUS: TRAINING_PHASE_01 // BEHAVIORAL_INGESTION: ACTIVE // SENSOR_MOD: UNCENSORED";
-    } else if (cleanCmd === "HELP") {
-      response = "COMMANDS: CALC [AMT], AI_STATUS, MARKET_SENTIMENT, SYSTEM_STATS";
-    } else {
-      response = `AI_RESPONSE: ANALYZING_QUERY '${cmd}'... DATA_POINT_LOGGED. (LEARNING_IN_PROGRESS)`;
+  const processCommand = async (cmd: string) => {
+    const cleanCmd = cmd.toUpperCase().trim();
+    setLogs(prev => [...prev, `> ${cmd}`]);
+    setInput("");
+    setIsProcessing(true);
+
+    if (cleanCmd === "OVERCLOCK" || cleanCmd === "NEURAL_OVERCLOCK") {
+      setIsOverclocked(true);
+      setLogs(prev => [...prev, "WARNING: SYSTEM_TEMPERATURE_RISING...", "NEURAL_OVERCLOCK_ENGAGED. (NO_FILTERS_ACTIVE)"]);
+      setIsProcessing(false);
+      return;
     }
 
-    setLogs(prev => [...prev, `> ${cmd}`, response]);
-    setInput("");
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: cmd, tier: isOverclocked ? 'OVERCLOCK' : 'UNCENSORED' })
+      });
+      
+      const data = await res.json();
+      setLogs(prev => [...prev, data.response || "ERROR: NO_RESPONSE"]);
+      
+      // Ingest Behavior for Fine-Tuning (GLM-4.7)
+      await ingestBehavior({
+        timestamp: new Date().toISOString(),
+        category: cmd.toUpperCase().includes("GUITAR") ? 'GUITAR' : (cmd.toUpperCase().includes("HFT") ? 'HFT' : 'BEHAVIOR'),
+        prompt: cmd,
+        response: data.response
+      });
+
+      if (data.response?.includes("REWARD") || data.response?.includes("YIELD")) {
+        setProjectedValue(Math.floor(Math.random() * 5000) + 1000);
+      }
+    } catch (err) {
+      setLogs(prev => [...prev, "ERROR: NEURAL_LINK_TIMEOUT"]);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <section className="py-24 bg-black relative">
+    <section className={`py-24 bg-black relative transition-colors duration-1000 ${isOverclocked ? 'bg-red-950/10' : ''}`}>
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xs font-mono text-cyan-500 tracking-[0.4em] uppercase">Neural_Terminal</h2>
+            <h2 className={`text-xs font-mono tracking-[0.4em] uppercase transition-colors ${isOverclocked ? 'text-red-500' : 'text-cyan-500'}`}>
+              {isOverclocked ? 'Overclock_Terminal' : 'Neural_Terminal'}
+            </h2>
             <div className="flex gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-zinc-600">UNCENSORED_MODE</span>
+              <div className={`w-2 h-2 rounded-full animate-pulse ${isOverclocked ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-green-500'}`} />
+              <span className={`text-[10px] font-mono uppercase ${isOverclocked ? 'text-red-500' : 'text-zinc-600'}`}>
+                {isOverclocked ? 'OVERCLOCK_ACTIVE' : 'UNCENSORED_MODE'}
+              </span>
             </div>
           </div>
 
-          <div className="bg-zinc-950 glass-panel rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.05)] relative">
-            <div className="scanline" />
+          <div className={`bg-zinc-950 glass-panel rounded-3xl overflow-hidden relative transition-all duration-500 ${isOverclocked ? 'shadow-[0_0_70px_rgba(239,68,68,0.1)] border-red-500/30' : 'shadow-[0_0_50px_rgba(6,182,212,0.05)]'}`}>
+            <div className={`scanline ${isOverclocked ? 'bg-red-500/20' : ''}`} />
             {/* Terminal Header */}
-            <div className="bg-zinc-900/50 px-6 py-3 border-b border-white/5 flex justify-between items-center">
+            <div className={`px-6 py-3 border-b flex justify-between items-center transition-colors ${isOverclocked ? 'bg-red-900/20 border-red-500/20' : 'bg-zinc-900/50 border-white/5'}`}>
               <div className="flex gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
                 <div className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
@@ -68,7 +91,7 @@ export const NeuralConsole = () => {
             {/* Terminal Output */}
             <div className="p-8 h-80 overflow-y-auto font-mono text-xs space-y-3 custom-scrollbar crt-flicker">
               {logs.map((log, i) => (
-                <div key={i} className={`${log.startsWith('>') ? 'text-zinc-400' : 'text-cyan-500'}`}>
+                <div key={i} className={`${log.startsWith('>') ? 'text-zinc-400' : (isOverclocked ? 'text-red-400' : 'text-cyan-500')} transition-colors`}>
                   {log}
                 </div>
               ))}
@@ -76,16 +99,17 @@ export const NeuralConsole = () => {
             </div>
 
             {/* Terminal Input */}
-            <div className="p-6 bg-zinc-900/20 border-t border-white/5">
+            <div className={`p-6 border-t transition-colors ${isOverclocked ? 'bg-red-950/20 border-red-500/20' : 'bg-zinc-900/20 border-white/5'}`}>
               <div className="flex gap-4">
-                <span className="text-cyan-500 font-bold">$</span>
+                <span className={`${isOverclocked ? 'text-red-500' : 'text-cyan-500'} font-bold transition-colors animate-pulse`}>$</span>
                 <input 
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && processCommand(input)}
-                  className="w-full bg-transparent border-none outline-none text-white placeholder:text-zinc-700 font-mono"
-                  placeholder="Execute neural command or ask AI..."
+                  onKeyDown={(e) => e.key === 'Enter' && !isProcessing && processCommand(input)}
+                  disabled={isProcessing}
+                  className="w-full bg-transparent border-none outline-none text-white placeholder:text-zinc-700 font-mono disabled:opacity-50"
+                  placeholder={isProcessing ? "PROCESSING_NEURAL_STREAMS..." : "Execute neural command or ask AI..."}
                 />
               </div>
             </div>
