@@ -65,9 +65,9 @@ export const GuitarStudio = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-cyan-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Schedule_Meet</a>
-                <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-purple-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Reserve_Zoom</a>
-                <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-blue-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Sync_Teams</a>
+                <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-cyan-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Schedule_Meet</a>
+                <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-purple-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Reserve_Zoom</a>
+                <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="flex items-center justify-center p-4 glass-panel rounded-xl hover:border-blue-500/50 transition-all text-[10px] font-bold text-zinc-400 hover:text-white uppercase tracking-widest">Sync_Teams</a>
               </div>
             </div>
           </div>
@@ -102,8 +102,8 @@ export const GuitarStudio = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="flex-1 py-3 bg-white text-black text-[10px] font-black rounded-xl text-center hover:bg-cyan-500 hover:text-white transition-all">BOOK_SESSION</a>
-                  <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="flex-1 py-3 border border-zinc-800 text-zinc-400 text-[10px] font-black rounded-xl text-center hover:bg-zinc-800 hover:text-white transition-all uppercase">Calendar</a>
+                  <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="flex-1 py-3 bg-white text-black text-[10px] font-black rounded-xl text-center hover:bg-cyan-500 hover:text-white transition-all">BOOK_SESSION</a>
+                  <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="flex-1 py-3 border border-zinc-800 text-zinc-400 text-[10px] font-black rounded-xl text-center hover:bg-zinc-800 hover:text-white transition-all uppercase">Calendar</a>
                 </div>
               </div>
             </div>
@@ -112,7 +112,7 @@ export const GuitarStudio = () => {
             <div className="p-2 bg-zinc-900/50 border border-white/5 rounded-[2.5rem] overflow-hidden">
               <div className="aspect-[4/5] rounded-[2.2rem] overflow-hidden bg-zinc-950">
                 <iframe 
-                  src="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" 
+                  src="https://calendar.google.com/calendar/embed?src=irishmikeflaherty%40gmail.com&ctz=America%2FNew_York" 
                   className="w-full h-full border-none opacity-60 hover:opacity-100 transition-opacity invert" 
                 />
               </div>
