@@ -5,31 +5,31 @@
 export const bookingLinks = {
   guitarLessons:
     process.env.NEXT_PUBLIC_BOOKING_GUITAR_LESSONS ||
-    'https://calendly.com/tradehaxai/guitar-lesson',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   webDevConsult:
     process.env.NEXT_PUBLIC_BOOKING_WEB3_CONSULT ||
-    'https://calendly.com/tradehaxai/web-consultation',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   tradingConsult:
     process.env.NEXT_PUBLIC_BOOKING_TRADING_CONSULT ||
-    'https://calendly.com/tradehaxai/trading-strategy',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   techSupport:
     process.env.NEXT_PUBLIC_BOOKING_TECH_SUPPORT ||
-    'https://calendly.com/tradehaxai/tech-support',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   socialMediaConsult:
     process.env.NEXT_PUBLIC_BOOKING_SOCIAL_MEDIA_CONSULT ||
-    'https://calendly.com/tradehaxai/social-media-consult',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   itManagement:
     process.env.NEXT_PUBLIC_BOOKING_IT_MANAGEMENT ||
-    'https://calendly.com/tradehaxai/it-management',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   appDevelopment:
     process.env.NEXT_PUBLIC_BOOKING_APP_DEVELOPMENT ||
-    'https://calendly.com/tradehaxai/app-dev-consult',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   databaseConsult:
     process.env.NEXT_PUBLIC_BOOKING_DATABASE_CONSULT ||
-    'https://calendly.com/tradehaxai/database-consult',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
   ecommerceConsult:
     process.env.NEXT_PUBLIC_BOOKING_ECOMMERCE_CONSULT ||
-    'https://calendly.com/tradehaxai/ecommerce-consult',
+    'https://calendar.app.google/hhBXuJjfaApoXVzc6',
 } as const;
 
 export type BookingType = keyof typeof bookingLinks;
