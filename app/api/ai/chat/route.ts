@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processNeuralCommand, NeuralQuery } from "@/lib/ai/kernel";
 import { checkCredits, deductCredits } from "@/lib/ai/credit-system";
-<<<<<<< HEAD
 import { getLLMClient } from "@/lib/ai/hf-server";
 
 /**
@@ -25,15 +24,6 @@ export async function POST(req: NextRequest) {
     const inputMessage = message || (messages && messages.length > 0 ? messages[messages.length - 1].content : null);
 
     if (!inputMessage) {
-=======
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { message, tier = 'UNCENSORED', context, userId = "anonymous" } = body;
-
-    if (!message) {
->>>>>>> 3e1d0ad3f4de273f7316dc9c3aa2d65e1a88114d
       return NextResponse.json({ error: "No message provided" }, { status: 400 });
     }
 
@@ -45,16 +35,11 @@ export async function POST(req: NextRequest) {
 
     // Prepare query for kernel
     const query: NeuralQuery = {
-<<<<<<< HEAD
       text: inputMessage,
-=======
-      text: message,
->>>>>>> 3e1d0ad3f4de273f7316dc9c3aa2d65e1a88114d
       tier: tier as any,
       context
     };
 
-<<<<<<< HEAD
     // 2. Process using our neural kernel (Middleware/Keyword detection)
     let response = await processNeuralCommand(query);
 
@@ -81,12 +66,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Deduct Credits
-=======
-    // Process using our neural kernel
-    const response = await processNeuralCommand(query);
-
-    // 2. Deduct Credits
->>>>>>> 3e1d0ad3f4de273f7316dc9c3aa2d65e1a88114d
     await deductCredits(userId, tier as any);
 
     // Simulated latency for realism
@@ -94,13 +73,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       response,
-<<<<<<< HEAD
       message: {
         role: "assistant",
         content: response
       },
-=======
->>>>>>> 3e1d0ad3f4de273f7316dc9c3aa2d65e1a88114d
       status: "SUCCESS",
       timestamp: new Date().toISOString()
     });
