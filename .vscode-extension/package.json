@@ -1,0 +1,93 @@
+{
+  "name": "tradehax-bot",
+  "displayName": "TradeHax Bot Manager",
+  "description": "Manage and monitor TradeHax automated trading bots from VSCode",
+  "version": "1.0.0",
+  "publisher": "DarkModder33",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Productivity"
+  ],
+  "keywords": [
+    "trading",
+    "solana",
+    "bot",
+    "automation",
+    "crypto"
+  ],
+  "activationEvents": [
+    "onCommand:tradehax.openDashboard",
+    "onCommand:tradehax.createBot",
+    "onCommand:tradehax.viewStats"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tradehax.openDashboard",
+        "title": "TradeHax: Open Bot Dashboard"
+      },
+      {
+        "command": "tradehax.createBot",
+        "title": "TradeHax: Create New Bot"
+      },
+      {
+        "command": "tradehax.viewStats",
+        "title": "TradeHax: View Bot Statistics"
+      },
+      {
+        "command": "tradehax.startBot",
+        "title": "TradeHax: Start Bot"
+      },
+      {
+        "command": "tradehax.stopBot",
+        "title": "TradeHax: Stop Bot"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tradehax-explorer",
+          "title": "TradeHax",
+          "icon": "media/tradehax-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "tradehax-explorer": [
+        {
+          "id": "tradehax-bots",
+          "name": "Active Bots"
+        },
+        {
+          "id": "tradehax-portfolio",
+          "name": "Portfolio"
+        },
+        {
+          "id": "tradehax-signals",
+          "name": "Trading Signals"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.19.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "ws": "^8.14.0"
+  }
+}
