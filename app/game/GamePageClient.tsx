@@ -368,6 +368,23 @@ export default function GamePage() {
     async (event: ArtifactCollectionEvent) => {
       setArtifactFeed((previous) => [event, ...previous].slice(0, 8));
 
+      // Persistent Web5-style local storage for artifact collection
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("hyperborea_vault_v1") || "[]";
+          const vault = JSON.parse(stored);
+          vault.push({
+            id: event.artifactId,
+            name: event.artifactName,
+            rarity: event.rarity,
+            collectedAt: event.collectedAt
+          });
+          localStorage.setItem("hyperborea_vault_v1", JSON.stringify(vault.slice(-100)));
+        } catch (e) {
+          console.error("Web5 vault sync error", e);
+        }
+      }
+
       const tokenConfig = activeLevel?.tokenConfig;
       if (!tokenConfig?.enabled) return;
 

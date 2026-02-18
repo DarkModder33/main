@@ -1,81 +1,91 @@
+import { NextRequest, NextResponse } from "next/server";
+import { processNeuralCommand, NeuralQuery } from "@/lib/ai/kernel";
+import { checkCredits, deductCredits } from "@/lib/ai/credit-system";
+import { getLLMClient } from "@/lib/ai/hf-server";
+
 /**
  * POST /api/ai/chat
- * Chat endpoint with conversation history
+ * TradeHax AI Chat Endpoint
+ * Supports both single 'message' (Neural Terminal) and 'messages' array (Chat standard)
  */
-
-import { getLLMClient } from "@/lib/ai/hf-server";
-import { NextRequest, NextResponse } from "next/server";
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-interface ChatRequest {
-  messages: ChatMessage[];
-  systemPrompt?: string;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body: ChatRequest = await request.json();
+    const body = await req.json();
+    
+    const { 
+      message, 
+      messages,
+      tier = 'UNCENSORED', 
+      context, 
+      userId = "anonymous",
+      systemPrompt 
+    } = body;
 
-    if (!body.messages || !Array.isArray(body.messages)) {
-      return NextResponse.json(
-        { error: "Messages array is required" },
-        { status: 400 },
-      );
+    const inputMessage = message || (messages && messages.length > 0 ? messages[messages.length - 1].content : null);
+
+    if (!inputMessage) {
+      return NextResponse.json({ error: "No message provided" }, { status: 400 });
     }
 
-    if (body.messages.length === 0) {
-      return NextResponse.json(
-        { error: "At least one message is required" },
-        { status: 400 },
-      );
+    // 1. Credit Gate
+    const hasCredits = await checkCredits(userId, tier as any);
+    if (!hasCredits) {
+      return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
     }
 
-    // Get last user message
-    const lastUserMessage = [...body.messages]
-      .reverse()
-      .find((m) => m.role === "user");
+    // Prepare query for kernel
+    const query: NeuralQuery = {
+      text: inputMessage,
+      tier: tier as any,
+      context
+    };
 
-    if (!lastUserMessage) {
-      return NextResponse.json(
-        { error: "No user message found" },
-        { status: 400 },
-      );
+    // 2. Process using our neural kernel (Middleware/Keyword detection)
+    let response = await processNeuralCommand(query);
+
+    // 3. If kernel returns default simulation, try Hugging Face LLM
+    if (response.startsWith("AI_RESPONSE: ANALYZING_QUERY")) {
+      try {
+        const client = getLLMClient();
+        let prompt = systemPrompt ? `System: ${systemPrompt}\n\n` : "";
+        
+        if (messages && Array.isArray(messages)) {
+          for (const msg of messages) {
+            prompt += `${msg.role}: ${msg.content}\n`;
+          }
+        } else {
+          prompt += `user: ${inputMessage}\n`;
+        }
+        prompt += "assistant:";
+
+        const hfResponse = await client.generate(prompt);
+        response = hfResponse.text;
+      } catch (hfError) {
+        console.warn("HF LLM Fallback failed, using kernel response:", hfError);
+      }
     }
 
-    const client = getLLMClient();
+    // 4. Deduct Credits
+    await deductCredits(userId, tier as any);
 
-    // Build context from conversation
-    let prompt = body.systemPrompt
-      ? `System: ${body.systemPrompt}\n\n`
-      : "";
+    // Simulated latency for realism
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-    for (const msg of body.messages) {
-      prompt += `${msg.role}: ${msg.content}\n`;
-    }
-
-    prompt += "assistant:";
-
-    const response = await client.generate(prompt);
-
-    return NextResponse.json({
-      ok: true,
+    return NextResponse.json({ 
+      response,
       message: {
-        role: "assistant" as const,
-        content: response.text,
+        role: "assistant",
+        content: response
       },
-      model: response.model,
+      status: "SUCCESS",
+      timestamp: new Date().toISOString()
     });
-  } catch (error) {
-    console.error("Chat API error:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Chat failed",
-      },
-      { status: 500 },
-    );
+
+  } catch (error: any) {
+    console.error("Neural API Error:", error);
+    return NextResponse.json({ 
+      error: "NEURAL_LINK_FAILURE", 
+      details: error.message 
+    }, { status: 500 });
   }
 }

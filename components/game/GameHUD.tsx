@@ -90,9 +90,39 @@ export function GameHUD({
     setLastClovers(cloversCollected);
   }, [cloversCollected, lastClovers]);
 
+  const [vaultCount, setVaultCount] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("hyperborea_vault_v1") || "[]";
+        const vault = JSON.parse(stored);
+        setVaultCount(Array.isArray(vault) ? vault.length : 0);
+      } catch {
+        setVaultCount(0);
+      }
+    }
+  }, [cloversCollected]);
+
   return (
     <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 pointer-events-none z-10">
       <div className="max-w-7xl mx-auto">
+        <div className="flex flex-wrap gap-2 mb-2">
+          {/* Web5 Vault Status */}
+          <div className="bg-black/95 backdrop-blur-md border border-cyan-500/50 rounded-full px-3 py-1 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
+              Web5_Vault: {vaultCount} Artifacts
+            </span>
+          </div>
+          {combo >= 5 && (
+            <div className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/50 rounded-full px-3 py-1 flex items-center gap-2 animate-bounce">
+              <span className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">
+                Overclock_Active
+              </span>
+            </div>
+          )}
+        </div>
         {/* Top HUD - Mobile Responsive */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-2 sm:gap-4">
           {/* Energy Bar */}

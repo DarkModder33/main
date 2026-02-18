@@ -76,7 +76,7 @@ export default function LessonsPage() {
             <BookingStep
               icon={<Video />}
               title="Join Lesson"
-              description="Receive Zoom link automatically via email and join your session"
+              description="Receive Google Meet link automatically via email and join your session"
             />
           </div>
         </section>

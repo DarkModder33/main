@@ -36,7 +36,7 @@ const features = [
   },
   {
     title: "Game Integration",
-    text: "Map Hyperborea rewards to collectibles and profile progression layers.",
+    text: "Hyperborea rewards mapped to the new Scoring Engine. Utility Yield calculations include rarity multipliers and skill-based bonuses.",
     icon: Sparkles,
   },
 ] as const;
