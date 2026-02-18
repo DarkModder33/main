@@ -69,7 +69,7 @@ export const DiscoveryPortal = () => {
             Data analysis complete. Your profile matches our elite training parameters. Finalize your link below.
           </p>
           <a 
-            href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York"
+            href="https://calendar.app.google/hhBXuJjfaApoXVzc6"
             className="px-12 py-6 bg-cyan-500 text-black font-black rounded-2xl hover:bg-white transition-all shadow-[0_20px_50px_rgba(6,182,212,0.3)] uppercase italic"
           >
             Schedule_Masterclass
