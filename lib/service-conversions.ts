@@ -27,7 +27,8 @@ export type ServiceConversionId =
   | "open_social_github"
   | "open_social_facebook"
   | "open_social_instagram"
-  | "open_affiliate_tools";
+  | "open_affiliate_tools"
+  | "donate_cashapp";
 
 type FunnelStage = "awareness" | "consideration" | "intent";
 
@@ -200,6 +201,12 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
     label: "affiliate_tools",
     value: 3,
     stage: "consideration",
+  },
+  donate_cashapp: {
+    action: "donate_cashapp",
+    label: "cashapp_donation",
+    value: 5,
+    stage: "intent",
   },
 };
 

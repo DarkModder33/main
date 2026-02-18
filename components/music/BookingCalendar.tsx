@@ -17,7 +17,7 @@ export function BookingCalendar() {
         </div>
         <div className="flex items-center gap-3 text-gray-300">
           <Video className="w-5 h-5 text-[#0366d6]" />
-          <span>Zoom link sent automatically</span>
+          <span>Google Meet link sent automatically</span>
         </div>
       </div>
       

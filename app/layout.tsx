@@ -89,7 +89,7 @@ export default function RootLayout({
   const safeGaMeasurementId =
     gaMeasurementId && /^G-[A-Z0-9]+$/.test(gaMeasurementId) ? gaMeasurementId : null;
   const cashAppTag = "$IrishLivesMatter";
-  const cashAppLink = `https://cash.app/${encodeURIComponent(cashAppTag)}`;
+  const cashAppLink = `https://cash.app/${cashAppTag}`;
 
   return (
     <html lang="en" className="dark">
@@ -129,7 +129,7 @@ export default function RootLayout({
                     <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
                     <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
                     <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
-                    <a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
+                    <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
                     <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
                   </div>
                   <div className="hidden md:block">
@@ -179,7 +179,7 @@ export default function RootLayout({
                 <ul className="text-zinc-500 text-sm space-y-2">
                   <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
                   <li><a href="/portfolio" className="hover:text-white transition-colors">Portfolio</a></li>
-                  <li><a href="https://calendar.google.com/calendar/embed?src=40882fe82e5e28335d1c2cd7682e70419af64178afd29e3f81395fb43a7c253d%40group.calendar.google.com&ctz=America%2FNew_York" className="hover:text-white transition-colors">Book Lessons</a></li>
+                  <li><a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="hover:text-white transition-colors">Book Lessons</a></li>
                   <li><a href={businessProfile.contactLinks.email} className="hover:text-white transition-colors">{businessProfile.contactEmail}</a></li>
                 </ul>
               </div>

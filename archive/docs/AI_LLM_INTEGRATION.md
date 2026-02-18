@@ -405,7 +405,8 @@ const AI_PROVIDERS = {
   },
   huggingface: {
     apiKey: process.env.HUGGINGFACE_API_KEY,
-    models: ['mistral-7b', 'llama-2-70b'],
+    models: ['glm-4.7-flash-uncensored'],
+    dataset: 'Hackavelli88/TradeHax',
     endpoint: 'https://api-inference.huggingface.co'
   },
   local: {

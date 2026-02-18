@@ -4,8 +4,8 @@ import { Calendar, Clock, Video } from 'lucide-react';
 import { bookingLinks } from '@/lib/booking';
 
 /**
- * Lesson booking component with Calendly integration
- * Handles scheduling, payment, and Zoom link distribution
+ * Lesson booking component with Google Meet integration
+ * Handles scheduling, payment, and Meet link distribution
  */
 export function LessonBooking() {
   const handleBooking = () => {
@@ -36,7 +36,7 @@ export function LessonBooking() {
         <div className="flex items-start gap-3">
           <Video className="w-5 h-5 text-[#00FF41] flex-shrink-0 mt-1" />
           <div>
-            <p className="text-white font-semibold">Remote via Zoom</p>
+            <p className="text-white font-semibold">Remote via Google Meet</p>
             <p className="text-gray-400 text-sm">Link sent automatically after booking</p>
           </div>
         </div>

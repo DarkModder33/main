@@ -187,7 +187,7 @@ export default function MusicPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Format</span>
                   <span className="text-white font-semibold">
-                    Live via Zoom
+                    Live via Google Meet
                   </span>
                 </div>
               </div>
