@@ -201,7 +201,19 @@ export function ShamrockFooter() {
                   className="inline-flex items-center gap-1 text-[#9cadcc] hover:text-[#8fffb6] transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  24/7 Call Line
+                  Primary Call Line
+                </TrackedCtaLink>
+              </li>
+              <li>
+                <TrackedCtaLink
+                  href={businessProfile.contactLinks.emergencyCall}
+                  conversionId="contact_call"
+                  surface="footer:company"
+                  external
+                  className="inline-flex items-center gap-1 text-[#9cadcc] hover:text-[#8fffb6] transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  Emergency Overnight Line
                 </TrackedCtaLink>
               </li>
               <li className="text-[#7f8fac]">Serving Greater Philadelphia and remote clients</li>
@@ -216,13 +228,13 @@ export function ShamrockFooter() {
             </p>
             <div className="flex items-center gap-4">
               <TrackedCtaLink
-                href="https://cash.app/$IrishLivesMatter"
+                href={businessProfile.contactLinks.cashApp}
                 conversionId="donate_cashapp"
                 surface="footer:bottom"
                 external
                 className="text-[10px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors"
               >
-                Donate: $IrishLivesMatter
+                Donate: {businessProfile.cashAppTag}
               </TrackedCtaLink>
             </div>
           </div>

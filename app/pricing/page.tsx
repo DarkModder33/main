@@ -1,5 +1,6 @@
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { getAllPlans } from "@/lib/monetization/plans";
 import { Check, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -18,8 +19,10 @@ export const metadata: Metadata = {
 };
 
 type Plan = {
+  id: string;
   name: string;
-  price: string;
+  price: number;
+  yearlyPrice: number;
   cadence: string;
   description: string;
   features: string[];
@@ -27,45 +30,17 @@ type Plan = {
   featured?: boolean;
 };
 
-const plans: Plan[] = [
-  {
-    name: "Starter Repair",
-    price: "$50",
-    cadence: "per session",
-    description: "Diagnostics and quick turnaround remote-first repair support.",
-    features: [
-      "Device triage and rapid issue mapping",
-      "Remote fix attempts before hardware escalation",
-      "Priority schedule follow-up",
-    ],
-    cta: "/schedule",
-  },
-  {
-    name: "Guitar Pro Track",
-    price: "$100",
-    cadence: "per month",
-    description: "Weekly lesson rhythm for steady skill growth and accountability.",
-    features: [
-      "4 live remote lessons monthly",
-      "Practice plans and progress checkpoints",
-      "Optional music portfolio guidance",
-    ],
-    cta: "/schedule",
-    featured: true,
-  },
-  {
-    name: "Web3 Builder",
-    price: "0.25 SOL",
-    cadence: "monthly equivalent",
-    description: "For teams building NFT utilities, token features, and automation workflows.",
-    features: [
-      "Architecture advisory and sprint planning",
-      "Technical workflow and roadmap guidance",
-      "Crypto project support channel",
-    ],
-    cta: "/crypto-project",
-  },
-];
+const plans: Plan[] = getAllPlans().map((plan) => ({
+  id: plan.id,
+  name: plan.name,
+  price: plan.monthlyPriceUsd,
+  yearlyPrice: plan.yearlyPriceUsd,
+  cadence: "per month",
+  description: plan.description,
+  features: plan.features,
+  cta: `/billing?tier=${plan.id}`,
+  featured: plan.id === "pro",
+}));
 
 export default function PricingPage() {
   return (
@@ -75,11 +50,10 @@ export default function PricingPage() {
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Transparent Pricing</span>
           <h1 className="theme-title text-3xl sm:text-4xl font-bold mb-4">
-            Clear Plans for Services and Ongoing Support
+            Subscription Plans for AI + Trading + Game Access
           </h1>
           <p className="theme-subtitle">
-            Choose the option that matches your goals. We can scope custom
-            packages for larger projects.
+            Choose your launch tier and upgrade anytime from the billing console.
           </p>
         </section>
 
@@ -99,9 +73,10 @@ export default function PricingPage() {
               )}
               <h2 className="text-xl font-semibold">{plan.name}</h2>
               <p className="text-3xl font-bold text-white">
-                {plan.price}
+                ${plan.price.toFixed(2)}
                 <span className="text-sm text-[#9fb0cf] font-medium"> {plan.cadence}</span>
               </p>
+              <p className="text-xs text-[#8eaac0]">or ${plan.yearlyPrice.toFixed(2)} yearly</p>
               <p>{plan.description}</p>
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
@@ -117,7 +92,7 @@ export default function PricingPage() {
                   plan.featured ? "theme-cta--loud" : "theme-cta--secondary"
                 }`}
               >
-                Choose Plan
+                Manage Tier
               </Link>
             </article>
           ))}
@@ -126,8 +101,8 @@ export default function PricingPage() {
         <section className="theme-panel p-6 sm:p-8">
           <h2 className="theme-title text-2xl font-bold mb-4">Payment Options</h2>
           <p className="theme-subtitle">
-            Card and crypto checkout options can be enabled per plan while
-            keeping this pricing structure and booking flow consistent.
+            Card and crypto checkout routes are available through the billing
+            console with Stripe and Coinbase provider paths.
           </p>
         </section>
       </main>

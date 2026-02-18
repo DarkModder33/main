@@ -16,7 +16,8 @@ A sophisticated automated Web3 trading platform built with Next.js, React, and p
 
 ## 🌐 Live Deployments
 
-- **Primary Domain**: [https://tradehaxai.tech](https://tradehaxai.tech)
+- **Primary Domain**: [https://tradehax.net](https://tradehax.net)
+- **Mirror Domain**: [https://tradehaxai.tech](https://tradehaxai.tech)
 
 ## ✨ Features
 
@@ -387,6 +388,8 @@ Contributions are welcome! Please follow these steps:
 
 - [IDE_AUTOMATION_WORKFLOW.md](./IDE_AUTOMATION_WORKFLOW.md) - Local IDE + pipeline contract for AI-assisted development
 - [LOCAL_REPO_WORKFLOW.md](./LOCAL_REPO_WORKFLOW.md) - Canonical and mirror clone workflow for local development
+- [HARD_LAUNCH_RUNBOOK.md](./HARD_LAUNCH_RUNBOOK.md) - Production launch checklist and rollback process
+- [CUSTOM_LLM_MODEL_PLAN.md](./CUSTOM_LLM_MODEL_PLAN.md) - Custom LLM model roadmap and dataset prep flow
 - [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Complete deployment guide
 - [DOMAIN_SETUP_GUIDE.md](./DOMAIN_SETUP_GUIDE.md) - DNS and domain setup
 - [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md) - API integration guide

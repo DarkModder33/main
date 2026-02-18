@@ -90,6 +90,11 @@ export default function Home() {
               PLAY_RUNNER
             </button>
           </Link>
+          <Link href="/billing">
+            <button className="px-10 py-5 border border-cyan-500/50 text-cyan-300 font-black rounded-full hover:bg-cyan-500 hover:text-black transition-all">
+              UPGRADE_AI
+            </button>
+          </Link>
           <div className="min-h-10">
             <WalletButton />
           </div>

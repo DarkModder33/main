@@ -16,8 +16,7 @@ export function PremiumUpgrade() {
         value: 10,
       });
     }
-    // TODO: Redirect to Stripe checkout
-    window.location.href = '/api/stripe/checkout';
+    window.location.href = '/billing?tier=pro&provider=stripe';
   };
 
   return (
@@ -100,7 +99,7 @@ export function PremiumBanner() {
         value: 10,
       });
     }
-    window.location.href = '/api/stripe/checkout';
+    window.location.href = '/billing?tier=pro&provider=stripe';
   };
 
   return (

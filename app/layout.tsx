@@ -88,8 +88,8 @@ export default function RootLayout({
   const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
   const safeGaMeasurementId =
     gaMeasurementId && /^G-[A-Z0-9]+$/.test(gaMeasurementId) ? gaMeasurementId : null;
-  const cashAppTag = "$IrishLivesMatter";
-  const cashAppLink = `https://cash.app/${cashAppTag}`;
+  const cashAppTag = businessProfile.cashAppTag;
+  const cashAppLink = businessProfile.contactLinks.cashApp;
 
   return (
     <html lang="en" className="dark">
@@ -127,6 +127,7 @@ export default function RootLayout({
                   <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
                     <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
                     <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
+                    <a href="/billing" className="hover:text-white transition-colors uppercase">Billing</a>
                     <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
                     <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
                     <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
@@ -178,6 +179,7 @@ export default function RootLayout({
                 <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Platform</h4>
                 <ul className="text-zinc-500 text-sm space-y-2">
                   <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
+                  <li><a href="/billing" className="hover:text-white transition-colors">Billing</a></li>
                   <li><a href="/portfolio" className="hover:text-white transition-colors">Portfolio</a></li>
                   <li><a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="hover:text-white transition-colors">Book Lessons</a></li>
                   <li><a href={businessProfile.contactLinks.email} className="hover:text-white transition-colors">{businessProfile.contactEmail}</a></li>
