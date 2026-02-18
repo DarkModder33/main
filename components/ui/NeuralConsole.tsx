@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
 import { ingestBehavior } from '@/lib/ai/data-ingestion';
 
 export const NeuralConsole = () => {

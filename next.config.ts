@@ -41,11 +41,6 @@ const nextConfig: NextConfig = {
     // Enable all experimental features for maximum functionality
   },
 
-  // Turbopack configuration
-  turbopack: {
-    root: process.cwd(),
-  },
-
   // Output configuration
   poweredByHeader: false,
 
