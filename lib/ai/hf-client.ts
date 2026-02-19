@@ -173,22 +173,18 @@ class HFLLMClient {
    */
   static getRecommendedModels(): Record<string, string> {
     return {
-      // Free/Fast Models
-      "gpt2": "distilgpt2",
-      "distilbert": "distilbert-base-uncased",
+      // General LLMs
+      "mistral-7b-instruct": "mistralai/Mistral-7B-Instruct-v0.1",
+      "llama3-8b-instruct": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "qwen2.5-7b-instruct": "Qwen/Qwen2.5-7B-Instruct",
 
-      // Small Models
-      "mistral-7b": "mistralai/Mistral-7B-Instruct-v0.1",
-      "phi-2.5b": "microsoft/phi-2",
+      // Lightweight / fast
+      "distilgpt2": "distilgpt2",
+      "phi-2": "microsoft/phi-2",
 
-      // Medium Models
-      "llama2-7b": "meta-llama/Llama-2-7b",
-      "falcon-7b": "tiiuae/falcon-7b",
-
-      // Specialized
-      "coding": "Salesforce/codet5-large",
-      "summarization": "facebook/bart-large-cnn",
-      "translation": "Helsinki-NLP/opus-mt-en-es",
+      // Image models (for /api/ai/generate-image)
+      "sd-2-1": "stabilityai/stable-diffusion-2-1",
+      "flux-schnell": "black-forest-labs/FLUX.1-schnell",
     };
   }
 }
