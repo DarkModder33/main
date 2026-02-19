@@ -58,11 +58,33 @@ export const businessProfile = {
     youtube:
       process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE_URL ||
       "https://www.youtube.com/@tradehaxnet",
+    youtubeSecondary:
+      process.env.NEXT_PUBLIC_SOCIAL_YOUTUBE_ALT_URL ||
+      "https://www.youtube.com/@tradehax",
     github:
       process.env.NEXT_PUBLIC_SOCIAL_GITHUB_URL ||
-      "https://github.com/DarkModder33/main",
-    facebook: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL || "",
-    instagram: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL || "",
+      "https://github.com/DarkModder33",
+    githubAlt:
+      process.env.NEXT_PUBLIC_SOCIAL_GITHUB_ALT_URL ||
+      "https://github.com/shamrocksstocks",
+    facebook:
+      process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL ||
+      "https://www.facebook.com/hackavelli",
+    instagram:
+      process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL ||
+      "https://www.instagram.com/celticcodes/",
+    instagramAlt:
+      process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_ALT_URL ||
+      "https://www.instagram.com/aceltclan88/",
+    linkedin:
+      process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN_URL ||
+      "https://www.linkedin.com/in/mcflaherty/",
+    telegram:
+      process.env.NEXT_PUBLIC_SOCIAL_TELEGRAM_URL ||
+      "https://t.me/Hackavelli88",
+    discord:
+      process.env.NEXT_PUBLIC_SOCIAL_DISCORD_URL ||
+      "https://discord.com/users/1450053974018494515",
   },
   scheduling: {
     primary: process.env.NEXT_PUBLIC_BOOKING_PRIMARY_URL || bookingLinks.webDevConsult,
