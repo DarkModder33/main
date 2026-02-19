@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const rawLimit = Number.isFinite(body.limit) ? Number(body.limit) : 6;
     const limit = Math.min(12, Math.max(1, Math.floor(rawLimit)));
-    const chunks = retrieveRelevantContext(query, limit);
+    const chunks = await retrieveRelevantContext(query, limit);
 
     return NextResponse.json(
       {

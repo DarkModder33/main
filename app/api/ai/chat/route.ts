@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
 
     const userId = await resolveRequestUserId(req, body.userId);
     const neuralTier = parseNeuralTier(body.tier);
-    const retrievalChunks = retrieveRelevantContext(inputMessage, 5);
+    const retrievalChunks = await retrieveRelevantContext(inputMessage, 5);
     const retrievalContext = formatRetrievalContext(retrievalChunks);
     const mergedContext = mergeContext(body.context, retrievalContext);
     const consent = await resolveServerConsent(userId, body.consent);
