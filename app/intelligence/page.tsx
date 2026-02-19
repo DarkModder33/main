@@ -5,23 +5,25 @@ import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { formatCompactUsd } from "@/lib/intelligence/format";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
+import { createPageMetadata } from "@/lib/seo";
 import {
-  ActivitySquare,
-  BarChart3,
-  BellRing,
-  Bot,
-  BookOpen,
-  CandlestickChart,
-  Newspaper,
-  Radar,
+    ActivitySquare,
+    BarChart3,
+    BellRing,
+    BookOpen,
+    Bot,
+    CandlestickChart,
+    Newspaper,
+    Radar,
 } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Intelligence Hub | TradeHax AI",
   description:
     "Cross-asset intelligence stack for options flow, dark pool activity, political disclosures, crypto flow, and AI-assisted media workflows.",
-};
+  path: "/intelligence",
+  keywords: ["market intelligence", "options flow", "dark pool", "crypto flow", "trading analytics"],
+});
 
 export default async function IntelligenceHubPage() {
   const snapshot = await getIntelligenceSnapshot();

@@ -1,20 +1,22 @@
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "sonner";
+import "./globals.css";
 
-import { MarketTicker } from "@/components/ui/MarketTicker";
-import { MobileMenu } from "@/components/ui/MobileMenu";
-import { WalletProvider } from "@/lib/wallet-provider";
 import { SolanaProvider } from "@/components/counter/provider/Solana";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ConnectWalletBtn } from "@/components/ui/ConnectWalletBtn";
-import { PageTransition } from "@/components/ui/PageTransition";
 import { CyberCursor } from "@/components/ui/CyberCursor";
 import { GlitchText } from "@/components/ui/GlitchText";
+import { MarketTicker } from "@/components/ui/MarketTicker";
+import { MobileMenu } from "@/components/ui/MobileMenu";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { businessProfile } from "@/lib/business-profile";
+import { getLocalBusinessJsonLd } from "@/lib/seo";
+import { siteConfig } from "@/lib/site-config";
+import { WalletProvider } from "@/lib/wallet-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,14 +52,14 @@ export const metadata: Metadata = {
   authors: [{ name: "TradeHax AI" }],
   creator: "TradeHax AI",
   publisher: "TradeHax AI",
-  metadataBase: new URL("https://tradehax.net"),
+  metadataBase: new URL(siteConfig.primarySiteUrl),
   alternates: {
-    canonical: "https://tradehax.net",
+    canonical: siteConfig.primarySiteUrl,
   },
   openGraph: {
     title: "TradeHax AI | Digital Services, Repair, Music Lessons, and Web3",
     description: "Customer-first services for websites, apps, device repair, music lessons, and Web3 consulting for local and remote clients.",
-    url: "https://tradehax.net",
+    url: siteConfig.primarySiteUrl,
     siteName: "TradeHax AI",
     locale: "en_US",
     type: "website",
@@ -78,6 +80,17 @@ export const metadata: Metadata = {
     creator: "@tradehaxai",
     site: "@tradehaxai",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -85,6 +98,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localBusinessJsonLd = getLocalBusinessJsonLd();
   const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
   const safeGaMeasurementId =
     gaMeasurementId && /^G-[A-Z0-9]+$/.test(gaMeasurementId) ? gaMeasurementId : null;
@@ -94,6 +108,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <Script id="tradehax-localbusiness-jsonld" type="application/ld+json" strategy="beforeInteractive">
+          {JSON.stringify(localBusinessJsonLd)}
+        </Script>
         {safeGaMeasurementId && (
           <>
             <Script

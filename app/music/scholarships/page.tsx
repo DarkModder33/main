@@ -1,33 +1,29 @@
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
-import { Coins, Users, Vote, Award, Trophy, Target, ArrowLeft, Clock } from 'lucide-react';
+import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
+import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
+import { createPageMetadata } from "@/lib/seo";
+import { ArrowLeft, Award, Clock, Coins, Target, Trophy, Users, Vote } from 'lucide-react';
 import Link from 'next/link';
-import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Music Education Scholarships | TradeHax AI',
   description:
     'Follow the TradeHax AI music scholarship roadmap, including funding structure, governance planning, and launch updates.',
+  path: '/music/scholarships',
   keywords: [
     'music scholarships',
     'music education funding',
     'community scholarship program',
     'tradehax music roadmap',
   ],
-  openGraph: {
-    title: 'Music Education Scholarships | TradeHax AI',
-    description: 'Music education scholarship roadmap and launch updates.',
-    type: 'website',
-  },
-};
+});
 
 export default function ScholarshipsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
         <Link
@@ -71,7 +67,7 @@ export default function ScholarshipsPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             L2 Token Use Cases
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             <TokenUseCase
               icon={<Award />}
@@ -111,7 +107,7 @@ export default function ScholarshipsPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             How Scholarships Work
           </h2>
-          
+
           <div className="grid md:grid-cols-4 gap-6">
             <ProcessStep
               number="1"
@@ -141,7 +137,7 @@ export default function ScholarshipsPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Development Roadmap
           </h2>
-          
+
           <div className="space-y-6">
             <RoadmapItem
               phase="Phase 1"
@@ -179,7 +175,7 @@ export default function ScholarshipsPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-8">
             Why Blockchain-Based Scholarships?
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <Benefit
               title="Transparent & Fair"

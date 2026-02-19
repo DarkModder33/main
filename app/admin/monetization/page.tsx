@@ -1,17 +1,19 @@
 import { MonetizationAdminPanel } from "@/components/monetization/MonetizationAdminPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Monetization Admin | TradeHax AI",
   description:
     "Monitor launch KPIs including MRR, ARR, ARPU, subscriber count, and tier mix for TradeHax AI.",
+  path: "/admin/monetization",
   robots: {
     index: false,
     follow: false,
   },
-};
+});
 
 export default function MonetizationAdminPage() {
   return (

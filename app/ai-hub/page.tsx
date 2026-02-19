@@ -1,23 +1,26 @@
-import { ImageGeneratorComponent } from "@/components/ai/ImageGeneratorComponent";
-import { SmartEnvironmentMonitor } from "@/components/ai/SmartEnvironmentMonitor";
 import { HFChatComponent } from "@/components/ai/HFChatComponent";
 import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
+import { ImageGeneratorComponent } from "@/components/ai/ImageGeneratorComponent";
+import { SmartEnvironmentMonitor } from "@/components/ai/SmartEnvironmentMonitor";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import {
-  Zap,
-  Brain,
-  Wand2,
-  MessageSquare,
-  Sparkles,
-  BarChart3,
+    BarChart3,
+    Brain,
+    MessageSquare,
+    Sparkles,
+    Wand2,
+    Zap,
 } from "lucide-react";
 
-export const metadata = {
+export const metadata = createPageMetadata({
   title: "TradeHax AI Hub - Smart Trading Environment",
   description:
-    "Unified AI platform with trading bots, image generation, smart environment, and intelligent chat",
-};
+    "Unified AI platform with trading bots, image generation, smart environment context, and intelligent chat.",
+  path: "/ai-hub",
+  keywords: ["ai trading", "smart environment", "image generation", "ai assistants"],
+});
 
 export default function AIHubPage() {
   return (

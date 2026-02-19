@@ -1,13 +1,15 @@
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import { GamesHubClient } from "./GamesHubClient";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Games Hub | TradeHax AI",
   description:
     "Unified games hub for Hax Runner and upcoming decentralized arcade features including LibRetro core roadmap.",
-};
+  path: "/games",
+  keywords: ["games hub", "browser arcade", "hax runner", "decentralized gaming"],
+});
 
 export default function GamesHubPage() {
   return (

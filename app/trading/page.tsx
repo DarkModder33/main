@@ -1,11 +1,14 @@
-import { TradehaxBotDashboard } from "@/components/trading/TradehaxBotDashboard";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { TradehaxBotDashboard } from "@/components/trading/TradehaxBotDashboard";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = createPageMetadata({
   title: "TradeHax Bots - Automated Trading Dashboard",
-  description: "Manage your automated trading bots on Solana with TradeHax",
-};
+  description: "Manage automated trading bots on Solana with strategy controls, monitoring, and execution workflows.",
+  path: "/trading",
+  keywords: ["automated trading", "solana bots", "trading dashboard", "bot strategies"],
+});
 
 export default function TradingPage() {
   return (

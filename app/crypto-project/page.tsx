@@ -3,20 +3,22 @@ import { ActionRail } from "@/components/monetization/ActionRail";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import {
-  BadgeDollarSign,
-  Blocks,
-  Gem,
-  ShieldCheck,
-  Sparkles,
+    BadgeDollarSign,
+    Blocks,
+    Gem,
+    ShieldCheck,
+    Sparkles,
 } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Crypto and Web3 Project | TradeHax AI",
   description:
     "Explore TradeHax AI Web3 progress, including wallet onboarding, NFT utility planning, and product roadmap updates.",
-};
+  path: "/crypto-project",
+  keywords: ["web3 project", "solana onboarding", "nft utility roadmap", "crypto product updates"],
+});
 
 const features = [
   {

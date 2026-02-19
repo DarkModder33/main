@@ -2,12 +2,14 @@ import { IntelligencePageShell } from "@/components/intelligence/IntelligencePag
 import { NewsPanel } from "@/components/intelligence/NewsPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Catalyst News Feed | TradeHax Intelligence",
   description: "Action-oriented catalyst feed with impact and category segmentation.",
-};
+  path: "/intelligence/news",
+});
 
 export default function IntelligenceNewsPage() {
   return (

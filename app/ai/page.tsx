@@ -2,12 +2,15 @@ import { HFChatComponent } from "@/components/ai/HFChatComponent";
 import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import { AlertCircle, Brain, MessageSquare } from "lucide-react";
 
-export const metadata = {
+export const metadata = createPageMetadata({
   title: "AI Hub - Hugging Face LLM Integration",
-  description: "Generate text, chat, and explore AI capabilities with Hugging Face",
-};
+  description: "Generate text, chat, and explore AI capabilities with Hugging Face-powered integrations.",
+  path: "/ai",
+  keywords: ["ai hub", "hugging face", "llm chat", "text generation"],
+});
 
 export default function AIHubPage() {
   return (

@@ -2,12 +2,14 @@ import { FlowTapePanel } from "@/components/intelligence/FlowTapePanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Options Flow Tape | TradeHax Intelligence",
   description: "Live-style options flow tape with filters, unusual scoring, and AI-assisted interpretation.",
-};
+  path: "/intelligence/flow",
+});
 
 export default function IntelligenceFlowPage() {
   return (

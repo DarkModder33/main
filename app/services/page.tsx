@@ -1,11 +1,12 @@
 import { EmailCapture } from "@/components/EmailCapture";
-import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { ActionRail } from "@/components/monetization/ActionRail";
+import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
-import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
+import { businessProfile } from "@/lib/business-profile";
+import { createPageMetadata } from "@/lib/seo";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
     ArrowRight,
@@ -21,13 +22,14 @@ import {
     Wrench,
     Zap,
 } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title:
-    "Services | Web Development, Tech Repair, and Digital Support | TradeHax AI",
+export const metadata = createPageMetadata({
+  title: "Services | Web Development, Tech Repair, and Digital Support | TradeHax AI",
   description:
-    "Professional services including website development, app builds, device support, social media marketing, and Web3 consulting for Greater Philadelphia and remote clients.",
+    "Book web development, app builds, tech repair, marketing, and Web3 consulting for Greater Philadelphia, South Jersey, and remote clients.",
+  path: "/services",
+  imagePath: "/og-services.svg",
+  imageAlt: "TradeHax AI professional services",
   keywords: [
     "web development philadelphia",
     "app development philadelphia",
@@ -39,32 +41,10 @@ export const metadata: Metadata = {
     "blockchain consulting",
     "trading systems",
     "smart contracts",
-    "DApp development",
+    "dapp development",
+    "local tech support",
   ],
-  openGraph: {
-    title: "TradeHax AI Services | Web, Repair, Marketing, and Web3",
-    description:
-      "Explore web development, repair, marketing, and Web3 services with clear booking paths.",
-    url: "https://tradehaxai.tech/services",
-    type: "website",
-    images: [
-      {
-        url: "/og-services.svg",
-        width: 1200,
-        height: 630,
-        alt: "Professional Services",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "TradeHax AI Services",
-    description:
-      "Website development, repair support, marketing, and Web3 services.",
-    images: ["/og-services.svg"],
-  },
-};
+});
 
 export default function ServicesPage() {
   return (

@@ -1,34 +1,30 @@
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
 import { ArtistShowcase } from '@/components/music/ArtistShowcase';
-import { Upload, Wallet, Users, TrendingUp, ArrowLeft, Sparkles } from 'lucide-react';
+import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
+import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
+import { createPageMetadata } from "@/lib/seo";
+import { ArrowLeft, Sparkles, TrendingUp, Upload, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
-import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Artist Showcase Platform | TradeHax AI',
   description:
     'Showcase music, build an audience, and follow launch updates for wallet-connected artist features.',
+  path: '/music/showcase',
   keywords: [
     'artist showcase platform',
     'music creator platform',
     'solana music tips',
     'tradehax music community',
   ],
-  openGraph: {
-    title: 'Artist Showcase Platform | TradeHax AI',
-    description: 'Showcase your music and grow your audience.',
-    type: 'website',
-  },
-};
+});
 
 export default function ShowcasePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
         <Link
@@ -45,7 +41,7 @@ export default function ShowcasePage() {
             <Sparkles className="w-5 h-5 text-purple-400" />
             <span className="text-purple-400 font-semibold">Artist Platform</span>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
             Showcase Your Musical Talent
           </h1>
@@ -65,7 +61,7 @@ export default function ShowcasePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Platform Features
           </h2>
-          
+
           <div className="grid md:grid-cols-4 gap-6">
             <FeatureCard
               icon={<Upload />}
@@ -95,7 +91,7 @@ export default function ShowcasePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Featured Artists
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <ArtistShowcase
               artistName="Luna Rivers"
@@ -141,7 +137,7 @@ export default function ShowcasePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             How Artist Showcase Works
           </h2>
-          
+
           <div className="grid md:grid-cols-4 gap-6">
             <ProcessStep
               number="1"
@@ -174,11 +170,11 @@ export default function ShowcasePage() {
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
             Join our artist community and start building your audience today. Platform launching soon!
           </p>
-          
+
           <div className="mb-8">
             <EmailCapture />
           </div>
-          
+
           <p className="text-gray-400">
             Sign up to be notified when artist registration opens
           </p>
@@ -189,7 +185,7 @@ export default function ShowcasePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Why Artists Choose Us
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <BenefitCard
               title="No Platform Fees"

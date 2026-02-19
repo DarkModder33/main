@@ -1,16 +1,17 @@
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
-import { businessProfile } from "@/lib/business-profile";
 import { bookingLinks } from "@/lib/booking";
+import { businessProfile } from "@/lib/business-profile";
+import { createPageMetadata } from "@/lib/seo";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import { CalendarCheck2, Clock3, Link2, MessageSquare, MonitorCog, Phone } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Book a Service | TradeHax AI | Philadelphia and Remote Support",
   description:
     "Book repair, development, and lesson services with clear scheduling options for Greater Philadelphia, South Jersey, and remote support.",
+  path: "/schedule",
   keywords: [
     "book tech support philadelphia",
     "book guitar lessons online",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     "south jersey computer support",
     "tradehax ai scheduling",
   ],
-};
+});
 
 const bookingOptions = [
   {
