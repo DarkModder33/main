@@ -3,8 +3,9 @@
 import { Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const INTRO_MS = 8000;
-const REDUCED_MOTION_MS = 2600;
+const INTRO_MS = 13000;
+const REDUCED_MOTION_MS = 4000;
+const IMPACT_WINDOW_MS = 2000;
 const STORAGE_KEY = "tradehaxHyperboreaIntroSeen";
 const AUDIO_PREF_KEY = "tradehaxHyperboreaIntroSound";
 
@@ -14,6 +15,45 @@ const OFFER_PILLARS = [
   "Tech Repair + Emergency Service Intake",
   "Guitar Lessons + Artist Growth Systems",
   "Crypto Product Roadmaps + Utility Strategy",
+];
+
+const INTRO_SCENES = [
+  {
+    mode: "Impact",
+    headline: "Neural Launch: The Hyperborea Grid Is Live",
+    description: "A high-intensity opening engineered for speed, trust, and customer conversion.",
+    endAt: 0.18,
+  },
+  {
+    mode: "AI Mode",
+    headline: "AI Copilot + Live Market Intelligence",
+    description: "Signal analysis, strategy support, and smart guidance for builders, traders, and operators.",
+    endAt: 0.38,
+  },
+  {
+    mode: "Build Mode",
+    headline: "Websites & Apps Built For Revenue",
+    description: "Launch-ready sites, custom app flows, and conversion-focused digital systems for real businesses.",
+    endAt: 0.56,
+  },
+  {
+    mode: "Service Mode",
+    headline: "Music Academy + Tech Repair",
+    description: "Guitar lessons, artist growth tools, and emergency device repair from one trusted brand.",
+    endAt: 0.74,
+  },
+  {
+    mode: "Growth Mode",
+    headline: "Crypto Roadmaps + Product Strategy",
+    description: "Position products, design utility, and scale with practical web3 execution.",
+    endAt: 0.9,
+  },
+  {
+    mode: "Universe Mode",
+    headline: "One Platform. Multi-Mode. Built To Win.",
+    description: "AI hub, intelligence feeds, Hyperborea game experiences, and premium services in one destination.",
+    endAt: 1,
+  },
 ];
 
 export function HyperboreaIntroOverlay() {
@@ -120,14 +160,48 @@ export function HyperboreaIntroOverlay() {
 
   const activePillarIndex = useMemo(() => {
     if (!visible) return 0;
+    const curveProgress = reducedMotion
+      ? progress
+      : (() => {
+          const impactCutoff = IMPACT_WINDOW_MS / INTRO_MS;
+          if (progress <= impactCutoff) {
+            const normalizedImpact = progress / impactCutoff;
+            return 0.38 * Math.pow(normalizedImpact, 0.38);
+          }
+          const normalizedCruise = (progress - impactCutoff) / (1 - impactCutoff);
+          return 0.38 + 0.62 * Math.pow(normalizedCruise, 1.25);
+        })();
+
     const segment = 1 / OFFER_PILLARS.length;
-    return Math.min(OFFER_PILLARS.length - 1, Math.floor(progress / segment));
-  }, [progress, visible]);
+    return Math.min(OFFER_PILLARS.length - 1, Math.floor(curveProgress / segment));
+  }, [progress, reducedMotion, visible]);
+
+  const displayProgress = useMemo(() => {
+    if (reducedMotion) {
+      return progress;
+    }
+
+    const impactCutoff = IMPACT_WINDOW_MS / INTRO_MS;
+    if (progress <= impactCutoff) {
+      const normalizedImpact = progress / impactCutoff;
+      return 0.4 * Math.pow(normalizedImpact, 0.34);
+    }
+
+    const normalizedCruise = (progress - impactCutoff) / (1 - impactCutoff);
+    return 0.4 + 0.6 * Math.pow(normalizedCruise, 1.35);
+  }, [progress, reducedMotion]);
+
+  const activeScene = useMemo(() => {
+    const scene = INTRO_SCENES.find((item) => displayProgress <= item.endAt);
+    return scene ?? INTRO_SCENES[INTRO_SCENES.length - 1];
+  }, [displayProgress]);
 
   const progressStepClass = useMemo(() => {
-    const step = Math.min(10, Math.max(0, Math.round(progress * 10)));
+    const step = Math.min(10, Math.max(0, Math.round(displayProgress * 10)));
     return `hyperborea-intro-progress-fill--${step}`;
-  }, [progress]);
+  }, [displayProgress]);
+
+  const inImpactWindow = !reducedMotion && progress <= IMPACT_WINDOW_MS / INTRO_MS;
 
   const handleToggleSound = () => {
     if (typeof window === "undefined") return;
@@ -146,12 +220,13 @@ export function HyperboreaIntroOverlay() {
   }
 
   return (
-    <div className={`fixed inset-0 z-[10000] overflow-hidden bg-black/95 backdrop-blur-sm ${reducedMotion ? "hyperborea-intro--reduced" : ""}`}>
+    <div className={`fixed inset-0 z-[10000] overflow-hidden bg-black/95 backdrop-blur-sm ${reducedMotion ? "hyperborea-intro--reduced" : ""} ${inImpactWindow ? "hyperborea-intro--impact" : ""}`}>
       <div className="hyperborea-intro-grid absolute inset-0" />
       <div className="hyperborea-intro-vignette absolute inset-0" />
       <div className="hyperborea-intro-particles absolute inset-0" />
       <div className="hyperborea-intro-noise absolute inset-0" />
       <div className="hyperborea-intro-streaks absolute inset-0" />
+      <div className="hyperborea-impact-overlay absolute inset-0" />
 
       <div className="hyperborea-intro-core absolute left-1/2 top-1/2 h-[68vmin] w-[68vmin] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400/20" />
       <div className="hyperborea-portal-ring hyperborea-portal-ring--outer" />
@@ -184,6 +259,16 @@ export function HyperboreaIntroOverlay() {
           Hyperborea-grade launch system for customers who need AI power, build execution, and elite real-world services in one platform.
         </p>
 
+        <div className="mt-5 w-full max-w-3xl rounded-2xl border border-fuchsia-400/20 bg-gradient-to-r from-cyan-500/10 via-fuchsia-500/10 to-emerald-500/10 p-4">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-300/80">{activeScene.mode}</p>
+          <h2 className="mt-2 text-lg font-black uppercase tracking-wide text-white sm:text-2xl">{activeScene.headline}</h2>
+          <p className="mt-2 text-sm text-cyan-100/80">{activeScene.description}</p>
+        </div>
+
+        <p className="mt-4 max-w-3xl text-[11px] uppercase tracking-[0.25em] text-emerald-200/80">
+          Multi-Mode Live: AI Hub · Intelligence Streams · Build Studio · Music Lessons · Repair Desk · Hyperborea Game
+        </p>
+
         <div className="mt-8 w-full max-w-xl rounded-2xl border border-cyan-500/20 bg-black/45 p-4">
           <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Primary Offer Stack</p>
           <ul className="grid gap-2 text-sm sm:text-base">
@@ -210,7 +295,7 @@ export function HyperboreaIntroOverlay() {
             <div className={`hyperborea-intro-progress-fill ${progressStepClass}`} />
           </div>
           <p className="mt-2 text-xs uppercase tracking-[0.2em] text-cyan-200/70">
-            Booting experience… {reducedMotion ? Math.min(3, Math.max(0, Math.ceil(progress * 3))) : Math.min(8, Math.max(0, Math.ceil(progress * 8)))}/{reducedMotion ? 3 : 8}s
+            Booting experience… {reducedMotion ? Math.min(4, Math.max(0, Math.ceil(progress * 4))) : Math.min(13, Math.max(0, Math.ceil(progress * 13)))}/{reducedMotion ? 4 : 13}s
           </p>
         </div>
       </div>
