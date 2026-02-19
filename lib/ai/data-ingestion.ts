@@ -1,3 +1,4 @@
+import { persistBehaviorRecord } from "@/lib/ai/behavior-persistence";
 import { sanitizePlainText } from "@/lib/security";
 
 export type InteractionCategory =
@@ -363,6 +364,15 @@ export async function ingestBehavior(log: InteractionLog): Promise<IngestionResu
   store.records.push(record);
   ingestIntoProfile(record, store);
   enforceStoreLimit(store);
+
+  try {
+    await persistBehaviorRecord(record);
+  } catch (error) {
+    console.warn(
+      "Behavior persistence fallback to memory store:",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
 
   return {
     accepted: true,
