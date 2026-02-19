@@ -1497,7 +1497,7 @@ export function HyperboreaGame({
     playerLight.castShadow = !isMobile;
     scene.add(playerLight);
 
-    const animate = () => {
+    animate();
 
     return () => {
       isMounted = false;
