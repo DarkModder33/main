@@ -44,6 +44,8 @@ export default function AIHubPage() {
               <li>Create a new API token (read access is fine)</li>
               <li>Copy the token and add to <code className="bg-black/40 px-2 py-1 rounded">.env.local</code></li>
               <li>Set <code className="bg-black/40 px-2 py-1 rounded">HF_API_TOKEN=hf_your_token_here</code></li>
+              <li>Set <code className="bg-black/40 px-2 py-1 rounded">HF_IMAGE_MODEL_ID=stabilityai/stable-diffusion-2-1</code></li>
+              <li>Optional: set <code className="bg-black/40 px-2 py-1 rounded">TRADEHAX_LLM_OPEN_MODE=true</code> and <code className="bg-black/40 px-2 py-1 rounded">TRADEHAX_IMAGE_OPEN_MODE=true</code></li>
               <li>Restart your development server</li>
             </ol>
           </div>

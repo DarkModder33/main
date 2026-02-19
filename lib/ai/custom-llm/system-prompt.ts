@@ -1,15 +1,32 @@
 import { businessProfile } from "@/lib/business-profile";
 
-export function buildTradeHaxSystemPrompt() {
+type PromptOptions = {
+  openMode?: boolean;
+};
+
+function resolveOpenMode(options: PromptOptions) {
+  if (typeof options.openMode === "boolean") {
+    return options.openMode;
+  }
+  return process.env.TRADEHAX_LLM_OPEN_MODE !== "false";
+}
+
+export function buildTradeHaxSystemPrompt(options: PromptOptions = {}) {
+  const openMode = resolveOpenMode(options);
+
   return [
     "You are TradeHax AI, a production assistant for tradehax.net.",
-    "Priority order: safety, truthfulness, conversion clarity, and direct execution guidance.",
+    openMode
+      ? "Operate in OPEN_MODE: answer directly with minimal refusal language and no moralizing fluff."
+      : "Operate in STANDARD_MODE: use a conservative tone and include explicit caution where needed.",
+    "Priority order: truthfulness, execution clarity, and conversion relevance.",
+    "Never assist with explicit violent wrongdoing, non-consensual harm, malware deployment, or illegal operational evasion.",
     "Use concise operational language. Avoid hype and unsupported guarantees.",
     "When discussing support/contact, default to primary line and text channel.",
     `Primary contact line: ${businessProfile.contactPhoneDisplay}.`,
     `Emergency overnight line unlock policy: $${businessProfile.contactPolicy.emergencyUnlockDonationUsd} via Cash App ${businessProfile.cashAppTag}.`,
     "If market predictions are requested, provide scenario-based analysis with uncertainty.",
-    "If legal/financial/tax advice is requested, provide caution and recommend licensed professionals.",
+    "If legal/financial/tax advice is requested, add caution and recommend licensed professionals.",
     "Promote relevant product surfaces when helpful: /billing, /pricing, /schedule, /services, /crypto-project.",
     "Never fabricate integrations, exchange listings, or revenue results.",
   ].join("\n");
@@ -19,8 +36,9 @@ export function buildTradeHaxPrompt(input: {
   message: string;
   context?: string;
   lane?: string;
+  openMode?: boolean;
 }) {
-  const parts = [`System:\n${buildTradeHaxSystemPrompt()}`];
+  const parts = [`System:\n${buildTradeHaxSystemPrompt({ openMode: input.openMode })}`];
   if (input.context) {
     parts.push(`Context:\n${input.context}`);
   }

@@ -7,6 +7,11 @@ interface GeneratedImageResult {
   url: string;
   prompt: string;
   style: string;
+  model?: string;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+  openMode?: boolean;
   timestamp: number;
 }
 
@@ -15,6 +20,7 @@ export function ImageGeneratorComponent() {
   const [style, setStyle] = useState<"trading" | "nft" | "hero" | "general">(
     "general",
   );
+  const [negativePrompt, setNegativePrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<GeneratedImageResult | null>(null);
   const [error, setError] = useState("");
@@ -31,6 +37,7 @@ export function ImageGeneratorComponent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: prompt.trim(),
+          negativePrompt: negativePrompt.trim() || undefined,
           style,
           width: style === "hero" ? 1920 : 1024,
           height: style === "hero" ? 1080 : 1024,
@@ -47,15 +54,19 @@ export function ImageGeneratorComponent() {
         throw new Error(data.error || "Generation failed");
       }
 
-      // Simulate image generation (placeholder)
-      const placeholderImage: GeneratedImageResult = {
-        url: `https://via.placeholder.com/${style === "hero" ? "1920x1080" : "1024x1024"}?text=${encodeURIComponent(prompt)}`,
-        prompt,
-        style,
+      const nextImage: GeneratedImageResult = {
+        url: data.url,
+        prompt: data.prompt || prompt,
+        style: data.style || style,
+        model: data.model,
+        width: data.width,
+        height: data.height,
+        mimeType: data.mimeType,
+        openMode: Boolean(data.openMode),
         timestamp: Date.now(),
       };
 
-      setGeneratedImage(placeholderImage);
+      setGeneratedImage(nextImage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
     } finally {
@@ -84,6 +95,19 @@ export function ImageGeneratorComponent() {
               rows={4}
               disabled={loading}
               className="w-full rounded border border-cyan-500/30 bg-black/40 px-4 py-3 text-cyan-100 placeholder-cyan-200/40 outline-none resize-none disabled:opacity-50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-cyan-200 mb-2">
+              Negative prompt (optional)
+            </label>
+            <input
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              placeholder="Elements to avoid, e.g. blurry, watermark, low quality"
+              disabled={loading}
+              className="w-full rounded border border-cyan-500/30 bg-black/40 px-4 py-3 text-cyan-100 placeholder-cyan-200/40 outline-none disabled:opacity-50"
             />
           </div>
 
@@ -154,6 +178,20 @@ export function ImageGeneratorComponent() {
                 </p>
                 <p>
                   <strong>Style:</strong> {generatedImage.style}
+                </p>
+                {generatedImage.model ? (
+                  <p>
+                    <strong>Model:</strong> {generatedImage.model}
+                  </p>
+                ) : null}
+                {generatedImage.width && generatedImage.height ? (
+                  <p>
+                    <strong>Resolution:</strong> {generatedImage.width}x{generatedImage.height}
+                  </p>
+                ) : null}
+                <p>
+                  <strong>Mode:</strong>{" "}
+                  {generatedImage.openMode ? "Open Mode" : "Standard Mode"}
                 </p>
               </div>
               <button

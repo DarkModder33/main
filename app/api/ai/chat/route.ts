@@ -2,11 +2,46 @@ import { NextRequest, NextResponse } from "next/server";
 import { processNeuralCommand, NeuralQuery } from "@/lib/ai/kernel";
 import { checkCredits, deductCredits } from "@/lib/ai/credit-system";
 import { getLLMClient } from "@/lib/ai/hf-server";
+import { buildTradeHaxSystemPrompt } from "@/lib/ai/custom-llm/system-prompt";
 import { canConsumeFeature, consumeFeatureUsage, tierSupportsNeuralMode } from "@/lib/monetization/engine";
 import { resolveRequestUserId } from "@/lib/monetization/identity";
-import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
+import { enforceRateLimit, enforceTrustedOrigin, sanitizePlainText } from "@/lib/security";
 
 type NeuralTier = "STANDARD" | "UNCENSORED" | "OVERCLOCK" | "HFT_SIGNAL" | "GUITAR_LESSON";
+type ChatRole = "user" | "assistant";
+
+type ChatRequestBody = {
+  message?: string;
+  messages?: Array<{ role?: string; content?: string }>;
+  tier?: string;
+  context?: unknown;
+  userId?: string;
+  systemPrompt?: string;
+};
+
+const COMMAND_PREFIXES = [
+  "HELP",
+  "COMMANDS",
+  "MENU",
+  "STATUS",
+  "PORTFOLIO",
+  "WALLET",
+  "ASSETS",
+  "BILLING",
+  "UPGRADE",
+  "SUBSCRIBE",
+  "BOOK",
+  "LESSONS",
+  "SCHEDULE",
+  "GAME",
+  "GAMES",
+  "RUNNER",
+  "SIMULATE",
+  "DAO",
+  "GOVERNANCE",
+  "STAKING",
+  "POOL",
+] as const;
 
 function parseNeuralTier(value: unknown): NeuralTier {
   const normalized = typeof value === "string" ? value.toUpperCase().trim() : "UNCENSORED";
@@ -20,6 +55,80 @@ function parseNeuralTier(value: unknown): NeuralTier {
     return normalized;
   }
   return "UNCENSORED";
+}
+
+function normalizeMessages(raw: unknown) {
+  if (!Array.isArray(raw)) {
+    return [] as Array<{ role: ChatRole; content: string }>;
+  }
+
+  const allowedRoles = new Set<ChatRole>(["user", "assistant"]);
+  return raw
+    .map((entry) => {
+      const role = typeof entry?.role === "string" ? (entry.role.toLowerCase() as ChatRole) : null;
+      const content =
+        typeof entry?.content === "string" ? sanitizePlainText(entry.content, 2_000) : "";
+      if (!role || !allowedRoles.has(role) || !content) {
+        return null;
+      }
+      return { role, content };
+    })
+    .filter((entry): entry is { role: ChatRole; content: string } => Boolean(entry))
+    .slice(-14);
+}
+
+function serializeContext(context: unknown) {
+  if (typeof context === "string") {
+    return sanitizePlainText(context, 2_000);
+  }
+
+  if (context && typeof context === "object") {
+    try {
+      return sanitizePlainText(JSON.stringify(context), 2_000);
+    } catch {
+      return "";
+    }
+  }
+
+  return "";
+}
+
+function isCommandLike(input: string) {
+  const upper = input.trim().toUpperCase();
+  if (!upper) {
+    return false;
+  }
+
+  return COMMAND_PREFIXES.some((prefix) => upper === prefix || upper.startsWith(`${prefix} `));
+}
+
+function buildPromptFromConversation(args: {
+  inputMessage: string;
+  messages: Array<{ role: ChatRole; content: string }>;
+  context: unknown;
+  systemPrompt?: string;
+}) {
+  const contextText = serializeContext(args.context);
+  const resolvedSystemPrompt =
+    typeof args.systemPrompt === "string" && args.systemPrompt.trim().length > 0
+      ? sanitizePlainText(args.systemPrompt, 3_000)
+      : buildTradeHaxSystemPrompt();
+
+  const lines = [`System:\n${resolvedSystemPrompt}`];
+  if (contextText) {
+    lines.push(`Context:\n${contextText}`);
+  }
+
+  if (args.messages.length > 0) {
+    for (const msg of args.messages) {
+      lines.push(`${msg.role}: ${msg.content}`);
+    }
+  } else {
+    lines.push(`user: ${args.inputMessage}`);
+  }
+
+  lines.push("assistant:");
+  return lines.join("\n\n");
 }
 
 /**
@@ -43,28 +152,30 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
-    
-    const { 
-      message, 
-      messages,
-      tier = "UNCENSORED", 
-      context, 
-      userId: requestedUserId,
-      systemPrompt 
-    } = body;
-    const userId = await resolveRequestUserId(req, requestedUserId);
-    const neuralTier = parseNeuralTier(tier);
-
-    const inputMessage = message || (messages && messages.length > 0 ? messages[messages.length - 1].content : null);
+    const body = (await req.json()) as ChatRequestBody;
+    const normalizedMessages = normalizeMessages(body.messages);
+    const requestedMessage =
+      typeof body.message === "string" ? sanitizePlainText(body.message, 2_000) : "";
+    const inputMessage =
+      requestedMessage ||
+      (normalizedMessages.length > 0
+        ? normalizedMessages[normalizedMessages.length - 1]?.content
+        : "");
 
     if (!inputMessage) {
-      return NextResponse.json({ error: "No message provided" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "No message provided" },
+        { status: 400, headers: rateLimit.headers },
+      );
     }
+
+    const userId = await resolveRequestUserId(req, body.userId);
+    const neuralTier = parseNeuralTier(body.tier);
 
     if (!tierSupportsNeuralMode(userId, neuralTier)) {
       return NextResponse.json(
         {
+          ok: false,
           error: "TIER_UPGRADE_REQUIRED",
           message: `Your current plan does not include ${neuralTier} mode.`,
         },
@@ -76,6 +187,7 @@ export async function POST(req: NextRequest) {
     if (!allowance.allowed) {
       return NextResponse.json(
         {
+          ok: false,
           error: "USAGE_LIMIT_REACHED",
           message: allowance.reason,
           allowance,
@@ -87,39 +199,52 @@ export async function POST(req: NextRequest) {
     // 1. Credit Gate
     const hasCredits = await checkCredits(userId, neuralTier as any);
     if (!hasCredits) {
-      return NextResponse.json({ error: "INSUFFICIENT_CREDITS" }, { status: 402 });
+      return NextResponse.json(
+        { ok: false, error: "INSUFFICIENT_CREDITS" },
+        { status: 402, headers: rateLimit.headers },
+      );
     }
 
     // Prepare query for kernel
     const query: NeuralQuery = {
       text: inputMessage,
       tier: neuralTier as any,
-      context
+      context: body.context as NeuralQuery["context"],
     };
 
-    // 2. Process using our neural kernel (Middleware/Keyword detection)
-    let response = await processNeuralCommand(query);
+    const commandLike = isCommandLike(inputMessage);
+    let response = "";
+    let kernelResponse = "";
 
-    // 3. If kernel returns default simulation, try Hugging Face LLM
-    if (response.startsWith("AI_RESPONSE: ANALYZING_QUERY")) {
+    if (commandLike) {
+      kernelResponse = await processNeuralCommand(query);
+      response = kernelResponse;
+    }
+
+    const shouldTryHf = !commandLike || response.startsWith("AI_RESPONSE: ANALYZING_QUERY");
+    if (shouldTryHf) {
       try {
         const client = getLLMClient();
-        let prompt = systemPrompt ? `System: ${systemPrompt}\n\n` : "";
-        
-        if (messages && Array.isArray(messages)) {
-          for (const msg of messages) {
-            prompt += `${msg.role}: ${msg.content}\n`;
-          }
-        } else {
-          prompt += `user: ${inputMessage}\n`;
-        }
-        prompt += "assistant:";
-
+        const prompt = buildPromptFromConversation({
+          inputMessage,
+          messages: normalizedMessages,
+          context: body.context,
+          systemPrompt: body.systemPrompt,
+        });
         const hfResponse = await client.generate(prompt);
-        response = hfResponse.text;
+        if (hfResponse.text.trim().length > 0) {
+          response = hfResponse.text.trim();
+        }
       } catch (hfError) {
-        console.warn("HF LLM Fallback failed, using kernel response:", hfError);
+        console.warn("HF primary generation failed. Falling back to kernel response.", hfError);
       }
+    }
+
+    if (!response) {
+      if (!kernelResponse) {
+        kernelResponse = await processNeuralCommand(query);
+      }
+      response = kernelResponse;
     }
 
     // 4. Deduct Credits
@@ -132,6 +257,7 @@ export async function POST(req: NextRequest) {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     return NextResponse.json({ 
+      ok: true,
       response,
       message: {
         role: "assistant",
@@ -148,6 +274,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Neural API Error:", error);
     return NextResponse.json({ 
+      ok: false,
       error: "NEURAL_LINK_FAILURE", 
       details: error.message 
     }, { status: 500 });

@@ -15,6 +15,11 @@ export interface GeneratedImage {
   url: string;
   prompt: string;
   style: string;
+  model?: string;
+  width?: number;
+  height?: number;
+  mimeType?: string;
+  openMode?: boolean;
   timestamp: number;
 }
 

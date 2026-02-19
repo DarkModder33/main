@@ -41,6 +41,10 @@ export default function AIHubPage() {
             image generation, context-aware advice, and smart portfolio
             management.
           </p>
+          <p className="text-sm text-cyan-200/80 max-w-2xl mx-auto">
+            Open Mode is enabled by default for direct responses and expressive outputs. Configure
+            `TRADEHAX_LLM_OPEN_MODE` and `TRADEHAX_IMAGE_OPEN_MODE` per environment.
+          </p>
         </div>
 
         {/* Smart Environment Monitor */}
@@ -156,22 +160,22 @@ export default function AIHubPage() {
                 use="Chat, code, trading analysis"
               />
               <ModelCard
-                name="Stable Diffusion XL"
+                name="Stable Diffusion 2.1"
                 type="Image Generation"
                 size="1B+ parameters"
                 use="Trading charts, NFT art, UI"
               />
               <ModelCard
-                name="GPT-2"
+                name="Meta-Llama-3-8B-Instruct"
                 type="Text Generation"
-                size="124M parameters"
-                use="Fast predictions, lightweight"
+                size="8B parameters"
+                use="Long-form strategy and agent workflows"
               />
               <ModelCard
-                name="DALL-E"
+                name="FLUX.1 Schnell"
                 type="Image Generation"
-                size="3.5B parameters"
-                use="Creative artwork, concepts"
+                size="Large diffusion"
+                use="High-contrast concept renders"
               />
             </div>
           </div>
@@ -190,7 +194,7 @@ export default function AIHubPage() {
             <StepCard
               step="2"
               title="Configure AI Models"
-              description="Set your HF_API_TOKEN in .env.local to enable Hugging Face models"
+              description="Set HF_API_TOKEN, HF_MODEL_ID, and HF_IMAGE_MODEL_ID in .env.local"
             />
             <StepCard
               step="3"

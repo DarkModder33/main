@@ -8,10 +8,18 @@
 const fs = require("fs");
 const path = require("path");
 
-const HF_TOKEN = process.env.HF_API_TOKEN || "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";
-const HF_USER = "DarkModder33";
-const DATASET_NAME = "tradehax-behavioral";
-const FILE_PATH = path.join(process.cwd(), "ai-training-set.jsonl");
+const HF_TOKEN = process.env.HF_API_TOKEN;
+const HF_USER = process.env.HF_USER || "DarkModder33";
+const DATASET_NAME = process.env.HF_DATASET_NAME || "tradehax-behavioral";
+const FILE_PATH =
+  process.env.TRAINING_DATASET_PATH ||
+  path.join(process.cwd(), "data", "custom-llm", "train.jsonl");
+
+if (!HF_TOKEN) {
+  console.error("❌ HF_API_TOKEN is required.");
+  console.error("   Set it in your environment before running this script.");
+  process.exit(1);
+}
 
 if (!fs.existsSync(FILE_PATH)) {
   console.error("❌ File not found:", FILE_PATH);
