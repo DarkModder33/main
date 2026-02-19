@@ -9,7 +9,7 @@ export function BookingCalendar() {
       <div className="space-y-4 mb-6">
         <div className="flex items-center gap-3 text-gray-300">
           <Calendar className="w-5 h-5 text-[#0366d6]" />
-          <span>Choose your preferred date and time</span>
+          <span>Choose your preferred date and time with the TradeHax founder</span>
         </div>
         <div className="flex items-center gap-3 text-gray-300">
           <Clock className="w-5 h-5 text-[#0366d6]" />
