@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
       ok: true,
-      provider: getIntelligenceProviderStatus(),
+      provider: await getIntelligenceProviderStatus(),
     },
     { headers: rateLimit.headers },
   );

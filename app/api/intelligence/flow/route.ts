@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const minPremium = parsePositiveNumber(search.get("minPremium"));
   const minScore = parsePositiveNumber(search.get("minScore"));
   const sort = sanitizeQueryText(search.get("sort"), 16) || "recent";
-  const snapshot = getIntelligenceSnapshot();
+  const snapshot = await getIntelligenceSnapshot();
 
   let items = snapshot.flowTape.filter((trade) => {
     if (symbol && trade.symbol !== symbol) return false;

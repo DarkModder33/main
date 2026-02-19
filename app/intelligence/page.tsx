@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     "Cross-asset intelligence stack for options flow, dark pool activity, political disclosures, crypto flow, and AI-assisted media workflows.",
 };
 
-export default function IntelligenceHubPage() {
-  const snapshot = getIntelligenceSnapshot();
+export default async function IntelligenceHubPage() {
+  const snapshot = await getIntelligenceSnapshot();
   const overview = snapshot.overview;
 
   return (

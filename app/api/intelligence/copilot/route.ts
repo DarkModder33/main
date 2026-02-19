@@ -16,8 +16,8 @@ type CopilotRequest = {
   openMode?: boolean;
 };
 
-function buildFallbackAnalysis(question: string, context: string) {
-  const snapshot = getIntelligenceSnapshot();
+async function buildFallbackAnalysis(question: string, context: string) {
+  const snapshot = await getIntelligenceSnapshot();
   const overview = snapshot.overview;
   return [
     "TradeHax Copilot fallback analysis (HF not configured):",
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: true,
-        response: buildFallbackAnalysis(question, context),
+        response: await buildFallbackAnalysis(question, context),
         model: "fallback",
         lane,
       },

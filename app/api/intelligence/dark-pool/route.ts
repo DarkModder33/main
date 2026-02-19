@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const side = sanitizeQueryText(search.get("side"), 8);
   const minNotional = parsePositiveNumber(search.get("minNotional"));
   const minScore = parsePositiveNumber(search.get("minScore"));
-  const snapshot = getIntelligenceSnapshot();
+  const snapshot = await getIntelligenceSnapshot();
 
   const items = snapshot.darkPoolTape
     .filter((trade) => {

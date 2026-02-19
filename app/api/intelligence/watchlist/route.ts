@@ -1,4 +1,5 @@
 import {
+  getWatchlistStorageStatus,
   listWatchlist,
   removeWatchlistItem,
   upsertWatchlistItem,
@@ -54,12 +55,14 @@ export async function GET(request: NextRequest) {
     request,
     request.nextUrl.searchParams.get("userId"),
   );
+  const items = await listWatchlist(userId);
 
   return NextResponse.json(
     {
       ok: true,
       userId,
-      items: listWatchlist(userId),
+      items,
+      storage: await getWatchlistStorageStatus(),
     },
     { headers: rateLimit.headers },
   );
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as WatchlistMutationRequest;
   const userId = await resolveRequestUserId(request, body.userId);
 
-  const result = upsertWatchlistItem(userId, {
+  const result = await upsertWatchlistItem(userId, {
     symbol: String(body.symbol || ""),
     assetType: body.assetType === "crypto" ? "crypto" : body.assetType === "equity" ? "equity" : undefined,
     minFlowPremiumUsd: parseNumber(body.minFlowPremiumUsd),
@@ -113,7 +116,8 @@ export async function POST(request: NextRequest) {
       ok: true,
       userId,
       item: result.item,
-      items: listWatchlist(userId),
+      items: await listWatchlist(userId),
+      storage: await getWatchlistStorageStatus(),
     },
     { headers: rateLimit.headers },
   );
@@ -143,7 +147,7 @@ export async function DELETE(request: NextRequest) {
     userId?: string;
   };
   const userId = await resolveRequestUserId(request, body.userId);
-  const result = removeWatchlistItem(userId, String(body.symbol || ""), body.assetType);
+  const result = await removeWatchlistItem(userId, String(body.symbol || ""), body.assetType);
 
   if (!result.ok) {
     return NextResponse.json(
@@ -160,7 +164,8 @@ export async function DELETE(request: NextRequest) {
       ok: true,
       userId,
       removed: result.removed,
-      items: listWatchlist(userId),
+      items: await listWatchlist(userId),
+      storage: await getWatchlistStorageStatus(),
     },
     { headers: rateLimit.headers },
   );

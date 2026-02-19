@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const impact = sanitizeQueryText(search.get("impact"), 8);
   const category = sanitizeQueryText(search.get("category"), 12);
   const q = sanitizeQueryText(search.get("q"), 64);
-  const snapshot = getIntelligenceSnapshot();
+  const snapshot = await getIntelligenceSnapshot();
 
   const items = snapshot.news
     .filter((item) => {

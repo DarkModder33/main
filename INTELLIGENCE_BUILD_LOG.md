@@ -14,6 +14,10 @@ Last Updated: 2026-02-19
 - [x] Checkpoint 8: Watchlist + persistent alert history APIs integrated
 - [x] Checkpoint 9: Discord emitters + tier channel routing integrated
 - [x] Checkpoint 10: Phase 2 QA, CI pass, commit/push, deployment verification
+- [x] Checkpoint 11: Direct vendor adapters wired (Unusual Whales, Polygon, Bloomberg proxy)
+- [x] Checkpoint 12: Durable watchlist/alerts storage adapter added (Supabase + memory fallback)
+- [x] Checkpoint 13: Discord thread routing by strategy/risk integrated
+- [ ] Checkpoint 14: Phase 3 QA, CI pass, commit/push, deployment verification
 
 ## Progress Notes
 
@@ -118,8 +122,45 @@ Last Updated: 2026-02-19
   - `https://www.tradehax.net/intelligence/watchlist` -> `200`
   - `https://www.tradehax.net/api/intelligence/alerts` -> `200`
   - `https://www.tradehax.net/api/intelligence/provider` -> `200`
-  - `https://www.tradehaxai.tech/intelligence/watchlist` -> `200`
+- `https://www.tradehaxai.tech/intelligence/watchlist` -> `200`
 - Status: Phase 2 complete.
+
+### 2026-02-19 - Phase 3 Checkpoint 11 Complete
+- Reworked provider engine to async, cache-aware vendor routing:
+  - `lib/intelligence/provider.ts`
+- Added direct vendor HTTP adapter layer:
+  - `lib/intelligence/vendor-adapters.ts`
+- Vendor coverage:
+  - Unusual Whales adapter (endpoint-driven)
+  - Polygon adapter (snapshot/news)
+  - Bloomberg proxy adapter (endpoint-driven)
+- Added provider metadata enhancements:
+  - `mode`, `detail`, `lastError`, cache TTL reporting
+
+### 2026-02-19 - Phase 3 Checkpoint 12 Complete
+- Added persistent storage layer:
+  - `lib/intelligence/persistence.ts`
+- Added dual-mode storage support:
+  - Supabase/Postgres REST mode
+  - in-memory fallback mode
+- Migrated watchlist/alert engine to async persistence-backed flow:
+  - `lib/intelligence/watchlist-store.ts`
+- Added storage status API:
+  - `/api/intelligence/storage`
+- Added Supabase schema:
+  - `db/supabase/intelligence_phase3.sql`
+
+### 2026-02-19 - Phase 3 Checkpoint 13 Complete
+- Reworked Discord dispatch for strategy/risk thread routing:
+  - `lib/intelligence/discord.ts`
+- Routing now groups alerts by:
+  - strategy (`options_flow`, `dark_pool`, `crypto_flow`, `catalyst_news`)
+  - risk (`urgent`, `watch`, `info`)
+- Added thread ID resolution hierarchy:
+  - strategy+risk exact -> strategy -> risk -> default thread ID
+- Added support for provided IDs in env templates:
+  - Discord ID: `1421509686443905094`
+  - Vercel Project ID: `prj_LDmkGrAq06c1DJcH98BeN6GYhZpW`
 
 ## Active TODO
 
@@ -132,6 +173,10 @@ Last Updated: 2026-02-19
 - [x] Build user watchlists with alert persistence and evaluation flows.
 - [x] Add role-based Discord routing + webhook emission support.
 - [x] Add `/intelligence/watchlist` UI flow.
+- [x] Wire direct vendor HTTP adapters (Unusual Whales/Polygon/Bloomberg proxy).
+- [x] Add durable watchlist + alerts persistence adapter.
+- [x] Add Discord thread routing by strategy/risk profile.
+- [x] Update `.env.example` and `.env.vercel.production.template` for Phase 3 config.
 - [x] Run `npm run pipeline:ci`.
 - [x] Commit and push.
 
@@ -141,6 +186,8 @@ Last Updated: 2026-02-19
 - [x] Add user watchlists + persistent alerts.
 - [x] Add Discord bot webhook emitters.
 - [x] Add role-based channel routing for paid intelligence tiers.
-- [ ] Wire direct vendor HTTP adapters for specific providers (Unusual Whales, Polygon, Bloomberg).
-- [ ] Add persistent database storage for watchlists/alerts (Supabase/Postgres) for cross-deploy durability.
-- [ ] Add Discord thread routing by strategy type and risk profile.
+- [x] Wire direct vendor HTTP adapters for specific providers (Unusual Whales, Polygon, Bloomberg).
+- [x] Add persistent database storage for watchlists/alerts (Supabase/Postgres) for cross-deploy durability.
+- [x] Add Discord thread routing by strategy type and risk profile.
+- [ ] Add live WebSocket ingestion for intraday flow updates.
+- [ ] Add alert SLA metrics panel (delivery latency, drop rate, provider error rate).

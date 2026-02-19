@@ -78,6 +78,22 @@ export type IntelligenceProviderStatus = {
   configured: boolean;
   simulated: boolean;
   generatedAt: string;
+  mode?: "live" | "simulated";
+  detail?: string;
+  lastError?: string;
+  cacheTtlMs?: number;
+};
+
+export type IntelligenceStorageMode = "memory" | "supabase";
+
+export type IntelligenceStorageStatus = {
+  mode: IntelligenceStorageMode;
+  configured: boolean;
+  watchlistTable: string;
+  alertsTable: string;
+  generatedAt: string;
+  fallbackActive: boolean;
+  lastError?: string;
 };
 
 export type WatchlistAssetType = "equity" | "crypto";

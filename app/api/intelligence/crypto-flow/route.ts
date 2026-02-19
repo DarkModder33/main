@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const side = sanitizeQueryText(search.get("side"), 12);
   const minNotional = parsePositiveNumber(search.get("minNotional"));
   const minConfidence = parsePositiveNumber(search.get("minConfidence"));
-  const snapshot = getIntelligenceSnapshot();
+  const snapshot = await getIntelligenceSnapshot();
 
   const items = snapshot.cryptoTape
     .filter((trade) => {

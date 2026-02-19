@@ -8,6 +8,14 @@ type WatchlistResponse = {
   ok: boolean;
   userId: string;
   items: WatchlistItem[];
+  storage?: {
+    mode: "memory" | "supabase";
+    configured: boolean;
+    fallbackActive: boolean;
+    watchlistTable: string;
+    alertsTable: string;
+    lastError?: string;
+  };
   error?: string;
 };
 
@@ -27,13 +35,31 @@ type AlertsResponse = {
       channelLabel: string;
       viaFallback: boolean;
       webhookConfigured: boolean;
+      defaultThreadId?: string;
     };
+    groups?: Array<{
+      strategy: string;
+      risk: string;
+      deliveredCount: number;
+      ok: boolean;
+      threadId?: string;
+      error?: string;
+    }>;
   } | null;
   discordRoute?: {
     tier: string;
     channelLabel: string;
     viaFallback: boolean;
     webhookConfigured: boolean;
+    defaultThreadId?: string;
+  };
+  storage?: {
+    mode: "memory" | "supabase";
+    configured: boolean;
+    fallbackActive: boolean;
+    watchlistTable: string;
+    alertsTable: string;
+    lastError?: string;
   };
   error?: string;
 };
@@ -67,6 +93,10 @@ export function WatchlistPanel() {
   const [routeLabel, setRouteLabel] = useState("not-configured");
   const [routeConfigured, setRouteConfigured] = useState(false);
   const [routeFallback, setRouteFallback] = useState(false);
+  const [defaultThreadId, setDefaultThreadId] = useState("");
+  const [storageMode, setStorageMode] = useState<"memory" | "supabase">("memory");
+  const [storageFallback, setStorageFallback] = useState(false);
+  const [storageError, setStorageError] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -88,6 +118,11 @@ export function WatchlistPanel() {
     }
     setItems(payload.items || []);
     setUserId(payload.userId || "");
+    if (payload.storage) {
+      setStorageMode(payload.storage.mode);
+      setStorageFallback(Boolean(payload.storage.fallbackActive));
+      setStorageError(payload.storage.lastError || "");
+    }
   }
 
   async function loadAlerts(evaluate = false) {
@@ -106,6 +141,13 @@ export function WatchlistPanel() {
       setRouteLabel(payload.discordRoute.channelLabel);
       setRouteConfigured(Boolean(payload.discordRoute.webhookConfigured));
       setRouteFallback(Boolean(payload.discordRoute.viaFallback));
+      setDefaultThreadId(payload.discordRoute.defaultThreadId || "");
+    }
+
+    if (payload.storage) {
+      setStorageMode(payload.storage.mode);
+      setStorageFallback(Boolean(payload.storage.fallbackActive));
+      setStorageError(payload.storage.lastError || "");
     }
 
     if (evaluate) {
@@ -218,12 +260,18 @@ export function WatchlistPanel() {
 
       setAlerts(payload.alerts || []);
       setTier(payload.tier || tier);
+      if (payload.storage) {
+        setStorageMode(payload.storage.mode);
+        setStorageFallback(Boolean(payload.storage.fallbackActive));
+        setStorageError(payload.storage.lastError || "");
+      }
 
       if (payload.dispatch) {
         if (payload.dispatch.ok) {
           setRouteLabel(payload.dispatch.route.channelLabel);
           setRouteConfigured(payload.dispatch.route.webhookConfigured);
           setRouteFallback(payload.dispatch.route.viaFallback);
+          setDefaultThreadId(payload.dispatch.route.defaultThreadId || "");
           setStatus(
             `Scan complete. ${payload.newAlertsCount} new alerts. Discord delivered: ${payload.dispatch.deliveredCount}.`,
           );
@@ -246,7 +294,7 @@ export function WatchlistPanel() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1.25fr_1fr]">
       <section className="theme-panel p-5 sm:p-6">
-        <p className="theme-kicker mb-2">Phase 2: Watchlists</p>
+        <p className="theme-kicker mb-2">Phase 3: Persistence + Routing</p>
         <h2 className="theme-title text-2xl mb-2">Persistent Alert Console</h2>
         <p className="text-sm text-[#a8bfd1] mb-5">
           Build watchlists, run cross-asset scans, and route alerts to Discord channels by paid tier.
@@ -433,6 +481,9 @@ export function WatchlistPanel() {
             Tier Route: {tier} {"->"} #{routeLabel}
           </p>
           <p>Webhook Configured: {routeConfigured ? "yes" : "no"}{routeFallback ? " (fallback)" : ""}</p>
+          <p>Default Thread ID: {defaultThreadId || "none"}</p>
+          <p>Storage Mode: {storageMode}{storageFallback ? " (fallback)" : ""}</p>
+          {storageError ? <p>Storage Error: {storageError}</p> : null}
           <p>
             Alerts: {alertSummary.total} total / {alertSummary.urgent} urgent / {alertSummary.watch} watch
           </p>
