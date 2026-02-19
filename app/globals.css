@@ -267,6 +267,30 @@ a, button, input, [role="button"] {
   animation: hyperboreaPulse 2.2s ease-in-out infinite;
 }
 
+.hyperborea-intro-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='1' height='1' x='6' y='8' fill='%23ffffff' fill-opacity='0.08'/%3E%3Crect width='1' height='1' x='32' y='18' fill='%2306b6d4' fill-opacity='0.1'/%3E%3Crect width='1' height='1' x='80' y='43' fill='%23a855f7' fill-opacity='0.08'/%3E%3Crect width='1' height='1' x='95' y='70' fill='%2334d399' fill-opacity='0.08'/%3E%3Crect width='1' height='1' x='15' y='90' fill='%23ffffff' fill-opacity='0.07'/%3E%3C/svg%3E");
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  animation: hyperboreaNoise 450ms steps(2, end) infinite;
+}
+
+.hyperborea-intro-streaks {
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(6, 182, 212, 0.2) 48%, transparent 55%),
+    linear-gradient(300deg, transparent 0%, rgba(168, 85, 247, 0.14) 52%, transparent 62%);
+  opacity: 0.42;
+  filter: blur(0.5px);
+  animation: hyperboreaStreaks 2.8s linear infinite;
+}
+
+.hyperborea-intro-core {
+  box-shadow:
+    0 0 65px rgba(6, 182, 212, 0.45),
+    inset 0 0 70px rgba(6, 182, 212, 0.15),
+    inset 0 0 120px rgba(168, 85, 247, 0.08);
+  animation: hyperboreaCorePulse 1.8s ease-in-out infinite;
+}
+
 .hyperborea-intro-title {
   text-shadow: 0 0 28px rgba(6, 182, 212, 0.55), 0 0 60px rgba(168, 85, 247, 0.32);
 }
@@ -291,6 +315,13 @@ a, button, input, [role="button"] {
   height: min(56vmin, 520px);
   border-color: rgba(52, 211, 153, 0.38);
   animation: hyperboreaSpinReverse 5s linear infinite;
+}
+
+.hyperborea-portal-ring--shock {
+  width: min(72vmin, 740px);
+  height: min(72vmin, 740px);
+  border-color: rgba(125, 211, 252, 0.2);
+  animation: hyperboreaShockwave 2.2s ease-in-out infinite;
 }
 
 .hyperborea-intro-progress-fill {
@@ -318,6 +349,24 @@ a, button, input, [role="button"] {
   100% { transform: translateY(42px); }
 }
 
+@keyframes hyperboreaNoise {
+  0% { transform: translate(0, 0); opacity: 0.08; }
+  25% { transform: translate(1px, -1px); opacity: 0.14; }
+  50% { transform: translate(-1px, 1px); opacity: 0.1; }
+  75% { transform: translate(1px, 1px); opacity: 0.13; }
+  100% { transform: translate(0, 0); opacity: 0.08; }
+}
+
+@keyframes hyperboreaStreaks {
+  0% { transform: translateX(-8%) translateY(-3%); }
+  100% { transform: translateX(8%) translateY(3%); }
+}
+
+@keyframes hyperboreaCorePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.03); }
+}
+
 @keyframes hyperboreaPulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
@@ -331,4 +380,34 @@ a, button, input, [role="button"] {
 @keyframes hyperboreaSpinReverse {
   from { transform: translate(-50%, -50%) rotate(360deg); }
   to { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+@keyframes hyperboreaShockwave {
+  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.45; }
+  70% { transform: translate(-50%, -50%) scale(1.06); opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+}
+
+.hyperborea-intro--reduced .hyperborea-intro-grid,
+.hyperborea-intro--reduced .hyperborea-intro-particles,
+.hyperborea-intro--reduced .hyperborea-intro-noise,
+.hyperborea-intro--reduced .hyperborea-intro-streaks,
+.hyperborea-intro--reduced .hyperborea-intro-core,
+.hyperborea-intro--reduced .hyperborea-portal-ring {
+  animation: none !important;
+}
+
+.hyperborea-intro--reduced .hyperborea-intro-vignette {
+  background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0.96) 72%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hyperborea-intro-grid,
+  .hyperborea-intro-particles,
+  .hyperborea-intro-noise,
+  .hyperborea-intro-streaks,
+  .hyperborea-intro-core,
+  .hyperborea-portal-ring {
+    animation: none !important;
+  }
 }
