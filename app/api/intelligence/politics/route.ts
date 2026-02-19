@@ -1,5 +1,5 @@
 import { sanitizeQueryText } from "@/lib/intelligence/filters";
-import { getPoliticsTape } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
   const chamber = sanitizeQueryText(search.get("chamber"), 8);
   const action = sanitizeQueryText(search.get("action"), 8);
   const theme = sanitizeQueryText(search.get("theme"), 24);
+  const snapshot = getIntelligenceSnapshot();
 
-  const items = getPoliticsTape()
+  const items = snapshot.politicsTape
     .filter((trade) => {
       if (symbol && trade.symbol !== symbol) return false;
       if (chamber && trade.chamber !== chamber) return false;
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       items,
       count: items.length,
       generatedAt: new Date().toISOString(),
+      provider: snapshot.status,
     },
     { headers: rateLimit.headers },
   );

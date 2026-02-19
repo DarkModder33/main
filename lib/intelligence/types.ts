@@ -69,3 +69,50 @@ export type IntelligenceOverview = {
   highImpactNewsCount: number;
   unusualContractsCount: number;
 };
+
+export type IntelligenceProviderSource = "mock" | "vendor";
+
+export type IntelligenceProviderStatus = {
+  source: IntelligenceProviderSource;
+  vendor: string;
+  configured: boolean;
+  simulated: boolean;
+  generatedAt: string;
+};
+
+export type WatchlistAssetType = "equity" | "crypto";
+
+export type WatchlistItem = {
+  id: string;
+  userId: string;
+  symbol: string;
+  assetType: WatchlistAssetType;
+  minFlowPremiumUsd?: number;
+  minDarkPoolNotionalUsd?: number;
+  minCryptoNotionalUsd?: number;
+  minUnusualScore?: number;
+  minConfidence?: number;
+  notes?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IntelligenceAlertSource = "flow" | "dark_pool" | "crypto" | "news";
+
+export type IntelligenceAlertSeverity = "info" | "watch" | "urgent";
+
+export type IntelligenceAlert = {
+  id: string;
+  userId: string;
+  symbol: string;
+  assetType: WatchlistAssetType;
+  source: IntelligenceAlertSource;
+  severity: IntelligenceAlertSeverity;
+  title: string;
+  summary: string;
+  triggeredAt: string;
+  route: string;
+  referenceId?: string;
+  deliveredToDiscordAt?: string | null;
+};

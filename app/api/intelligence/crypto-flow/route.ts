@@ -1,5 +1,5 @@
 import { parsePositiveNumber, sanitizeQueryText } from "@/lib/intelligence/filters";
-import { getCryptoTape } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
   const side = sanitizeQueryText(search.get("side"), 12);
   const minNotional = parsePositiveNumber(search.get("minNotional"));
   const minConfidence = parsePositiveNumber(search.get("minConfidence"));
+  const snapshot = getIntelligenceSnapshot();
 
-  const items = getCryptoTape()
+  const items = snapshot.cryptoTape
     .filter((trade) => {
       if (pair && trade.pair !== pair) return false;
       if (chain && trade.chain !== chain) return false;
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
       items,
       count: items.length,
       generatedAt: new Date().toISOString(),
+      provider: snapshot.status,
     },
     { headers: rateLimit.headers },
   );

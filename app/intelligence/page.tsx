@@ -4,8 +4,8 @@ import { IntelligenceRouteCard } from "@/components/intelligence/IntelligenceRou
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { formatCompactUsd } from "@/lib/intelligence/format";
-import { getIntelligenceOverview } from "@/lib/intelligence/mock-data";
-import { BarChart3, Bot, BookOpen, CandlestickChart, Newspaper, Radar } from "lucide-react";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
+import { BarChart3, BellRing, Bot, BookOpen, CandlestickChart, Newspaper, Radar } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default function IntelligenceHubPage() {
-  const overview = getIntelligenceOverview();
+  const snapshot = getIntelligenceSnapshot();
+  const overview = snapshot.overview;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
@@ -29,6 +30,7 @@ export default function IntelligenceHubPage() {
             { label: "Flow Tape", href: "/intelligence/flow" },
             { label: "Dark Pool", href: "/intelligence/dark-pool" },
             { label: "Crypto Flow", href: "/intelligence/crypto-flow" },
+            { label: "Watchlists", href: "/intelligence/watchlist" },
             { label: "Content Studio", href: "/intelligence/content" },
           ]}
         >
@@ -59,6 +61,11 @@ export default function IntelligenceHubPage() {
               hint="Score >= 80"
             />
           </section>
+
+          <div className="text-xs uppercase tracking-[0.2em] text-[#8ea8be]">
+            Data Provider: {snapshot.status.vendor} ({snapshot.status.source}
+            {snapshot.status.simulated ? " simulated" : " live"})
+          </div>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <IntelligenceRouteCard
@@ -96,6 +103,12 @@ export default function IntelligenceHubPage() {
               description="Generate YouTube + Discord daily briefs directly from intelligence feeds."
               href="/intelligence/content"
               icon={<Bot className="w-5 h-5" />}
+            />
+            <IntelligenceRouteCard
+              title="Watchlist Alerts"
+              description="Create symbol watchlists, detect triggers, and route alerts to tier-based Discord channels."
+              href="/intelligence/watchlist"
+              icon={<BellRing className="w-5 h-5" />}
             />
           </section>
         </IntelligencePageShell>

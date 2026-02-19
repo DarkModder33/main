@@ -1,6 +1,6 @@
 import { getLLMClient } from "@/lib/ai/hf-server";
 import { buildTradeHaxPrompt } from "@/lib/ai/custom-llm/system-prompt";
-import { getIntelligenceOverview } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import {
   enforceRateLimit,
   enforceTrustedOrigin,
@@ -17,7 +17,8 @@ type CopilotRequest = {
 };
 
 function buildFallbackAnalysis(question: string, context: string) {
-  const overview = getIntelligenceOverview();
+  const snapshot = getIntelligenceSnapshot();
+  const overview = snapshot.overview;
   return [
     "TradeHax Copilot fallback analysis (HF not configured):",
     `Question: ${question}`,
@@ -25,6 +26,7 @@ function buildFallbackAnalysis(question: string, context: string) {
     `Options premium tracked: $${overview.optionsPremium24hUsd.toLocaleString()}`,
     `Dark pool notional tracked: $${overview.darkPoolNotional24hUsd.toLocaleString()}`,
     `Crypto notional tracked: $${overview.cryptoNotional24hUsd.toLocaleString()}`,
+    `Data source: ${snapshot.status.vendor} (${snapshot.status.source})`,
     "Action: prioritize highest unusual score entries and cross-check with high-impact news before execution.",
   ].join("\n");
 }
