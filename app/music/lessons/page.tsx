@@ -6,7 +6,7 @@ import { LessonStudioEmbed } from '@/components/music/LessonStudioEmbed';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { createPageMetadata } from "@/lib/seo";
-import { ArrowLeft, BrainCircuit, Calendar, CheckCircle2, CreditCard, Gem, Shield, Swords, Trophy, Video } from 'lucide-react';
+import { ArrowLeft, BrainCircuit, Calendar, CheckCircle2, CreditCard, Gem, Shield, Swords, Trophy, UserRound, Video } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -72,6 +72,43 @@ export default function LessonsPage() {
           <FortressPillar icon={<BrainCircuit className="h-5 w-5" />} title="AI Smart Lessons" text="Adaptive practice plans, progression checkpoints, and goal-focused coaching prompts each week." />
           <FortressPillar icon={<Gem className="h-5 w-5" />} title="Reward Economy" text="Milestones prepare students for NFT badges, crypto rewards, and gamified community progression." />
         </div>
+
+        <section className="mb-16 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-black via-emerald-950/20 to-cyan-950/20 p-6 sm:p-8">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-emerald-200">
+            <UserRound className="h-3.5 w-3.5" /> Meet Your Teacher
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+            <div className="rounded-xl border border-cyan-400/30 bg-black/50 p-4">
+              <div className="mx-auto mb-3 flex h-32 w-32 items-center justify-center rounded-full border border-emerald-300/45 bg-gradient-to-br from-emerald-500/25 to-cyan-500/20 text-3xl font-black text-emerald-100">
+                MSF
+              </div>
+              <p className="text-center text-[11px] uppercase tracking-[0.2em] text-cyan-200/75">Founder Portrait Frame</p>
+              <p className="mt-2 text-center text-xs text-cyan-100/70">Michael S. Flaherty</p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wide text-white">Michael S. Flaherty</h2>
+              <p className="mt-3 text-cyan-100/85 leading-relaxed">
+                I started playing guitar in 1995 and began teaching professionally at Hutchinson&apos;s Music Shoppe from 1999 to 2001.
+                Since then, I&apos;ve delivered countless one-on-one lessons. Today, that same personal instruction is delivered remotely,
+                with AI-tailored planning to match each student&apos;s exact goals, speed, and learning style.
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <TeacherFact label="Experience" value="Playing since 1995 • 25+ years active musicianship" />
+                <TeacherFact label="Teaching Track Record" value="Hutchinson’s Music Shoppe (1999–2001) + extensive 1:1 coaching" />
+                <TeacherFact label="Current Format" value="Remote one-on-one sessions with optional in-site studio room" />
+                <TeacherFact label="Instruction Philosophy" value="Precision fundamentals, creative songwriting, measurable weekly progress" />
+              </div>
+
+              <blockquote className="mt-4 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/90">
+                “Guitar is the heart of this business. My job is to coach you with clarity, discipline, and creativity—then use smart AI tools
+                to personalize every step so your progress is real, trackable, and motivating.”
+              </blockquote>
+            </div>
+          </div>
+        </section>
 
         {/* Ad Placement */}
         <div className="mb-16">
@@ -301,6 +338,15 @@ function PipelineStep({ step, title, text }: { step: string; title: string; text
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">{step}</p>
       <h3 className="mt-2 text-lg font-bold text-white">{title}</h3>
       <p className="mt-2 text-sm text-cyan-100/75">{text}</p>
+    </div>
+  );
+}
+
+function TeacherFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-cyan-500/25 bg-black/45 p-3">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-300/80">{label}</p>
+      <p className="mt-1 text-sm text-cyan-100/85">{value}</p>
     </div>
   );
 }
