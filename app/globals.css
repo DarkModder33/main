@@ -283,12 +283,35 @@ a, button, input, [role="button"] {
   animation: hyperboreaStreaks 2.8s linear infinite;
 }
 
+.hyperborea-impact-overlay {
+  background: radial-gradient(circle at center, rgba(125, 211, 252, 0.16) 0%, rgba(0, 0, 0, 0) 60%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .hyperborea-intro-core {
   box-shadow:
     0 0 65px rgba(6, 182, 212, 0.45),
     inset 0 0 70px rgba(6, 182, 212, 0.15),
     inset 0 0 120px rgba(168, 85, 247, 0.08);
   animation: hyperboreaCorePulse 1.8s ease-in-out infinite;
+}
+
+.hyperborea-intro--impact .hyperborea-intro-core {
+  animation: hyperboreaCorePulse 0.9s ease-out infinite;
+  box-shadow:
+    0 0 95px rgba(6, 182, 212, 0.75),
+    inset 0 0 110px rgba(34, 211, 238, 0.28),
+    inset 0 0 150px rgba(168, 85, 247, 0.14);
+}
+
+.hyperborea-intro--impact .hyperborea-impact-overlay {
+  opacity: 1;
+  animation: hyperboreaImpactFlash 420ms ease-out 2;
+}
+
+.hyperborea-intro--impact .hyperborea-intro-title {
+  animation: hyperboreaTitleImpact 550ms ease-out 2;
 }
 
 .hyperborea-intro-title {
@@ -388,10 +411,21 @@ a, button, input, [role="button"] {
   100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
 }
 
+@keyframes hyperboreaImpactFlash {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@keyframes hyperboreaTitleImpact {
+  0% { transform: scale(1.06) skewX(-4deg); }
+  100% { transform: scale(1) skewX(0deg); }
+}
+
 .hyperborea-intro--reduced .hyperborea-intro-grid,
 .hyperborea-intro--reduced .hyperborea-intro-particles,
 .hyperborea-intro--reduced .hyperborea-intro-noise,
 .hyperborea-intro--reduced .hyperborea-intro-streaks,
+.hyperborea-intro--reduced .hyperborea-impact-overlay,
 .hyperborea-intro--reduced .hyperborea-intro-core,
 .hyperborea-intro--reduced .hyperborea-portal-ring {
   animation: none !important;
@@ -406,6 +440,7 @@ a, button, input, [role="button"] {
   .hyperborea-intro-particles,
   .hyperborea-intro-noise,
   .hyperborea-intro-streaks,
+  .hyperborea-impact-overlay,
   .hyperborea-intro-core,
   .hyperborea-portal-ring {
     animation: none !important;
