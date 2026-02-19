@@ -18,6 +18,8 @@ type VariableInput = {
 
 type RequestBody = {
   variables?: VariableInput[];
+  deployAfterSync?: boolean;
+  deployTarget?: "production" | "preview";
 };
 
 const ALLOWED_TARGETS: TargetEnv[] = ["production", "preview", "development"];
@@ -119,6 +121,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as RequestBody;
     const rawVariables = Array.isArray(body.variables) ? body.variables : [];
+    const deployAfterSync = Boolean(body.deployAfterSync);
+    const deployTarget = body.deployTarget === "preview" ? "preview" : "production";
 
     if (rawVariables.length === 0) {
       return NextResponse.json(
@@ -181,16 +185,92 @@ export async function POST(request: NextRequest) {
 
     const failed = results.filter((r) => !r.ok);
 
+    let deployResult: { attempted: boolean; ok: boolean; status?: number; message?: string } = {
+      attempted: false,
+      ok: false,
+    };
+
+    if (deployAfterSync) {
+      deployResult.attempted = true;
+
+      if (failed.length > 0) {
+        deployResult = {
+          attempted: true,
+          ok: false,
+          message: "Skipped deploy trigger because some env variable syncs failed.",
+        };
+      } else {
+        const sharedHook = process.env.TRADEHAX_VERCEL_DEPLOY_HOOK_URL?.trim() || "";
+        const prodHook = process.env.TRADEHAX_VERCEL_DEPLOY_HOOK_URL_PRODUCTION?.trim() || "";
+        const previewHook = process.env.TRADEHAX_VERCEL_DEPLOY_HOOK_URL_PREVIEW?.trim() || "";
+        const hookUrl = deployTarget === "preview" ? previewHook || sharedHook : prodHook || sharedHook;
+
+        if (!hookUrl) {
+          deployResult = {
+            attempted: true,
+            ok: false,
+            message:
+              "No deploy hook configured. Set TRADEHAX_VERCEL_DEPLOY_HOOK_URL (or target-specific hook vars).",
+          };
+        } else {
+          try {
+            const deployResponse = await fetch(hookUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                source: "social-provider-wizard",
+                target: deployTarget,
+                timestamp: new Date().toISOString(),
+              }),
+            });
+
+            if (!deployResponse.ok) {
+              let message = "Deploy hook call failed.";
+              try {
+                const payload = (await deployResponse.json()) as { error?: string; message?: string };
+                message = payload?.error || payload?.message || message;
+              } catch {
+                // ignore parse issues
+              }
+              deployResult = {
+                attempted: true,
+                ok: false,
+                status: deployResponse.status,
+                message,
+              };
+            } else {
+              deployResult = {
+                attempted: true,
+                ok: true,
+                status: deployResponse.status,
+                message: `Deploy hook triggered for ${deployTarget}.`,
+              };
+            }
+          } catch (deployError) {
+            deployResult = {
+              attempted: true,
+              ok: false,
+              message:
+                deployError instanceof Error ? deployError.message : "Unexpected deploy hook error.",
+            };
+          }
+        }
+      }
+    }
+
     return NextResponse.json(
       {
-        ok: failed.length === 0,
+        ok: failed.length === 0 && (!deployAfterSync || deployResult.ok),
         adminMode: adminGate.access.mode,
         synced: results.length - failed.length,
         failed: failed.length,
         results,
+        deploy: deployResult,
       },
       {
-        status: failed.length === 0 ? 200 : 207,
+        status: failed.length === 0 && (!deployAfterSync || deployResult.ok) ? 200 : 207,
         headers: {
           ...rateLimit.headers,
           "X-TradeHax-Admin-Mode": adminGate.access.mode || "unknown",

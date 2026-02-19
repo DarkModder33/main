@@ -76,6 +76,8 @@ export function SocialProviderWizard() {
   const [adminKey, setAdminKey] = useState("");
   const [superuserCode, setSuperuserCode] = useState("");
   const [isPushing, setIsPushing] = useState(false);
+  const [deployAfterSync, setDeployAfterSync] = useState(false);
+  const [deployTarget, setDeployTarget] = useState<"production" | "preview">("production");
 
   const selectedProviders = useMemo(
     () => PROVIDERS.filter((provider) => selected[provider.id]),
@@ -202,7 +204,11 @@ export function SocialProviderWizard() {
           ...(adminKey.trim() ? { "x-tradehax-admin-key": adminKey.trim() } : {}),
           ...(superuserCode.trim() ? { "x-tradehax-superuser-code": superuserCode.trim() } : {}),
         },
-        body: JSON.stringify({ variables: payloadVariables }),
+        body: JSON.stringify({
+          variables: payloadVariables,
+          deployAfterSync,
+          deployTarget,
+        }),
       });
 
       const data = (await response.json().catch(() => ({}))) as {
@@ -210,6 +216,11 @@ export function SocialProviderWizard() {
         synced?: number;
         failed?: number;
         error?: string;
+        deploy?: {
+          attempted?: boolean;
+          ok?: boolean;
+          message?: string;
+        };
       };
 
       if (!response.ok && !data.ok) {
@@ -218,11 +229,14 @@ export function SocialProviderWizard() {
 
       const synced = typeof data.synced === "number" ? data.synced : 0;
       const failed = typeof data.failed === "number" ? data.failed : 0;
+      const deployMessage = data.deploy?.attempted
+        ? ` Deploy: ${data.deploy?.ok ? "triggered" : "not triggered"}${data.deploy?.message ? ` (${data.deploy.message})` : ""}`
+        : "";
 
       if (failed > 0) {
-        setStatus(`Partial sync complete. Synced ${synced}, failed ${failed}. Check server response/logs.`);
+        setStatus(`Partial sync complete. Synced ${synced}, failed ${failed}. Check server response/logs.${deployMessage}`);
       } else {
-        setStatus(`✅ Synced ${synced} variables to Vercel successfully.`);
+        setStatus(`✅ Synced ${synced} variables to Vercel successfully.${deployMessage}`);
       }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Push to Vercel failed.");
@@ -365,6 +379,38 @@ export function SocialProviderWizard() {
                 className="bg-black/40 border-emerald-500/30"
               />
             </div>
+          </div>
+
+          <div className="rounded border border-emerald-500/20 bg-emerald-600/10 p-3 space-y-3">
+            <label className="flex items-start gap-2 text-sm text-emerald-100/90">
+              <Checkbox
+                checked={deployAfterSync}
+                onCheckedChange={(checked) => setDeployAfterSync(Boolean(checked))}
+                className="mt-0.5"
+              />
+              <span>
+                Trigger deploy after env sync
+                <span className="block text-xs text-emerald-100/70 mt-1">
+                  Requires deploy hook env vars on server. Useful for immediate rollout.
+                </span>
+              </span>
+            </label>
+
+            {deployAfterSync && (
+              <div className="space-y-1">
+                <label htmlFor="deploy-target" className="text-xs font-medium text-emerald-100/80">Deploy target</label>
+                <select
+                  id="deploy-target"
+                  title="Deploy target"
+                  value={deployTarget}
+                  onChange={(event) => setDeployTarget(event.target.value === "preview" ? "preview" : "production")}
+                  className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 outline-none"
+                >
+                  <option value="production">Production</option>
+                  <option value="preview">Preview</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <Button onClick={pushToVercel} disabled={isPushing}>
