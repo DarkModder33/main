@@ -15,6 +15,7 @@ import {
   IntelligenceProviderStatus,
   PoliticalTrade,
 } from "@/lib/intelligence/types";
+import { resolveVendorAdapter } from "@/lib/intelligence/vendor-adapters";
 
 type IntelligenceSnapshot = {
   status: IntelligenceProviderStatus;
@@ -25,6 +26,22 @@ type IntelligenceSnapshot = {
   cryptoTape: CryptoFlowTrade[];
   news: IntelligenceNewsItem[];
 };
+
+type SnapshotCacheEntry = {
+  key: string;
+  expiresAt: number;
+  snapshot: IntelligenceSnapshot;
+};
+
+function getSnapshotCacheRef() {
+  const globalRef = globalThis as typeof globalThis & {
+    __TRADEHAX_INTELLIGENCE_SNAPSHOT_CACHE__?: SnapshotCacheEntry | null;
+  };
+  if (!("__TRADEHAX_INTELLIGENCE_SNAPSHOT_CACHE__" in globalRef)) {
+    globalRef.__TRADEHAX_INTELLIGENCE_SNAPSHOT_CACHE__ = null;
+  }
+  return globalRef;
+}
 
 function hasVendorCredentials() {
   return Boolean(
@@ -62,6 +79,17 @@ function resolveProviderSource() {
   return hasVendorCredentials() ? "vendor" : "mock";
 }
 
+function resolveCacheTtlMs() {
+  const value = Number.parseInt(
+    String(process.env.TRADEHAX_INTELLIGENCE_CACHE_MS || "15000"),
+    10,
+  );
+  if (!Number.isFinite(value) || value < 1_000) {
+    return 15_000;
+  }
+  return Math.min(120_000, value);
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -88,7 +116,10 @@ function toMockSnapshot(): IntelligenceSnapshot {
       vendor: "mock",
       configured: false,
       simulated: true,
+      mode: "simulated",
+      detail: "Mock feed mode enabled.",
       generatedAt: new Date().toISOString(),
+      cacheTtlMs: resolveCacheTtlMs(),
     },
     overview: getIntelligenceOverview(),
     flowTape: getFlowTape(),
@@ -99,8 +130,7 @@ function toMockSnapshot(): IntelligenceSnapshot {
   };
 }
 
-function toVendorSnapshot(): IntelligenceSnapshot {
-  const vendor = resolveVendorName();
+function toVendorSimulatedSnapshot(vendor: string): IntelligenceSnapshot {
   const flowTape = getFlowTape().map((trade) => ({
     ...trade,
     premiumUsd: jitter(trade.premiumUsd, `${vendor}:${trade.id}:premium`, 0.14),
@@ -148,9 +178,11 @@ function toVendorSnapshot(): IntelligenceSnapshot {
       source: "vendor",
       vendor,
       configured: hasVendorCredentials(),
-      // Until a direct paid feed is attached, the adapter runs deterministic simulation.
-      simulated: !hasVendorCredentials(),
+      simulated: true,
+      mode: "simulated",
+      detail: "Vendor selected but live endpoints unavailable; using deterministic simulation.",
       generatedAt: new Date().toISOString(),
+      cacheTtlMs: resolveCacheTtlMs(),
     },
     overview,
     flowTape,
@@ -161,10 +193,131 @@ function toVendorSnapshot(): IntelligenceSnapshot {
   };
 }
 
-export function getIntelligenceSnapshot(): IntelligenceSnapshot {
-  return resolveProviderSource() === "vendor" ? toVendorSnapshot() : toMockSnapshot();
+function buildOverview(snapshot: Pick<IntelligenceSnapshot, "flowTape" | "darkPoolTape" | "cryptoTape" | "news">) {
+  return {
+    generatedAt: new Date().toISOString(),
+    optionsPremium24hUsd: snapshot.flowTape.reduce((total, trade) => total + trade.premiumUsd, 0),
+    darkPoolNotional24hUsd: snapshot.darkPoolTape.reduce(
+      (total, trade) => total + trade.notionalUsd,
+      0,
+    ),
+    cryptoNotional24hUsd: snapshot.cryptoTape.reduce((total, trade) => total + trade.notionalUsd, 0),
+    highImpactNewsCount: snapshot.news.filter((item) => item.impact === "high").length,
+    unusualContractsCount: snapshot.flowTape.filter((trade) => trade.unusualScore >= 80).length,
+  } satisfies IntelligenceOverview;
 }
 
-export function getIntelligenceProviderStatus() {
-  return getIntelligenceSnapshot().status;
+function buildCacheKey() {
+  const vendor = resolveVendorName().toLowerCase();
+  const source = resolveProviderSource();
+  const keyParts = [
+    source,
+    vendor,
+    String(Boolean(process.env.UNUSUALWHALES_API_KEY)),
+    String(Boolean(process.env.POLYGON_API_KEY)),
+    String(Boolean(process.env.BLOOMBERG_API_KEY || process.env.BPIPE_TOKEN)),
+  ];
+  return keyParts.join(":");
+}
+
+function getCachedSnapshot(cacheKey: string) {
+  const cacheRef = getSnapshotCacheRef();
+  const cached = cacheRef.__TRADEHAX_INTELLIGENCE_SNAPSHOT_CACHE__;
+  if (!cached) return null;
+  if (cached.key !== cacheKey) return null;
+  if (cached.expiresAt <= Date.now()) return null;
+  return cached.snapshot;
+}
+
+function setCachedSnapshot(cacheKey: string, snapshot: IntelligenceSnapshot) {
+  const cacheRef = getSnapshotCacheRef();
+  cacheRef.__TRADEHAX_INTELLIGENCE_SNAPSHOT_CACHE__ = {
+    key: cacheKey,
+    snapshot,
+    expiresAt: Date.now() + resolveCacheTtlMs(),
+  };
+}
+
+async function toVendorSnapshot() {
+  const vendor = resolveVendorName();
+  const simulatedBase = toVendorSimulatedSnapshot(vendor);
+  const adapter = resolveVendorAdapter(vendor);
+
+  if (!adapter) {
+    return {
+      ...simulatedBase,
+      status: {
+        ...simulatedBase.status,
+        detail: `No direct adapter available for vendor '${vendor}'.`,
+      },
+    };
+  }
+
+  try {
+    const adapterResult = await adapter({
+      baseFlowTape: simulatedBase.flowTape,
+      baseDarkPoolTape: simulatedBase.darkPoolTape,
+      basePoliticsTape: simulatedBase.politicsTape,
+      baseNews: simulatedBase.news,
+    });
+
+    if (!adapterResult) {
+      return simulatedBase;
+    }
+
+    const mergedSnapshot: IntelligenceSnapshot = {
+      flowTape: adapterResult.flowTape || simulatedBase.flowTape,
+      darkPoolTape: adapterResult.darkPoolTape || simulatedBase.darkPoolTape,
+      politicsTape: adapterResult.politicsTape || simulatedBase.politicsTape,
+      cryptoTape: simulatedBase.cryptoTape,
+      news: adapterResult.news || simulatedBase.news,
+      overview: simulatedBase.overview,
+      status: simulatedBase.status,
+    };
+
+    mergedSnapshot.overview = buildOverview({
+      flowTape: mergedSnapshot.flowTape,
+      darkPoolTape: mergedSnapshot.darkPoolTape,
+      cryptoTape: mergedSnapshot.cryptoTape,
+      news: mergedSnapshot.news,
+    });
+
+    const liveMode = adapterResult.liveData;
+    mergedSnapshot.status = {
+      ...simulatedBase.status,
+      simulated: !liveMode,
+      mode: liveMode ? "live" : "simulated",
+      detail: adapterResult.detail || simulatedBase.status.detail,
+      generatedAt: new Date().toISOString(),
+      cacheTtlMs: resolveCacheTtlMs(),
+    };
+
+    return mergedSnapshot;
+  } catch (error) {
+    return {
+      ...simulatedBase,
+      status: {
+        ...simulatedBase.status,
+        lastError: error instanceof Error ? error.message : "Vendor adapter failure.",
+      },
+    };
+  }
+}
+
+export async function getIntelligenceSnapshot(): Promise<IntelligenceSnapshot> {
+  const source = resolveProviderSource();
+  const cacheKey = buildCacheKey();
+  const cached = getCachedSnapshot(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const snapshot = source === "vendor" ? await toVendorSnapshot() : toMockSnapshot();
+  setCachedSnapshot(cacheKey, snapshot);
+  return snapshot;
+}
+
+export async function getIntelligenceProviderStatus() {
+  const snapshot = await getIntelligenceSnapshot();
+  return snapshot.status;
 }

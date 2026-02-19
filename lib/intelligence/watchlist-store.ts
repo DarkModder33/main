@@ -1,15 +1,19 @@
+import {
+  getIntelligenceStorageStatus,
+  deletePersistedWatchlistItem,
+  insertPersistedAlerts,
+  listPersistedAlerts,
+  listPersistedWatchlistItems,
+  markPersistedAlertsDelivered,
+  upsertPersistedWatchlistItem,
+} from "@/lib/intelligence/persistence";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import {
   IntelligenceAlert,
+  IntelligenceStorageStatus,
   WatchlistAssetType,
   WatchlistItem,
 } from "@/lib/intelligence/types";
-
-type WatchlistStore = {
-  watchlists: Map<string, WatchlistItem[]>;
-  alerts: Map<string, IntelligenceAlert[]>;
-  dedupeKeys: Map<string, Map<string, number>>;
-};
 
 type UpsertWatchlistInput = {
   symbol: string;
@@ -27,22 +31,19 @@ type EvaluateAlertsResult = {
   generatedAt: string;
   newAlerts: IntelligenceAlert[];
   alerts: IntelligenceAlert[];
+  storage: IntelligenceStorageStatus;
 };
 
-function getStore(): WatchlistStore {
+type DedupeStore = Map<string, Map<string, number>>;
+
+function getDedupeStore(): DedupeStore {
   const globalRef = globalThis as typeof globalThis & {
-    __TRADEHAX_INTELLIGENCE_WATCHLIST__?: WatchlistStore;
+    __TRADEHAX_INTELLIGENCE_DEDUPE__?: DedupeStore;
   };
-
-  if (!globalRef.__TRADEHAX_INTELLIGENCE_WATCHLIST__) {
-    globalRef.__TRADEHAX_INTELLIGENCE_WATCHLIST__ = {
-      watchlists: new Map(),
-      alerts: new Map(),
-      dedupeKeys: new Map(),
-    };
+  if (!globalRef.__TRADEHAX_INTELLIGENCE_DEDUPE__) {
+    globalRef.__TRADEHAX_INTELLIGENCE_DEDUPE__ = new Map();
   }
-
-  return globalRef.__TRADEHAX_INTELLIGENCE_WATCHLIST__;
+  return globalRef.__TRADEHAX_INTELLIGENCE_DEDUPE__;
 }
 
 function nowIso() {
@@ -81,38 +82,57 @@ function normalizeConfidence(value: unknown) {
   return value;
 }
 
-function getUserWatchlist(userId: string) {
-  const key = normalizeUserId(userId);
-  const store = getStore();
-  if (!store.watchlists.has(key)) {
-    store.watchlists.set(key, []);
-  }
-  return store.watchlists.get(key) ?? [];
-}
-
-function getUserAlerts(userId: string) {
-  const key = normalizeUserId(userId);
-  const store = getStore();
-  if (!store.alerts.has(key)) {
-    store.alerts.set(key, []);
-  }
-  return store.alerts.get(key) ?? [];
-}
-
-function getUserDedupeMap(userId: string) {
-  const key = normalizeUserId(userId);
-  const store = getStore();
-  if (!store.dedupeKeys.has(key)) {
-    store.dedupeKeys.set(key, new Map());
-  }
-  return store.dedupeKeys.get(key) ?? new Map<string, number>();
-}
-
 function createAlertId(prefix = "ialert") {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function shouldCreateAlert(userId: string, dedupeKey: string, nowMs: number) {
+function toDedupeKey(input: {
+  source: IntelligenceAlert["source"];
+  symbol: string;
+  referenceId?: string;
+  title?: string;
+}) {
+  return `${input.source}:${input.symbol}:${input.referenceId || input.title || "unknown"}`;
+}
+
+function getUserDedupeMap(userId: string) {
+  const store = getDedupeStore();
+  const key = normalizeUserId(userId);
+  if (!store.has(key)) {
+    store.set(key, new Map());
+  }
+  return store.get(key) || new Map<string, number>();
+}
+
+function buildRecentPersistentKeys(alerts: IntelligenceAlert[], nowMs: number) {
+  const windowMs = 30 * 60_000;
+  const keys = new Set<string>();
+  for (const alert of alerts) {
+    const parsedTs = Date.parse(alert.triggeredAt);
+    if (!Number.isFinite(parsedTs)) continue;
+    if (nowMs - parsedTs > windowMs) continue;
+    keys.add(
+      toDedupeKey({
+        source: alert.source,
+        symbol: alert.symbol,
+        referenceId: alert.referenceId,
+        title: alert.title,
+      }),
+    );
+  }
+  return keys;
+}
+
+function shouldCreateAlert(
+  userId: string,
+  dedupeKey: string,
+  nowMs: number,
+  recentPersistentKeys: Set<string>,
+) {
+  if (recentPersistentKeys.has(dedupeKey)) {
+    return false;
+  }
+
   const map = getUserDedupeMap(userId);
   const existingTs = map.get(dedupeKey);
   const windowMs = 30 * 60_000;
@@ -122,7 +142,9 @@ function shouldCreateAlert(userId: string, dedupeKey: string, nowMs: number) {
   map.set(dedupeKey, nowMs);
 
   if (map.size > 2_000) {
-    const sortedEntries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]).slice(0, 1_500);
+    const sortedEntries = Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 1_400);
     map.clear();
     for (const [key, value] of sortedEntries) {
       map.set(key, value);
@@ -132,35 +154,27 @@ function shouldCreateAlert(userId: string, dedupeKey: string, nowMs: number) {
   return true;
 }
 
-function pushAlert(userId: string, alert: IntelligenceAlert) {
-  const alerts = getUserAlerts(userId);
-  alerts.unshift(alert);
-  if (alerts.length > 600) {
-    alerts.splice(600);
-  }
+export async function listWatchlist(userId: string) {
+  return listPersistedWatchlistItems(normalizeUserId(userId));
 }
 
-export function listWatchlist(userId: string) {
-  return getUserWatchlist(userId).slice().sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-}
-
-export function upsertWatchlistItem(userId: string, input: UpsertWatchlistInput) {
+export async function upsertWatchlistItem(userId: string, input: UpsertWatchlistInput) {
   const symbol = normalizeSymbol(String(input.symbol || ""));
   if (!symbol) {
     return { ok: false as const, error: "Symbol is required." };
   }
 
+  const normalizedUserId = normalizeUserId(userId);
   const assetType: WatchlistAssetType =
     input.assetType === "crypto" || symbol.includes("/") ? "crypto" : "equity";
-  const normalizedUserId = normalizeUserId(userId);
-  const items = getUserWatchlist(normalizedUserId);
-  const existingIndex = items.findIndex(
+  const existingItems = await listPersistedWatchlistItems(normalizedUserId);
+  const existing = existingItems.find(
     (item) => item.symbol === symbol && item.assetType === assetType,
   );
-
   const timestamp = nowIso();
-  const base: WatchlistItem = {
-    id: existingIndex >= 0 ? items[existingIndex].id : createAlertId("watch"),
+
+  const item: WatchlistItem = {
+    id: existing?.id || createAlertId("watch"),
     userId: normalizedUserId,
     symbol,
     assetType,
@@ -171,71 +185,52 @@ export function upsertWatchlistItem(userId: string, input: UpsertWatchlistInput)
     minConfidence: normalizeConfidence(input.minConfidence),
     notes: normalizeNotes(input.notes),
     active: input.active !== false,
-    createdAt: existingIndex >= 0 ? items[existingIndex].createdAt : timestamp,
+    createdAt: existing?.createdAt || timestamp,
     updatedAt: timestamp,
   };
 
-  if (existingIndex >= 0) {
-    items[existingIndex] = base;
-  } else {
-    items.unshift(base);
-  }
-
-  return { ok: true as const, item: base };
+  const persisted = await upsertPersistedWatchlistItem(item);
+  return { ok: true as const, item: persisted };
 }
 
-export function removeWatchlistItem(
+export async function removeWatchlistItem(
   userId: string,
   symbol: string,
   assetType?: WatchlistAssetType,
 ) {
-  const normalizedUserId = normalizeUserId(userId);
   const normalizedSymbol = normalizeSymbol(symbol);
   if (!normalizedSymbol) {
     return { ok: false as const, error: "Symbol is required." };
   }
-  const items = getUserWatchlist(normalizedUserId);
-  const before = items.length;
 
-  const filtered = items.filter((item) => {
-    if (item.symbol !== normalizedSymbol) return true;
-    if (assetType && item.assetType !== assetType) return true;
-    return false;
-  });
-
-  getStore().watchlists.set(normalizedUserId, filtered);
+  const removed = await deletePersistedWatchlistItem(userId, normalizedSymbol, assetType);
   return {
     ok: true as const,
-    removed: Math.max(0, before - filtered.length),
+    removed,
   };
 }
 
-export function listAlerts(userId: string, limit = 60) {
-  const safeLimit = Number.isFinite(limit) ? Math.min(200, Math.max(1, Math.floor(limit))) : 60;
-  return getUserAlerts(userId)
-    .slice()
-    .sort((a, b) => Date.parse(b.triggeredAt) - Date.parse(a.triggeredAt))
-    .slice(0, safeLimit);
+export async function listAlerts(userId: string, limit = 60) {
+  return listPersistedAlerts(normalizeUserId(userId), limit);
 }
 
-export function markAlertsDeliveredToDiscord(userId: string, alertIds: string[], deliveredAt: string) {
-  if (alertIds.length === 0) return;
-  const alerts = getUserAlerts(userId);
-  const set = new Set(alertIds);
-  for (const alert of alerts) {
-    if (set.has(alert.id)) {
-      alert.deliveredToDiscordAt = deliveredAt;
-    }
-  }
+export async function markAlertsDeliveredToDiscord(
+  userId: string,
+  alertIds: string[],
+  deliveredAt: string,
+) {
+  await markPersistedAlertsDelivered(normalizeUserId(userId), alertIds, deliveredAt);
 }
 
-export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
+export async function evaluateWatchlistAlerts(userId: string): Promise<EvaluateAlertsResult> {
   const normalizedUserId = normalizeUserId(userId);
-  const watchlist = listWatchlist(normalizedUserId).filter((item) => item.active);
-  const snapshot = getIntelligenceSnapshot();
+  const watchlist = (await listPersistedWatchlistItems(normalizedUserId)).filter((item) => item.active);
+  const snapshot = await getIntelligenceSnapshot();
   const nowMs = Date.now();
   const timestamp = new Date(nowMs).toISOString();
   const newAlerts: IntelligenceAlert[] = [];
+  const recentAlerts = await listPersistedAlerts(normalizedUserId, 260);
+  const recentPersistentKeys = buildRecentPersistentKeys(recentAlerts, nowMs);
 
   for (const item of watchlist) {
     if (item.assetType === "equity") {
@@ -250,11 +245,15 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           trade.unusualScore >= minScore,
       );
       for (const trade of flowMatches) {
-        const key = `flow:${item.symbol}:${trade.id}`;
-        if (!shouldCreateAlert(normalizedUserId, key, nowMs)) {
+        const dedupeKey = toDedupeKey({
+          source: "flow",
+          symbol: item.symbol,
+          referenceId: trade.id,
+        });
+        if (!shouldCreateAlert(normalizedUserId, dedupeKey, nowMs, recentPersistentKeys)) {
           continue;
         }
-        const alert: IntelligenceAlert = {
+        newAlerts.push({
           id: createAlertId(),
           userId: normalizedUserId,
           symbol: item.symbol,
@@ -267,9 +266,7 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           route: "/intelligence/flow",
           referenceId: trade.id,
           deliveredToDiscordAt: null,
-        };
-        pushAlert(normalizedUserId, alert);
-        newAlerts.push(alert);
+        });
       }
 
       const darkPoolMatches = snapshot.darkPoolTape.filter(
@@ -279,11 +276,15 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           trade.unusualScore >= minScore,
       );
       for (const trade of darkPoolMatches) {
-        const key = `dark:${item.symbol}:${trade.id}`;
-        if (!shouldCreateAlert(normalizedUserId, key, nowMs)) {
+        const dedupeKey = toDedupeKey({
+          source: "dark_pool",
+          symbol: item.symbol,
+          referenceId: trade.id,
+        });
+        if (!shouldCreateAlert(normalizedUserId, dedupeKey, nowMs, recentPersistentKeys)) {
           continue;
         }
-        const alert: IntelligenceAlert = {
+        newAlerts.push({
           id: createAlertId(),
           userId: normalizedUserId,
           symbol: item.symbol,
@@ -296,20 +297,23 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           route: "/intelligence/dark-pool",
           referenceId: trade.id,
           deliveredToDiscordAt: null,
-        };
-        pushAlert(normalizedUserId, alert);
-        newAlerts.push(alert);
+        });
       }
 
       const newsMatches = snapshot.news.filter(
-        (news) => news.symbol === item.symbol && (news.impact === "high" || news.impact === "medium"),
+        (news) =>
+          news.symbol === item.symbol && (news.impact === "high" || news.impact === "medium"),
       );
       for (const news of newsMatches) {
-        const key = `news:${item.symbol}:${news.id}`;
-        if (!shouldCreateAlert(normalizedUserId, key, nowMs)) {
+        const dedupeKey = toDedupeKey({
+          source: "news",
+          symbol: item.symbol,
+          referenceId: news.id,
+        });
+        if (!shouldCreateAlert(normalizedUserId, dedupeKey, nowMs, recentPersistentKeys)) {
           continue;
         }
-        const alert: IntelligenceAlert = {
+        newAlerts.push({
           id: createAlertId(),
           userId: normalizedUserId,
           symbol: item.symbol,
@@ -322,9 +326,7 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           route: "/intelligence/news",
           referenceId: news.id,
           deliveredToDiscordAt: null,
-        };
-        pushAlert(normalizedUserId, alert);
-        newAlerts.push(alert);
+        });
       }
     } else {
       const minCryptoNotional = item.minCryptoNotionalUsd ?? 500_000;
@@ -340,11 +342,15 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
       });
 
       for (const trade of matches) {
-        const key = `crypto:${item.symbol}:${trade.id}`;
-        if (!shouldCreateAlert(normalizedUserId, key, nowMs)) {
+        const dedupeKey = toDedupeKey({
+          source: "crypto",
+          symbol: item.symbol,
+          referenceId: trade.id,
+        });
+        if (!shouldCreateAlert(normalizedUserId, dedupeKey, nowMs, recentPersistentKeys)) {
           continue;
         }
-        const alert: IntelligenceAlert = {
+        newAlerts.push({
           id: createAlertId(),
           userId: normalizedUserId,
           symbol: item.symbol,
@@ -357,16 +363,23 @@ export function evaluateWatchlistAlerts(userId: string): EvaluateAlertsResult {
           route: "/intelligence/crypto-flow",
           referenceId: trade.id,
           deliveredToDiscordAt: null,
-        };
-        pushAlert(normalizedUserId, alert);
-        newAlerts.push(alert);
+        });
       }
     }
+  }
+
+  if (newAlerts.length > 0) {
+    await insertPersistedAlerts(newAlerts);
   }
 
   return {
     generatedAt: timestamp,
     newAlerts,
-    alerts: listAlerts(normalizedUserId, 80),
+    alerts: await listPersistedAlerts(normalizedUserId, 80),
+    storage: await getIntelligenceStorageStatus(),
   };
+}
+
+export async function getWatchlistStorageStatus() {
+  return getIntelligenceStorageStatus();
 }

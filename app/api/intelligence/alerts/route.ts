@@ -4,6 +4,7 @@ import {
 } from "@/lib/intelligence/discord";
 import {
   evaluateWatchlistAlerts,
+  getWatchlistStorageStatus,
   listAlerts,
   markAlertsDeliveredToDiscord,
 } from "@/lib/intelligence/watchlist-store";
@@ -62,8 +63,9 @@ export async function GET(request: NextRequest) {
   const subscription = getSubscription(userId);
   const route = resolveDiscordRouteForTier(subscription.tier);
 
-  const evaluation = evaluate ? evaluateWatchlistAlerts(userId) : null;
-  const alerts = evaluation ? evaluation.alerts.slice(0, limit) : listAlerts(userId, limit);
+  const evaluation = evaluate ? await evaluateWatchlistAlerts(userId) : null;
+  const alerts = evaluation ? evaluation.alerts.slice(0, limit) : await listAlerts(userId, limit);
+  const storage = evaluation?.storage || (await getWatchlistStorageStatus());
 
   return NextResponse.json(
     {
@@ -78,7 +80,9 @@ export async function GET(request: NextRequest) {
         channelLabel: route?.channelLabel ?? "not-configured",
         viaFallback: route?.viaFallback ?? false,
         webhookConfigured: Boolean(route),
+        defaultThreadId: process.env.TRADEHAX_DISCORD_DEFAULT_THREAD_ID || undefined,
       },
+      storage,
     },
     { headers: rateLimit.headers },
   );
@@ -109,8 +113,8 @@ export async function POST(request: NextRequest) {
   const limit = parseLimit(body.limit, 60);
   const subscription = getSubscription(userId);
 
-  const evaluation = shouldEvaluate ? evaluateWatchlistAlerts(userId) : null;
-  const alerts = evaluation ? evaluation.alerts : listAlerts(userId, limit);
+  const evaluation = shouldEvaluate ? await evaluateWatchlistAlerts(userId) : null;
+  const alerts = evaluation ? evaluation.alerts : await listAlerts(userId, limit);
   const newAlerts = evaluation?.newAlerts ?? [];
   const alertsForDispatch = newAlerts.length > 0 ? newAlerts : alerts.slice(0, 12);
 
@@ -124,7 +128,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (dispatchResult.ok && alertsForDispatch.length > 0) {
-      markAlertsDeliveredToDiscord(
+      await markAlertsDeliveredToDiscord(
         userId,
         alertsForDispatch.map((alert) => alert.id),
         dispatchResult.deliveredAt,
@@ -139,8 +143,9 @@ export async function POST(request: NextRequest) {
       tier: subscription.tier,
       generatedAt: new Date().toISOString(),
       newAlertsCount: newAlerts.length,
-      alerts: listAlerts(userId, limit),
+      alerts: await listAlerts(userId, limit),
       dispatch: dispatchResult,
+      storage: evaluation?.storage || (await getWatchlistStorageStatus()),
     },
     { headers: rateLimit.headers },
   );

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const chamber = sanitizeQueryText(search.get("chamber"), 8);
   const action = sanitizeQueryText(search.get("action"), 8);
   const theme = sanitizeQueryText(search.get("theme"), 24);
-  const snapshot = getIntelligenceSnapshot();
+  const snapshot = await getIntelligenceSnapshot();
 
   const items = snapshot.politicsTape
     .filter((trade) => {

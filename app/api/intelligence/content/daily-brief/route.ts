@@ -4,8 +4,8 @@ import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
-function buildFallbackBrief(focus: string) {
-  const snapshot = getIntelligenceSnapshot();
+async function buildFallbackBrief(focus: string) {
+  const snapshot = await getIntelligenceSnapshot();
   const overview = snapshot.overview;
   const topFlow = snapshot.flowTape
     .slice()
@@ -46,8 +46,8 @@ function buildFallbackBrief(focus: string) {
   };
 }
 
-function buildPrompt(focus: string) {
-  const snapshot = getIntelligenceSnapshot();
+async function buildPrompt(focus: string) {
+  const snapshot = await getIntelligenceSnapshot();
   const overview = snapshot.overview;
   const flow = snapshot.flowTape.slice(0, 3);
   const crypto = snapshot.cryptoTape.slice(0, 3);
@@ -83,11 +83,12 @@ export async function GET(request: NextRequest) {
 
   const focus = sanitizeQueryText(request.nextUrl.searchParams.get("focus"), 32) || "cross-asset";
 
-  const fallback = buildFallbackBrief(focus);
+  const fallback = await buildFallbackBrief(focus);
 
   try {
     const client = getLLMClient();
-    const generated = await client.generate(buildPrompt(focus));
+    const prompt = await buildPrompt(focus);
+    const generated = await client.generate(prompt);
     const content = generated.text.trim();
     if (!content) {
       return NextResponse.json(

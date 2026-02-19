@@ -1,4 +1,4 @@
-import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
+import { getWatchlistStorageStatus } from "@/lib/intelligence/watchlist-store";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -9,20 +9,18 @@ export async function GET(request: NextRequest) {
   }
 
   const rateLimit = enforceRateLimit(request, {
-    keyPrefix: "intelligence:overview",
-    max: 120,
+    keyPrefix: "intelligence:storage",
+    max: 60,
     windowMs: 60_000,
   });
   if (!rateLimit.allowed) {
     return rateLimit.response;
   }
-  const snapshot = await getIntelligenceSnapshot();
 
   return NextResponse.json(
     {
       ok: true,
-      overview: snapshot.overview,
-      provider: snapshot.status,
+      storage: await getWatchlistStorageStatus(),
     },
     { headers: rateLimit.headers },
   );
