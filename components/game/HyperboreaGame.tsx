@@ -456,6 +456,10 @@ export function HyperboreaGame({
       playerYaw = yawFromGridDirection(bestDirection.dx, bestDirection.dy);
     }
     let bobTimer = 0;
+    let targetCameraTilt = 0;
+    let currentCameraTilt = 0;
+    let cameraShake = 0;
+    let cameraShakeDir = new THREE.Vector3();
 
     let energy = 25;
     let score = 0;
@@ -680,6 +684,8 @@ export function HyperboreaGame({
       if (direction > 0 && blockedMoveHintCooldownSeconds <= 0) {
         blockedMoveHintCooldownSeconds = 2.4;
         emitStatus("Path blocked. Turn left/right or find a way to unlock.");
+        cameraShake = 0.15;
+        cameraShakeDir.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
       }
 
       return false;
@@ -1305,7 +1311,11 @@ export function HyperboreaGame({
 
       if (!missionComplete) {
         playerYaw += turnInput * 2.25 * dt;
+        targetCameraTilt = turnInput * 0.05;
       }
+
+      currentCameraTilt += (targetCameraTilt - currentCameraTilt) * 0.1;
+      cameraShake = Math.max(0, cameraShake - dt * 0.5);
 
     const moveSpeed = missionComplete ? 0 : (isMobile ? 6.8 : 4.2) * (combo >= 5 ? 1.5 : 1.0);
     if (combo >= 5 && simulationFrame % 30 === 0) {
@@ -1381,10 +1391,30 @@ export function HyperboreaGame({
 
       const bobAmplitude = movedDistance > 0.0002 ? 0.04 : 0.015;
       const bobOffset = Math.sin(bobTimer) * bobAmplitude;
-      camera.position.set(playerX, EYE_HEIGHT + bobOffset, playerZ);
+      
+      const shakeOffset = cameraShakeDir.clone().multiplyScalar(cameraShake);
+      camera.position.set(
+        playerX + shakeOffset.x, 
+        EYE_HEIGHT + bobOffset + shakeOffset.y, 
+        playerZ + shakeOffset.z
+      );
+      
       const lookX = playerX + Math.sin(playerYaw);
       const lookZ = playerZ + Math.cos(playerYaw);
       camera.lookAt(lookX, EYE_HEIGHT + bobOffset * 0.45, lookZ);
+      camera.rotation.z = currentCameraTilt;
+      
+      playerLight.position.set(playerX, EYE_HEIGHT, playerZ);
+      const nearest = missionComplete ? null : getNearestInteractionCandidate();
+      const hasInteraction = Boolean(nearest);
+
+      if (hasInteraction) {
+        playerLight.color.set(0x00ffaa); 
+        playerLight.intensity = (isMobile ? 1.2 : 0.95) + Math.sin(nowMs * 0.01) * 0.15;
+      } else {
+        playerLight.color.set(0xffffff);
+        playerLight.intensity = (isMobile ? 0.8 : 0.6) + Math.sin(nowMs * 0.005) * 0.05;
+      }
 
       for (const artifact of artifactInstances) {
         if (artifact.collected) continue;
@@ -1463,7 +1493,11 @@ export function HyperboreaGame({
         ? "Use on-screen controls. Move close to relics for auto-pickup. Tap Use near rune nodes."
         : "W/S move, A/D turn, E use. Move close to relics for auto-pickup and use runes to unlock paths.",
     );
-    animate();
+    const playerLight = new THREE.PointLight(0xffffff, isMobile ? 0.8 : 0.6, 8);
+    playerLight.castShadow = !isMobile;
+    scene.add(playerLight);
+
+    const animate = () => {
 
     return () => {
       isMounted = false;
@@ -1530,7 +1564,13 @@ export function HyperboreaGame({
         className="w-full h-full"
         aria-label="Hyperborea first-person dungeon canvas"
       />
+
+      {/* Cinematic Vignette */}
+      <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_120px_rgba(0,0,0,0.85)] z-[1]" />
       
+      {/* Scanline Effect */}
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_3px,3px_100%] z-[1] opacity-40" />
+
       {/* Neural Minimap Overlay */}
       <div className="absolute bottom-6 right-6 w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border border-cyan-500/30 bg-black/80 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.2)] pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-80">
         <div className="absolute top-2 left-3 z-10 flex items-center gap-1.5">

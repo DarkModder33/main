@@ -949,52 +949,60 @@ export default function GamePage() {
           </div>
         </div>
 
-        {/* Mobile touch buttons: explicit first-person controls */}
-        <div className="absolute bottom-0 inset-x-0 z-20 flex justify-between px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:hidden pointer-events-none">
-          <div className="theme-floating-panel theme-floating-panel--info pointer-events-auto grid grid-cols-2 gap-2 p-2">
-            <button
-              type="button"
-              {...getHoldButtonHandlers("turn_left")}
-              aria-label="Turn left"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
-            >
-              Turn L
-            </button>
-            <button
-              type="button"
-              {...getHoldButtonHandlers("turn_right")}
-              aria-label="Turn right"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
-            >
-              Turn R
-            </button>
+        {/* Mobile touch controls: ergonomic layout */}
+        <div className="absolute bottom-6 inset-x-0 z-20 flex justify-between items-end px-6 pb-[max(env(safe-area-inset-bottom),0.5rem)] sm:hidden pointer-events-none">
+          {/* Movement Cluster (D-pad style) */}
+          <div className="pointer-events-auto grid grid-cols-3 gap-1.5 p-2 bg-black/30 backdrop-blur-[2px] rounded-2xl border border-white/5 shadow-2xl">
+            <div />
             <button
               type="button"
               {...getHoldButtonHandlers("forward")}
               aria-label="Move forward"
-              className="theme-cta theme-cta--loud theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--loud w-14 h-14 flex items-center justify-center rounded-xl bg-emerald-500/40 border-emerald-400/30 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              Forward
+              <span className="text-xl">↑</span>
+            </button>
+            <div />
+            
+            <button
+              type="button"
+              {...getHoldButtonHandlers("turn_left")}
+              aria-label="Turn left"
+              className="theme-cta theme-cta--secondary w-14 h-14 flex items-center justify-center rounded-xl bg-white/10 border-white/10 active:scale-90 transition-transform [touch-action:manipulation]"
+            >
+              <span className="text-xl">←</span>
             </button>
             <button
               type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="theme-cta theme-cta--muted theme-cta--compact px-3 py-3 text-xs font-semibold [touch-action:manipulation]"
+              className="theme-cta theme-cta--muted w-14 h-14 flex items-center justify-center rounded-xl bg-white/10 border-white/10 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              Back
+              <span className="text-xl">↓</span>
+            </button>
+            <button
+              type="button"
+              {...getHoldButtonHandlers("turn_right")}
+              aria-label="Turn right"
+              className="theme-cta theme-cta--secondary w-14 h-14 flex items-center justify-center rounded-xl bg-white/10 border-white/10 active:scale-90 transition-transform [touch-action:manipulation]"
+            >
+              <span className="text-xl">→</span>
             </button>
           </div>
-          <div className="pointer-events-auto ml-3 flex items-end">
+
+          {/* Action Button */}
+          <div className="pointer-events-auto">
             <button
               type="button"
               aria-label="Use or interact"
               onClick={() => emitControlAction("use", true)}
-              className={`theme-cta theme-cta--compact min-h-20 min-w-20 px-4 py-4 text-sm font-bold [touch-action:manipulation] ${
-                isInteractionReady ? "theme-cta--loud animate-pulse" : "theme-cta--secondary"
+              className={`w-24 h-24 rounded-full flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-2xl transition-all [touch-action:manipulation] ${
+                isInteractionReady 
+                  ? "bg-emerald-500 text-white border-4 border-emerald-300 animate-pulse scale-110 shadow-[0_0_30px_rgba(16,185,129,0.6)]" 
+                  : "bg-white/10 text-white/50 border-2 border-white/10 active:scale-95"
               }`}
             >
-              Use
+              {isInteractionReady ? "USE" : "ACTION"}
             </button>
           </div>
         </div>
