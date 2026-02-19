@@ -106,6 +106,22 @@ export default function LessonsPage() {
                 “Guitar is the heart of this business. My job is to coach you with clarity, discipline, and creativity—then use smart AI tools
                 to personalize every step so your progress is real, trackable, and motivating.”
               </blockquote>
+
+              <div className="mt-4 rounded-xl border border-cyan-400/30 bg-black/45 p-3 sm:p-4">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-2">Live Performance Clip</p>
+                <div className="mx-auto max-w-[340px] overflow-hidden rounded-xl border border-cyan-300/25 bg-black/70">
+                  <iframe
+                    src="https://www.instagram.com/reel/DUZmJ_cApag/embed"
+                    className="h-[420px] w-full"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    allowFullScreen
+                    title="Michael S. Flaherty guitar performance reel"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-cyan-100/70">
+                  Tap audio inside the reel player if needed. This clip showcases real playing tone and phrasing used in lessons.
+                </p>
+              </div>
             </div>
           </div>
         </section>
