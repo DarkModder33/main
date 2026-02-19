@@ -105,36 +105,36 @@ export function GameHUD({
   }, [cloversCollected]);
 
   return (
-    <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 pointer-events-none z-10">
+    <div className="absolute top-0 left-0 right-0 p-1 sm:p-4 pointer-events-none z-10">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-wrap gap-2 mb-2">
-          {/* Web5 Vault Status */}
-          <div className="bg-black/95 backdrop-blur-md border border-cyan-500/50 rounded-full px-3 py-1 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
-              Web5_Vault: {vaultCount} Artifacts
+        <div className="flex flex-wrap gap-1.5 mb-1 sm:mb-2">
+          {/* Web5 Vault Status - Compact on mobile */}
+          <div className="bg-black/90 backdrop-blur-md border border-cyan-500/40 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="text-[8px] sm:text-[10px] font-mono text-cyan-400 uppercase tracking-widest whitespace-nowrap">
+              Vault: {vaultCount}
             </span>
           </div>
           {combo >= 5 && (
-            <div className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/50 rounded-full px-3 py-1 flex items-center gap-2 animate-bounce">
-              <span className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">
-                Overclock_Active
+            <div className="bg-yellow-500/20 backdrop-blur-md border border-yellow-500/50 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 flex items-center gap-1.5 animate-bounce">
+              <span className="text-[8px] sm:text-[10px] font-mono text-yellow-400 uppercase tracking-widest whitespace-nowrap">
+                Overclock
               </span>
             </div>
           )}
         </div>
-        {/* Top HUD - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-2 sm:gap-4">
-          {/* Energy Bar */}
-          <div className={`bg-black/90 backdrop-blur-sm border rounded-lg p-3 sm:p-4 w-full sm:min-w-[300px] transition-all ${
-            showEnergyPulse ? 'scale-105 border-yellow-400' : 'border-purple-500/30'
+        {/* Top HUD - Mobile Optimized Grid */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-row items-stretch sm:items-start justify-between gap-1.5 sm:gap-4">
+          {/* Energy Bar - Spans 2 columns on mobile */}
+          <div className={`col-span-2 bg-black/85 backdrop-blur-sm border rounded-lg p-2 sm:p-4 transition-all ${
+            showEnergyPulse ? 'scale-[1.02] border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.3)]' : 'border-purple-500/20'
           }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className={`w-5 h-5 ${showEnergyPulse ? 'text-yellow-300 animate-pulse' : 'text-yellow-400'}`} />
-              <span className="text-white font-bold text-sm sm:text-base">Energy</span>
-              <span className="text-purple-400 ml-auto text-sm sm:text-base font-bold">{energy}/100</span>
+            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+              <Zap className={`w-4 h-4 sm:w-5 sm:h-5 ${showEnergyPulse ? 'text-yellow-300 animate-pulse' : 'text-yellow-400'}`} />
+              <span className="text-white font-bold text-xs sm:text-base">Energy</span>
+              <span className="text-purple-400 ml-auto text-xs sm:text-base font-bold">{energy}/100</span>
             </div>
-            <div className="w-full h-3 sm:h-3 bg-gray-800 rounded-full overflow-hidden shadow-inner">
+            <div className="w-full h-1.5 sm:h-3 bg-gray-900/80 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
                   portalUnlocked
@@ -144,88 +144,75 @@ export function GameHUD({
                 style={{ width: `${energyPercentage}%` }}
               />
             </div>
-            {portalUnlocked && (
-              <div className="mt-2 text-center">
-                <span className="text-cyan-400 text-xs sm:text-sm font-bold animate-pulse">
-                  🌀 EXIT GATE OPEN
-                </span>
-              </div>
-            )}
           </div>
 
-          {/* Clover Counter */}
-          <div className={`bg-black/90 backdrop-blur-sm border rounded-lg p-3 sm:p-4 transition-all ${
-            showCloverPulse ? 'scale-105 border-pink-400' : 'border-purple-500/30'
+          {/* Relics & Score Row on Mobile */}
+          <div className={`bg-black/85 backdrop-blur-sm border rounded-lg p-2 sm:p-4 transition-all ${
+            showCloverPulse ? 'scale-[1.02] border-pink-400 shadow-[0_0_10px_rgba(244,114,182,0.3)]' : 'border-purple-500/20'
           }`}>
-            <div className="flex items-center gap-2">
-              <span className={`text-2xl sm:text-3xl transition-transform ${showCloverPulse ? 'scale-125' : ''}`}>🍀</span>
-              <div>
-                <div className="text-white font-bold text-sm sm:text-base">Relics</div>
-                <div className="text-purple-400 text-xs sm:text-sm">{relicsLabel} collected</div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className={`text-xl sm:text-3xl transition-transform ${showCloverPulse ? 'scale-125' : ''}`}>🍀</span>
+              <div className="min-w-0">
+                <div className="text-white font-bold text-[10px] sm:text-base uppercase tracking-tighter sm:tracking-normal">Relics</div>
+                <div className="text-purple-400 text-[10px] sm:text-sm font-bold truncate">{cloversCollected}</div>
               </div>
             </div>
           </div>
 
-          {/* Score & Combo */}
-          <div className="bg-black/90 backdrop-blur-sm border border-purple-500/30 rounded-lg p-3 sm:p-4">
-            <div className="text-center">
-              <div className="text-white font-bold text-lg sm:text-xl">{score.toLocaleString()}</div>
-              <div className="text-purple-400 text-xs sm:text-sm">Score</div>
-              {combo > 1 && (
-                <div className="mt-1 text-yellow-400 text-xs sm:text-sm font-bold animate-pulse">
-                  {combo}x Combo!
-                </div>
-              )}
+          <div className="bg-black/85 backdrop-blur-sm border border-purple-500/20 rounded-lg p-2 sm:p-4">
+            <div className="text-center flex flex-col justify-center h-full">
+              <div className="text-white font-bold text-xs sm:text-xl truncate">{score.toLocaleString()}</div>
+              <div className="text-purple-400 text-[8px] sm:text-sm uppercase tracking-widest font-medium">Score</div>
             </div>
           </div>
 
           {hasUtilityRewards && (
-            <div className="bg-black/90 backdrop-blur-sm border border-emerald-500/40 rounded-lg p-3 sm:p-4 w-full sm:min-w-[280px]">
-              <div className="flex items-center justify-between gap-3">
+            <div className="col-span-2 sm:col-span-1 bg-black/85 backdrop-blur-sm border border-emerald-500/30 rounded-lg p-2 sm:p-4 sm:min-w-[280px]">
+              <div className="flex items-center justify-between gap-2">
                 <div>
-                  <div className="text-white font-bold text-sm sm:text-base">Utility Rewards</div>
-                  <div className="text-emerald-300 text-xs sm:text-sm">
-                    {utilityPoints.toLocaleString()} pts
+                  <div className="text-white font-bold text-[10px] sm:text-base">Rewards</div>
+                  <div className="text-emerald-300 text-[10px] sm:text-sm font-mono">
+                    {utilityPoints.toLocaleString()}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-white font-bold text-sm sm:text-base">
+                  <div className="text-white font-bold text-[10px] sm:text-base">
                     {projectedTokenUnits.toLocaleString()} {tokenSymbol}
                   </div>
-                  <div className="text-emerald-300 text-[11px] sm:text-xs">Projected reward units</div>
+                  <div className="text-emerald-300 text-[8px] sm:text-xs opacity-80">Projected</div>
                 </div>
               </div>
-              <div className="mt-2 h-2.5 rounded-full bg-emerald-950/60 overflow-hidden">
+              <div className="mt-1.5 h-1 sm:h-2 rounded-full bg-emerald-950/60 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-400 via-cyan-300 to-emerald-400 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-emerald-400 via-cyan-300 to-emerald-400 transition-all duration-300 shadow-[0_0_8px_rgba(52,211,153,0.4)]"
                   style={{ width: `${utilityProgressPercent}%` }}
                 />
-              </div>
-              <div className="mt-1 text-[11px] sm:text-xs text-emerald-200/90">
-                {pointsToNextToken} utility pts until +1 {tokenSymbol}
               </div>
             </div>
           )}
 
-          <div className="bg-black/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-3 sm:p-4 w-full sm:min-w-[210px]">
-            <div className="text-cyan-200 text-xs sm:text-sm">Run Time</div>
-            <div className="text-white font-bold text-base sm:text-lg">{formatElapsed(elapsedSeconds)}</div>
-            {typeof objectiveProgress === "number" && (
-              <>
-                <div className="mt-2 text-cyan-200 text-xs sm:text-sm">Objective</div>
-                <div className="h-2 mt-1 overflow-hidden rounded-full bg-cyan-950/60">
-                  <div
-                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-300 transition-all duration-300"
-                    style={{ width: `${Math.max(0, Math.min(objectiveProgress, 100))}%` }}
-                  />
-                </div>
-                <div className="mt-1 text-[11px] sm:text-xs text-cyan-100">
-                  {Math.round(Math.max(0, Math.min(objectiveProgress, 100)))}% complete
-                </div>
-              </>
-            )}
+          <div className="col-span-2 sm:col-span-1 bg-black/85 backdrop-blur-sm border border-cyan-500/20 rounded-lg p-2 sm:p-4">
+            <div className="flex sm:block items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-cyan-200 text-[8px] sm:text-sm uppercase tracking-widest font-medium">Progress</div>
+                <div className="text-white font-bold text-xs sm:text-lg">{formatElapsed(elapsedSeconds)}</div>
+              </div>
+              <div className="flex-1 max-w-[120px] sm:max-w-none">
+                {typeof objectiveProgress === "number" && (
+                  <>
+                    <div className="h-1.5 sm:h-2 mt-1 overflow-hidden rounded-full bg-cyan-950/60">
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-400 to-blue-300 transition-all duration-300"
+                        style={{ width: `${Math.max(0, Math.min(objectiveProgress, 100))}%` }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         </div>
+
 
         {/* Progress Indicator */}
         {energy < 100 && (
