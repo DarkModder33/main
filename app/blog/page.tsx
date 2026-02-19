@@ -2,6 +2,7 @@ import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { getAllBlogPosts } from "@/lib/content/blog-posts";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -44,61 +45,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Sample blog posts - in production, these would come from a CMS or database
-const blogPosts = [
-  {
-    slug: "getting-started-solana-trading",
-    title: "Getting Started with Solana Trading: A Complete Guide",
-    excerpt:
-      "Learn how to start trading on the Solana blockchain, from setting up your wallet to executing your first trade.",
-    date: "2024-01-15",
-    readTime: 8,
-    category: "Tutorial",
-    featured: true,
-  },
-  {
-    slug: "automated-trading-strategies-2024",
-    title: "Top 5 Automated Trading Strategies for 2024",
-    excerpt:
-      "Discover the most effective automated trading strategies that professional traders use to maximize profits.",
-    date: "2024-01-12",
-    readTime: 10,
-    category: "Strategy",
-    featured: true,
-  },
-  {
-    slug: "web3-wallet-security-guide",
-    title: "Web3 Wallet Security: Protecting Your Crypto Assets",
-    excerpt:
-      "Essential security practices to keep your cryptocurrency safe from hackers and scams.",
-    date: "2024-01-10",
-    readTime: 6,
-    category: "Security",
-    featured: false,
-  },
-  {
-    slug: "defi-yield-farming-explained",
-    title: "DeFi Yield Farming Explained: Risks and Rewards",
-    excerpt:
-      "Understanding the opportunities and risks in DeFi yield farming and how to get started safely.",
-    date: "2024-01-08",
-    readTime: 12,
-    category: "DeFi",
-    featured: false,
-  },
-  {
-    slug: "solana-vs-ethereum-comparison",
-    title: "Solana vs Ethereum: Which Blockchain is Better for Trading?",
-    excerpt:
-      "A comprehensive comparison of Solana and Ethereum for cryptocurrency trading and DeFi applications.",
-    date: "2024-01-05",
-    readTime: 9,
-    category: "Comparison",
-    featured: false,
-  },
-];
-
 export default function BlogPage() {
+  const blogPosts = getAllBlogPosts();
   const featuredPosts = blogPosts.filter((post) => post.featured);
   const regularPosts = blogPosts.filter((post) => !post.featured);
 

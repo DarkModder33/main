@@ -129,7 +129,7 @@ export default function RootLayout({
                     <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
                     <a href="/billing" className="hover:text-white transition-colors uppercase">Billing</a>
                     <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
-                    <a href="/game" className="hover:text-white transition-colors uppercase">Games</a>
+                    <a href="/games" className="hover:text-white transition-colors uppercase">Games</a>
                     <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
                     <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
                   </div>

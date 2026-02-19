@@ -12,10 +12,22 @@ export const NeuralConsole = () => {
   ]);
   const [projectedValue, setProjectedValue] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const [userId, setUserId] = useState("guest_terminal");
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("tradehax_user_id");
+    const resolved =
+      stored && stored.trim().length > 0
+        ? stored
+        : `guest_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    window.localStorage.setItem("tradehax_user_id", resolved);
+    setUserId(resolved);
+  }, []);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOverclocked, setIsOverclocked] = useState(false);
@@ -37,11 +49,22 @@ export const NeuralConsole = () => {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: cmd, tier: isOverclocked ? 'OVERCLOCK' : 'UNCENSORED' })
+        body: JSON.stringify({
+          message: cmd,
+          userId,
+          tier: isOverclocked ? 'OVERCLOCK' : 'STANDARD'
+        })
       });
       
       const data = await res.json();
-      setLogs(prev => [...prev, data.response || "ERROR: NO_RESPONSE"]);
+      if (!res.ok) {
+        setLogs(prev => [
+          ...prev,
+          data?.message || data?.error || "ERROR: REQUEST_FAILED"
+        ]);
+      } else {
+        setLogs(prev => [...prev, data.response || "ERROR: NO_RESPONSE"]);
+      }
       
       // Ingest Behavior for Fine-Tuning (GLM-4.7)
       await ingestBehavior({
@@ -90,7 +113,7 @@ export const NeuralConsole = () => {
             </div>
 
             {/* Terminal Output */}
-            <div className="p-8 h-80 overflow-y-auto font-mono text-xs space-y-3 custom-scrollbar crt-flicker">
+            <div className="p-5 sm:p-8 h-72 sm:h-80 overflow-y-auto font-mono text-xs space-y-3 custom-scrollbar crt-flicker" aria-live="polite">
               {logs.map((log, i) => (
                 <div key={i} className={`${log.startsWith('>') ? 'text-zinc-400' : (isOverclocked ? 'text-red-400' : 'text-cyan-500')} transition-colors`}>
                   {log}
@@ -100,18 +123,48 @@ export const NeuralConsole = () => {
             </div>
 
             {/* Terminal Input */}
-            <div className={`p-6 border-t transition-colors ${isOverclocked ? 'bg-red-950/20 border-red-500/20' : 'bg-zinc-900/20 border-white/5'}`}>
-              <div className="flex gap-4">
+            <div className={`p-4 sm:p-6 border-t transition-colors ${isOverclocked ? 'bg-red-950/20 border-red-500/20' : 'bg-zinc-900/20 border-white/5'}`}>
+              <form
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!isProcessing && input.trim().length > 0) {
+                    processCommand(input);
+                  }
+                }}
+              >
                 <span className={`${isOverclocked ? 'text-red-500' : 'text-cyan-500'} font-bold transition-colors animate-pulse`}>$</span>
                 <input 
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !isProcessing && processCommand(input)}
                   disabled={isProcessing}
                   className="w-full bg-transparent border-none outline-none text-white placeholder:text-zinc-700 font-mono disabled:opacity-50"
                   placeholder={isProcessing ? "PROCESSING_NEURAL_STREAMS..." : "Execute neural command or ask AI..."}
+                  aria-label="Neural terminal command input"
                 />
+                <button
+                  type="submit"
+                  disabled={isProcessing || input.trim().length === 0}
+                  className="theme-cta theme-cta--secondary shrink-0 px-4 py-2 text-[10px] uppercase"
+                  aria-label="Run neural command"
+                >
+                  Run
+                </button>
+              </form>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["HELP", "STATUS", "PORTFOLIO", "GAMES", "BILLING", "BOOK"].map((shortcut) => (
+                  <button
+                    key={shortcut}
+                    type="button"
+                    disabled={isProcessing}
+                    onClick={() => processCommand(shortcut)}
+                    className="rounded-full border border-white/20 px-3 py-1 text-[10px] font-mono text-zinc-300 hover:text-white hover:border-cyan-400/60"
+                    aria-label={`Run ${shortcut} command`}
+                  >
+                    {shortcut}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
