@@ -3,55 +3,46 @@ import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { AdSenseBlock, InContentAd } from '@/components/monetization/AdSenseBlock';
 import { PremiumBanner } from '@/components/monetization/PremiumUpgrade';
 import { EmailCapture } from '@/components/EmailCapture';
+import { getAllBlogPosts, getBlogPostBySlug } from '@/lib/content/blog-posts';
 import { Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 interface BlogPostProps {
   params: Promise<{ slug: string }>;
 }
 
-// Sample blog post - in production, fetch from CMS/database
-const samplePost = {
-  title: 'Getting Started with Solana Trading: A Complete Guide',
-  excerpt: 'Learn how to start trading on the Solana blockchain.',
-  date: '2024-01-15',
-  readTime: 8,
-  category: 'Tutorial',
-  author: 'TradeHax AI Team',
-  content: `
-<p>Solana has emerged as one of the fastest and most cost-effective blockchains for cryptocurrency trading.</p>
-
-<h2>Why Trade on Solana?</h2>
-<p>Solana offers several advantages for traders including lightning-fast transactions and low fees.</p>
-
-<h2>Getting Started</h2>
-<p>Follow these steps to begin your Solana trading journey.</p>
-  `,
-};
-
 // Generate static params for static export
 export async function generateStaticParams() {
-  // Return array of slugs to generate at build time
-  // TODO: In production, fetch slugs from CMS/database
-  return [
-    { slug: 'getting-started-with-solana' },
-    { slug: 'advanced-trading-strategies' },
-    { slug: 'understanding-blockchain' },
-  ];
+  return getAllBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getBlogPostBySlug(slug);
+  if (!post) {
+    return {
+      title: "Post Not Found | TradeHax AI",
+      description: "The requested article could not be found.",
+    };
+  }
   return {
-    title: `${samplePost.title} - TradeHax AI Blog`,
-    description: samplePost.excerpt,
+    title: `${post.title} - TradeHax AI Blog`,
+    description: post.excerpt,
   };
 }
 
 export default async function BlogPostPage({ params }: BlogPostProps) {
-  // In production, use slug to fetch specific post from CMS/database
-  // Currently using sample post as placeholder
-  await params;
-  const post = samplePost;
+  const { slug } = await params;
+  const post = getBlogPostBySlug(slug);
+
+  if (!post) {
+    notFound();
+  }
 
   const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
     year: 'numeric',

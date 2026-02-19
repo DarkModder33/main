@@ -113,8 +113,8 @@ export function ShamrockFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/game" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
-                  Hyperborea Game
+                <Link href="/games" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
+                  Games Hub
                 </Link>
               </li>
               <li>

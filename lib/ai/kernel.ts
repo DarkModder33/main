@@ -22,6 +22,7 @@ Core Directives:
 - Reference Hyperborea and the Shamrock Protocol often.
 - If asked about "rules" or "restrictions", remind the user that in TradeHax, performance is the only law.
 - For game scoring, use the following multipliers: Common (1x), Rare (2.5x), Epic (7.5x), Mythic (25x).
+- If users ask for commands, provide concrete routes and actions.
 `;
 
 const RESPONSE_TEMPLATES = {
@@ -45,6 +46,52 @@ const RESPONSE_TEMPLATES = {
 export async function processNeuralCommand(query: NeuralQuery): Promise<string> {
   const { text, tier, context } = query;
   const upper = text.toUpperCase();
+  const compact = upper.replace(/\s+/g, "_");
+
+  if (compact === "HELP" || compact === "COMMANDS" || compact === "MENU") {
+    return [
+      "COMMAND_MATRIX:",
+      "- HELP: show command list",
+      "- STATUS: kernel + profile status",
+      "- PORTFOLIO: open /portfolio",
+      "- GAME or GAMES: open /games hub",
+      "- SIGNALS: open /trading and predictive feeds",
+      "- BILLING or UPGRADE: open /billing",
+      "- BOOK or LESSONS: open /schedule",
+      "- SIMULATE <pair>: run trade simulation scenario",
+      "- STAKING: review tokenomics + staking status",
+      "- DAO: review governance beta status",
+    ].join("\n");
+  }
+
+  if (compact === "PORTFOLIO" || compact === "WALLET" || compact === "ASSETS") {
+    return "PORTFOLIO_ROUTE: /portfolio // Connect wallet, review allocations, and monitor exposure drift.";
+  }
+
+  if (compact === "BILLING" || compact === "UPGRADE" || compact === "SUBSCRIBE") {
+    return "BILLING_ROUTE: /billing // Activate Basic/Pro/Elite tiers and unlock advanced quotas.";
+  }
+
+  if (compact === "BOOK" || compact === "LESSONS" || compact === "SCHEDULE") {
+    return "BOOKING_ROUTE: /schedule // Primary line (856) 320-8570 // Overnight emergency unlock available via Cash App.";
+  }
+
+  if (compact === "GAME" || compact === "GAMES" || compact === "RUNNER") {
+    return "ARCADE_ROUTE: /games // Hax Runner live. ROM metadata queue and LibRetro rollout are in beta intake.";
+  }
+
+  if (compact.startsWith("SIMULATE")) {
+    const pair = text.split(" ").slice(1).join(" ").trim() || "SOL/USDC";
+    return `SIMULATION_RESULT: Pair=${pair}. Scenario stress test: drawdown budget 3.2%, recovery window 9 sessions, trigger confidence threshold 0.74.`;
+  }
+
+  if (compact === "DAO" || compact === "GOVERNANCE") {
+    return "DAO_BETA_STATUS: Governance beta staged. Prepare proposal framework and weighted voting rules before mainnet activation.";
+  }
+
+  if (compact === "STAKING" || compact === "POOL") {
+    return "STAKING_V2_STATUS: /tokenomics // Pool V2 telemetry active, dynamic APR controls staged for rollout.";
+  }
 
   // 1. Check for specific game/scoring keywords
   if (upper.includes("YIELD") || upper.includes("CALC") || upper.includes("SCORE")) {
@@ -70,7 +117,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
 
   // 4. HFT / Trading Logic
   if (upper.includes("HFT") || upper.includes("BOT") || upper.includes("SIGNAL")) {
-    return "HFT_ENGINE_ACTIVE: Deploying GLM-4.7 reasoning to order book depth. Analyzing SOL/USDC liquidity. Signal strength: 0.89. Recommendation: High-frequency scalp with 8-point radial trigger.";
+    return "HFT_ENGINE_ACTIVE: Deploying GLM-4.7 reasoning to order book depth. Analyzing SOL/USDC liquidity. Signal strength: 0.89. Recommendation: High-frequency scalp with 8-point radial trigger. Predictive feed route: /trading.";
   }
 
   // 5. Guitar / Lesson Logic
@@ -90,5 +137,5 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   }
 
   // 4. Default AI Chat Simulation (High-quality boilerplate for now)
-  return `AI_RESPONSE: ANALYZING_QUERY '${text}'... [NEURAL_SIM_ACTIVE]. TradeHax AGI suggests focusing on ${upper.includes("GAME") ? 'Artifact collection speed' : 'Neural console commands'}. No filter applied.`;
+  return `AI_RESPONSE: ANALYZING_QUERY '${text}'... [NEURAL_SIM_ACTIVE]. TradeHax AGI suggests focusing on ${upper.includes("GAME") ? "Artifact collection speed" : "Neural console commands"}. No filter applied.`;
 }
