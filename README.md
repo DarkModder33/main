@@ -224,6 +224,23 @@ vercel
 vercel --prod
 ```
 
+### One-Button Deploy (Local Ops)
+
+Run a full local deploy pipeline with one command (or one VS Code task button):
+
+```bash
+# Production deploy (preflight + social check + quality + build + deploy)
+npm run deploy:one-click
+
+# Preview deploy
+npm run deploy:one-click:preview
+
+# Validate full pipeline without sending a deployment
+node ./scripts/one-button-deploy.js --prod --dry-run
+```
+
+The script uses `npx vercel@latest` so a global Vercel install is not required.
+
 ### Troubleshooting
 
 If your site is not live after deployment:
@@ -253,6 +270,18 @@ If your site is not live after deployment:
 | `NEXT_PUBLIC_CLAIM_API_BASE` | Claim API endpoint | `https://tradehaxai.tech/api/claim` |
 
 See `.env.example` for complete list of all available environment variables.
+
+### Social Media API Setup (X, Instagram, TikTok, YouTube, Facebook, LinkedIn, Reddit, Discord)
+
+```bash
+# Generate social API templates and scaffold missing placeholders into .env.local
+npm run social:setup
+
+# Check which provider credentials are still missing
+npm run social:check
+```
+
+Templates are written to `.env.social.example`, and provider toggles are controlled via `TRADEHAX_SOCIAL_PROVIDERS`.
 
 ## 📚 Project Structure
 

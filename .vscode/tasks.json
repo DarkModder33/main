@@ -39,6 +39,30 @@
       "problemMatcher": []
     },
     {
+      "label": "TradeHax: One-Button Deploy (Prod)",
+      "type": "npm",
+      "script": "deploy:one-click",
+      "problemMatcher": []
+    },
+    {
+      "label": "TradeHax: One-Button Deploy (Preview)",
+      "type": "npm",
+      "script": "deploy:one-click:preview",
+      "problemMatcher": []
+    },
+    {
+      "label": "TradeHax: Social API Setup",
+      "type": "npm",
+      "script": "social:setup",
+      "problemMatcher": []
+    },
+    {
+      "label": "TradeHax: Social API Check",
+      "type": "npm",
+      "script": "social:check",
+      "problemMatcher": []
+    },
+    {
       "label": "TradeHax: Install Git Hooks",
       "type": "npm",
       "script": "hooks:install",
