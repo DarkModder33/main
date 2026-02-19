@@ -3,7 +3,7 @@ import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
-import { AlertCircle, Brain, MessageSquare } from "lucide-react";
+import { AlertCircle, Brain, GitBranch, MessageSquare, Route } from "lucide-react";
 
 export const metadata = createPageMetadata({
   title: "AI Hub - Hugging Face LLM Integration",
@@ -62,6 +62,52 @@ export default function AIHubPage() {
           <p className="text-cyan-100/60 text-xs">
             Prepare training data locally with <code className="bg-black/40 px-2 py-1 rounded">npm run llm:prepare-dataset</code> and follow <code className="bg-black/40 px-2 py-1 rounded">CUSTOM_LLM_MODEL_PLAN.md</code>.
           </p>
+        </div>
+
+        <div className="theme-panel mb-12 p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-3 text-fuchsia-200">
+            <Route className="w-5 h-5" />
+            <h3 className="font-bold text-lg">Clear User Flow (Recommended)</h3>
+          </div>
+          <p className="text-fuchsia-100/80 text-sm mb-5">
+            For better customer outcomes, run AI interactions in this sequence so users always know the next step.
+          </p>
+
+          <div className="grid md:grid-cols-4 gap-3 mb-6">
+            {[
+              { title: "1) Define Goal", hint: "Ask what they want to accomplish today." },
+              { title: "2) Route User", hint: "Use Navigator to suggest exact pages." },
+              { title: "3) Execute", hint: "Use TradeHax Expert for platform-specific help." },
+              { title: "4) Next Action", hint: "End with one clear CTA (pricing/schedule/service)." },
+            ].map((step) => (
+              <div key={step.title} className="rounded border border-fuchsia-500/20 bg-fuchsia-600/10 px-3 py-3">
+                <div className="text-sm font-semibold text-fuchsia-100">{step.title}</div>
+                <div className="text-xs text-fuchsia-100/70 mt-1">{step.hint}</div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-fuchsia-100/70 text-xs mb-4">
+            New: the chat now stores a <strong>conversation objective</strong> and current stage in memory, then auto-advances users through pipeline steps after successful responses.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-3 text-xs">
+            <div className="rounded border border-cyan-500/20 bg-cyan-600/10 p-3">
+              <div className="font-semibold text-cyan-200 mb-1">Navigator Mode</div>
+              <p className="text-cyan-100/70">Route-first assistant for onboarding and page discovery.</p>
+              <p className="text-cyan-100/50 mt-1 font-mono">/api/ai/navigator</p>
+            </div>
+            <div className="rounded border border-emerald-500/20 bg-emerald-600/10 p-3">
+              <div className="font-semibold text-emerald-200 mb-1">TradeHax Expert Mode</div>
+              <p className="text-emerald-100/70">Site-tuned responses with usage gating and behavior capture.</p>
+              <p className="text-emerald-100/50 mt-1 font-mono">/api/ai/custom</p>
+            </div>
+            <div className="rounded border border-blue-500/20 bg-blue-600/10 p-3">
+              <div className="font-semibold text-blue-200 mb-1">General Chat Mode</div>
+              <p className="text-blue-100/70">Fallback/general Q&A with retrieval context and command handling.</p>
+              <p className="text-blue-100/50 mt-1 font-mono">/api/ai/chat</p>
+            </div>
+          </div>
         </div>
 
         {/* Grid */}
@@ -164,6 +210,18 @@ export default function AIHubPage() {
             title="Streaming"
             description="Get real-time token streaming for faster perceived response times"
           />
+        </div>
+
+        <div className="theme-panel p-6 mb-12">
+          <div className="flex items-center gap-2 mb-2 text-indigo-200">
+            <GitBranch className="w-4 h-4" />
+            <h3 className="font-bold">Pipeline Notes for Operators</h3>
+          </div>
+          <ul className="list-disc list-inside text-sm text-indigo-100/80 space-y-1">
+            <li>Default new users to <strong>Navigator</strong> mode first for quick wins.</li>
+            <li>Use <strong>TradeHax Expert</strong> for product-specific walkthroughs and monetization-safe responses.</li>
+            <li>Use <strong>General Chat</strong> for broad ideation or non-site-specific requests.</li>
+          </ul>
         </div>
       </main>
 

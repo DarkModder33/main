@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowUp, Loader2, Trash2 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { ArrowUp, Compass, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Message {
   role: "user" | "assistant";
@@ -9,23 +9,130 @@ interface Message {
   id: string;
 }
 
+type ChatMode = "navigator" | "custom" | "chat";
+
+type PipelineMemory = {
+  objective: string;
+  selectedStep: number;
+  mode: ChatMode;
+};
+
+const PIPELINE_MEMORY_KEY = "tradehax-ai-pipeline-memory-v1";
+
+const MODE_META: Record<
+  ChatMode,
+  {
+    label: string;
+    description: string;
+    endpoint: string;
+  }
+> = {
+  navigator: {
+    label: "Navigator",
+    description: "Find where to go on TradeHax with clear next steps.",
+    endpoint: "/api/ai/navigator",
+  },
+  custom: {
+    label: "TradeHax Expert",
+    description: "Use the site-tuned assistant for platform and workflow guidance.",
+    endpoint: "/api/ai/custom",
+  },
+  chat: {
+    label: "General Chat",
+    description: "Open chat with retrieval + command fallback.",
+    endpoint: "/api/ai/chat",
+  },
+};
+
+const PIPELINE_STEPS = [
+  {
+    title: "Define goal",
+    lane: "onboarding",
+    starterPrompt: "I am new. What should I do first on TradeHax based on my goals?",
+  },
+  {
+    title: "Get route plan",
+    lane: "navigation",
+    starterPrompt: "Give me the exact pages to visit in order and why.",
+  },
+  {
+    title: "Execute task",
+    lane: "execution",
+    starterPrompt: "Walk me step-by-step through this task and what to click next.",
+  },
+  {
+    title: "Next action",
+    lane: "conversion",
+    starterPrompt: "What is the smartest next action for me now?",
+  },
+] as const;
+
 export function HFChatComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<ChatMode>("navigator");
+  const [selectedStep, setSelectedStep] = useState(0);
+  const [objective, setObjective] = useState("");
+  const [autoAdvanceMessage, setAutoAdvanceMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawMemory = window.localStorage.getItem(PIPELINE_MEMORY_KEY);
+      if (!rawMemory) return;
+
+      const parsed = JSON.parse(rawMemory) as Partial<PipelineMemory>;
+      if (typeof parsed.objective === "string") {
+        setObjective(parsed.objective.slice(0, 200));
+      }
+      if (typeof parsed.selectedStep === "number") {
+        setSelectedStep(Math.min(PIPELINE_STEPS.length - 1, Math.max(0, Math.floor(parsed.selectedStep))));
+      }
+      if (parsed.mode === "navigator" || parsed.mode === "custom" || parsed.mode === "chat") {
+        setMode(parsed.mode);
+      }
+    } catch {
+      // Ignore malformed memory payloads
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const memory: PipelineMemory = {
+      objective: objective.trim().slice(0, 200),
+      selectedStep,
+      mode,
+    };
+    window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
+  }, [objective, selectedStep, mode]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
+
   const sendMessage = useCallback(async () => {
-    if (!input.trim()) return;
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+
+    const objectiveForRequest = (objective.trim() || trimmedInput).slice(0, 200);
+    if (!objective.trim()) {
+      setObjective(objectiveForRequest);
+    }
+
+    setAutoAdvanceMessage("");
 
     const userMessage: Message = {
       role: "user",
-      content: input,
+      content: trimmedInput,
       id: `msg-${Date.now()}`,
     };
 
@@ -35,39 +142,93 @@ export function HFChatComponent() {
     setError("");
 
     try {
-      const response = await fetch("/api/ai/chat", {
+      const endpoint = MODE_META[mode].endpoint;
+      const routeContext = typeof window !== "undefined" ? window.location.pathname : "/ai";
+
+      const payload =
+        mode === "chat"
+          ? {
+              message: trimmedInput,
+              messages: messages.map((m) => ({ role: m.role, content: m.content })).concat([
+                { role: "user", content: trimmedInput },
+              ]),
+              context: {
+                pipelineStep: PIPELINE_STEPS[selectedStep]?.title,
+                objective: objectiveForRequest,
+              },
+            }
+          : mode === "custom"
+            ? {
+                message: trimmedInput,
+                lane: PIPELINE_STEPS[selectedStep]?.lane,
+                context: {
+                  pipelineStep: PIPELINE_STEPS[selectedStep]?.title,
+                  path: routeContext,
+                  objective: objectiveForRequest,
+                },
+              }
+            : {
+                message: trimmedInput,
+                currentPath: routeContext,
+                sessionId: `session-${Date.now()}`,
+                objective: objectiveForRequest,
+              };
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: messages.map(m => ({ role: m.role, content: m.content })).concat([
-            { role: "user", content: input },
-          ]),
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || `API error: ${response.statusText}`);
+      }
 
       if (!data.ok) {
         throw new Error(data.error || "Generation failed");
       }
 
+      const coreResponse =
+        typeof data?.message?.content === "string"
+          ? data.message.content
+          : typeof data?.response === "string"
+            ? data.response
+            : "No response received.";
+
+      const suggestionText =
+        Array.isArray(data?.suggestions) && data.suggestions.length > 0
+          ? `\n\nSuggested routes:\n${data.suggestions
+              .slice(0, 3)
+              .map(
+                (item: { title?: string; path?: string }) =>
+                  `• ${item?.title || "Recommended"} ${item?.path ? `(${item.path})` : ""}`,
+              )
+              .join("\n")}`
+          : "";
+
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.message.content,
+        content: `${coreResponse}${suggestionText}`,
         id: `msg-${Date.now()}-ai`,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (selectedStep < PIPELINE_STEPS.length - 1) {
+        const nextStep = selectedStep + 1;
+        setSelectedStep(nextStep);
+        setAutoAdvanceMessage(`Advanced to Step ${nextStep + 1}: ${PIPELINE_STEPS[nextStep].title}`);
+      } else {
+        setAutoAdvanceMessage("Pipeline complete. You can refine objective or continue in current stage.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get response");
     } finally {
       setLoading(false);
     }
-  }, [input, messages]);
+  }, [input, messages, mode, objective, selectedStep]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -79,6 +240,7 @@ export function HFChatComponent() {
   const clearChat = () => {
     setMessages([]);
     setError("");
+    setAutoAdvanceMessage("");
   };
 
   return (
@@ -86,8 +248,8 @@ export function HFChatComponent() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-emerald-500/20 p-4">
         <div>
-          <h3 className="font-bold text-emerald-300">AI Chat</h3>
-          <p className="text-xs text-emerald-200/70">Powered by Hugging Face</p>
+          <h3 className="font-bold text-emerald-300">AI Chat Pipeline</h3>
+          <p className="text-xs text-emerald-200/70">Choose a mode, then follow the 4-step flow</p>
         </div>
         <button
           onClick={clearChat}
@@ -98,13 +260,73 @@ export function HFChatComponent() {
         </button>
       </div>
 
+      <div className="border-b border-emerald-500/20 p-4 space-y-3">
+        <div>
+          <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
+            Conversation objective (memory)
+          </label>
+          <input
+            value={objective}
+            onChange={(e) => setObjective(e.target.value.slice(0, 200))}
+            placeholder="e.g. Get from onboarding to funded trading setup"
+            className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 placeholder-emerald-200/40 outline-none"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {(Object.keys(MODE_META) as ChatMode[]).map((modeKey) => {
+            const active = mode === modeKey;
+            return (
+              <button
+                key={modeKey}
+                onClick={() => setMode(modeKey)}
+                className={`text-left rounded border px-3 py-2 transition ${
+                  active
+                    ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                }`}
+              >
+                <div className="text-xs font-semibold uppercase tracking-wide">{MODE_META[modeKey].label}</div>
+                <div className="text-[11px] mt-1 opacity-80 leading-relaxed">{MODE_META[modeKey].description}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {PIPELINE_STEPS.map((step, index) => {
+            const active = selectedStep === index;
+            return (
+              <button
+                key={step.title}
+                onClick={() => {
+                  setSelectedStep(index);
+                  setInput(step.starterPrompt);
+                  setAutoAdvanceMessage("");
+                }}
+                className={`rounded border px-2 py-2 text-xs transition ${
+                  active
+                    ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-100"
+                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                }`}
+              >
+                <div className="font-semibold">{index + 1}. {step.title}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-emerald-200/50 text-center">
             <div>
-              <p className="text-lg font-semibold mb-2">Start a conversation</p>
-              <p className="text-sm">Ask me anything powered by Hugging Face LLMs</p>
+              <p className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                <Compass className="w-4 h-4" />
+                Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
+              </p>
+              <p className="text-sm">Tap a step above to auto-fill a high-signal prompt.</p>
             </div>
           </div>
         )}
@@ -148,12 +370,25 @@ export function HFChatComponent() {
 
       {/* Input */}
       <div className="border-t border-emerald-500/20 p-4">
+        <div className="flex items-center justify-between mb-2 text-[11px] text-emerald-200/70">
+          <span className="inline-flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            Mode: {MODE_META[mode].label}
+          </span>
+          <span>Current step: {selectedStep + 1}/4</span>
+        </div>
+        {objective && (
+          <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
+        )}
+        {autoAdvanceMessage && (
+          <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
+        )}
         <div className="flex gap-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Type your message or choose a step template above..."
             rows={3}
             disabled={loading}
             className="flex-1 rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"
