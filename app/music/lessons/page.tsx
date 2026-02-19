@@ -56,6 +56,9 @@ export default function LessonsPage() {
               This page is your flagship conversion engine: elite guitar coaching powered by AI smart lessons, milestone rewards,
               and low-overhead live instruction that feeds growth across your entire TradeHax service ecosystem.
             </p>
+            <p className="mt-3 text-sm uppercase tracking-[0.2em] text-emerald-200/85">
+              Single-Teacher Promise: every lesson is taught directly by the TradeHax founder.
+            </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <a href="#studio" className="rounded-lg border border-emerald-300/50 bg-emerald-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wide text-emerald-100 hover:bg-emerald-500/30">Enter Live Studio</a>
               <a href="#reward-forge" className="rounded-lg border border-cyan-300/50 bg-cyan-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/30">View Milestone Rewards</a>
@@ -108,7 +111,7 @@ export default function LessonsPage() {
             <BookingStep
               icon={<Calendar />}
               title="Schedule"
-              description="Pick your preferred date and time with your instructor"
+              description="Pick your preferred date and time to train directly with your teacher"
             />
             <BookingStep
               icon={<Video />}
@@ -187,6 +190,9 @@ export default function LessonsPage() {
           <p className="text-cyan-100/80 mb-6 max-w-4xl">
             Industry-standard approach: start with transparent milestones and non-financial recognition, then progressively attach crypto utility
             as compliance and token mechanics mature. This keeps your overhead low while building strong retention loops.
+          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/80 mb-6">
+            One teacher · one standard · consistent coaching lineage
           </p>
 
           <div className="overflow-x-auto rounded-xl border border-emerald-400/20">
