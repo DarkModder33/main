@@ -20,7 +20,7 @@ Last Updated: 2026-02-19
 - [x] Checkpoint 14: Phase 3 QA, CI pass, commit/push, deployment verification
 - [x] Checkpoint 15: Live WebSocket ingestion scaffold integrated (overlay + stream APIs)
 - [x] Checkpoint 16: Alert SLA metrics engine + Ops dashboard integrated
-- [ ] Checkpoint 17: Phase 4 QA, CI pass, commit/push, deployment verification
+- [x] Checkpoint 17: Phase 4 QA, CI pass, commit/push, deployment verification
 
 ## Progress Notes
 
@@ -210,6 +210,20 @@ Last Updated: 2026-02-19
   - Application ID: `1450053974018494515`
   - Public Key: `af33c2c6795e6ea3616748fc160bde9096844f2fc78cdde07035cf35633c4267`
 
+### 2026-02-19 - Phase 4 Build + Push Status
+- CI pipeline passed (`npm run pipeline:ci`) after Phase 4 integration.
+- Commit pushed to `origin/main`: `7988211`.
+- Deployment verification:
+  - `https://www.tradehax.net/intelligence/ops` -> `200`
+  - `https://www.tradehax.net/api/intelligence/metrics` -> `200`
+  - `https://www.tradehax.net/api/intelligence/live/status` -> `200`
+  - `https://www.tradehax.net/api/intelligence/live/stream` -> `200`
+  - `https://www.tradehaxai.tech/api/intelligence/storage` -> `200`
+- Runtime checks:
+  - Metrics endpoint returns SLA payload schema.
+  - Live status endpoint returns ingestion state (`enabled=false` by default until ws env vars are set).
+- Status: Phase 4 complete.
+
 ## Active TODO
 
 - [x] Add API endpoints with secure origin/rate limits.
@@ -227,8 +241,8 @@ Last Updated: 2026-02-19
 - [x] Add live ingestion subsystem and stream/status APIs.
 - [x] Add SLA metrics engine and operations dashboard route.
 - [x] Update `.env.example` and `.env.vercel.production.template` for Phase 3 config.
-- [ ] Run `npm run pipeline:ci`.
-- [ ] Commit and push.
+- [x] Run `npm run pipeline:ci`.
+- [x] Commit and push.
 
 ## Post-Phase TODO
 
@@ -241,3 +255,5 @@ Last Updated: 2026-02-19
 - [x] Add Discord thread routing by strategy type and risk profile.
 - [x] Add live WebSocket ingestion for intraday flow updates.
 - [x] Add alert SLA metrics panel (delivery latency, drop rate, provider error rate).
+- [ ] Add signed Discord interactions endpoint verification for slash commands.
+- [ ] Add websocket auth rotation + heartbeat alerts in Ops panel.
