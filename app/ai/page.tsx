@@ -4,6 +4,7 @@ import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { AlertCircle, Brain, GitBranch, MessageSquare, Route } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = createPageMetadata({
   title: "AI Hub - Hugging Face LLM Integration",
@@ -222,6 +223,14 @@ export default function AIHubPage() {
             <li>Use <strong>TradeHax Expert</strong> for product-specific walkthroughs and monetization-safe responses.</li>
             <li>Use <strong>General Chat</strong> for broad ideation or non-site-specific requests.</li>
           </ul>
+          <div className="mt-4 rounded border border-indigo-500/20 bg-indigo-600/10 p-3">
+            <p className="text-xs text-indigo-100/80 mb-2">
+              Need a no-code setup for X, Instagram, TikTok, YouTube, Facebook, LinkedIn, Reddit, and Discord?
+            </p>
+            <Link href="/admin/social-wizard" className="text-sm font-semibold text-indigo-200 hover:text-indigo-100 hover:underline">
+              Open Social Provider Wizard →
+            </Link>
+          </div>
         </div>
       </main>
 
