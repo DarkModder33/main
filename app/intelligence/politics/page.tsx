@@ -2,12 +2,14 @@ import { IntelligencePageShell } from "@/components/intelligence/IntelligencePag
 import { PoliticsPanel } from "@/components/intelligence/PoliticsPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Political Trading Monitor | TradeHax Intelligence",
   description: "Track disclosed congressional and senate trades with theme and action filters.",
-};
+  path: "/intelligence/politics",
+});
 
 export default function IntelligencePoliticsPage() {
   return (

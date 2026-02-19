@@ -3,47 +3,28 @@ import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { getAllBlogPosts } from "@/lib/content/blog-posts";
+import { createPageMetadata } from "@/lib/seo";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Blog | Business, Web3, and Service Insights | TradeHax AI",
   description:
-    "Practical articles on digital services, Web3 development, trading systems, and security best practices.",
+    "Read practical articles on digital services, Web3 development, trading systems, and security best practices.",
+  path: "/blog",
+  imagePath: "/og-blog.svg",
+  imageAlt: "TradeHax AI blog previews and guides",
   keywords: [
     "crypto trading",
     "web3",
     "solana",
     "blockchain",
-    "DeFi",
+    "defi",
     "trading strategies",
     "tutorials",
+    "service business insights",
   ],
-  openGraph: {
-    title: "Blog - TradeHax AI",
-    description:
-      "Practical insights on digital services, Web3 development, and platform strategy.",
-    url: "https://tradehaxai.tech/blog",
-    type: "website",
-    images: [
-      {
-        url: "/og-blog.svg",
-        width: 1200,
-        height: 630,
-        alt: "Blog - Trading Insights & Web3 Guides",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Blog - Business and Web3 Insights",
-    description:
-      "Read practical guides on services, Web3, and secure digital operations.",
-    images: ["/og-blog.svg"],
-  },
-};
+});
 
 export default function BlogPage() {
   const blogPosts = getAllBlogPosts();

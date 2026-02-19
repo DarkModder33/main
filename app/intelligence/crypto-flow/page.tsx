@@ -2,12 +2,14 @@ import { CryptoFlowPanel } from "@/components/intelligence/CryptoFlowPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Crypto Flow Intelligence | TradeHax Intelligence",
   description: "Cross-chain crypto flow monitor with confidence and notional filters.",
-};
+  path: "/intelligence/crypto-flow",
+});
 
 export default function IntelligenceCryptoFlowPage() {
   return (

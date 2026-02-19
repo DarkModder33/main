@@ -1,21 +1,23 @@
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import { BadgeCheck, Shield, Users, Workflow } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "About TradeHax AI | Greater Philadelphia Digital Services",
   description:
-    "Learn about TradeHax AI, serving Greater Philadelphia and remote clients with web development, tech support, music lessons, and practical Web3 solutions.",
+    "Learn about TradeHax AI and our process for web development, tech support, music lessons, and practical Web3 consulting across Greater Philadelphia and remote clients.",
+  path: "/about",
   keywords: [
     "about tradehax ai",
     "web development philadelphia",
     "tech support south jersey",
     "online guitar lessons",
     "web3 consulting",
+    "local digital services",
   ],
-};
+});
 
 const pillars = [
   {

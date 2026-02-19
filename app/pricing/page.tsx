@@ -1,14 +1,15 @@
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { getAllPlans } from "@/lib/monetization/plans";
+import { createPageMetadata } from "@/lib/seo";
 import { Check, Sparkles } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Pricing and Plans | TradeHax AI Services",
   description:
     "Transparent pricing for tech repair, guitar lessons, and digital/Web3 development support for local and remote clients.",
+  path: "/pricing",
   keywords: [
     "service pricing tradehax ai",
     "web development pricing",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     "tech repair pricing philadelphia",
     "web3 consulting rates",
   ],
-};
+});
 
 type Plan = {
   id: string;

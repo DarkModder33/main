@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Task Tool | TradeHax AI",
   description: "Internal task management utility.",
+  path: "/todos",
   robots: {
     index: false,
     follow: false,
   },
-};
+});
 
 export default function TodosLayout({
   children,

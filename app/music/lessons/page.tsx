@@ -1,17 +1,18 @@
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
-import { LessonCard } from '@/components/music/LessonCard';
 import { BookingCalendar } from '@/components/music/BookingCalendar';
-import { CheckCircle2, Calendar, CreditCard, Video, ArrowLeft } from 'lucide-react';
+import { LessonCard } from '@/components/music/LessonCard';
+import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
+import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
+import { createPageMetadata } from "@/lib/seo";
+import { ArrowLeft, Calendar, CheckCircle2, CreditCard, Video } from 'lucide-react';
 import Link from 'next/link';
-import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: 'Book Online Guitar Lessons | TradeHax AI',
   description:
     'Book remote one-on-one guitar lessons for beginner to advanced players, serving Greater Philadelphia and remote students.',
+  path: '/music/lessons',
   keywords: [
     'online guitar lessons',
     'guitar lessons philadelphia',
@@ -19,18 +20,13 @@ export const metadata: Metadata = {
     'beginner guitar lessons',
     'advanced guitar coaching',
   ],
-  openGraph: {
-    title: 'Book Online Guitar Lessons | TradeHax AI',
-    description: 'Professional guitar instruction for all skill levels.',
-    type: 'website',
-  },
-};
+});
 
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
         <Link
@@ -61,7 +57,7 @@ export default function LessonsPage() {
           <h2 className="text-2xl font-bold text-white mb-8 text-center">
             Simple 3-Step Process
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <BookingStep
               icon={<CreditCard />}
@@ -86,7 +82,7 @@ export default function LessonsPage() {
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Available Packages
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <LessonCard
               title="Start Your Journey"
@@ -102,7 +98,7 @@ export default function LessonsPage() {
                 'Email support',
               ]}
             />
-            
+
             <LessonCard
               title="Level Up Your Skills"
               level="Intermediate"
@@ -118,7 +114,7 @@ export default function LessonsPage() {
               ]}
               popular
             />
-            
+
             <LessonCard
               title="Master the Craft"
               level="Advanced"
@@ -146,7 +142,7 @@ export default function LessonsPage() {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Every Lesson Includes
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <Feature text="60-minute personalized instruction" />
             <Feature text="Custom practice plan and exercises" />

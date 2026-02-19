@@ -1,19 +1,20 @@
 import { SharePreviewPanel } from "@/components/preview/SharePreviewPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import { getSharePlatforms, primaryPreviewUrl } from "@/lib/social-preview";
 import { Share2 } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Preview Link Hub | TradeHax AI",
   description:
     "Official TradeHax AI preview and share links for X, Facebook, LinkedIn, Reddit, WhatsApp, Telegram, and email.",
+  path: "/preview",
   robots: {
     index: false,
     follow: false,
   },
-};
+});
 
 export default function PreviewPage() {
   const platforms = getSharePlatforms();

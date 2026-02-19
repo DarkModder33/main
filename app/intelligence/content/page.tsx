@@ -2,13 +2,15 @@ import { ContentStudioPanel } from "@/components/intelligence/ContentStudioPanel
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Content Studio | TradeHax Intelligence",
   description:
     "Generate daily YouTube and Discord content briefs directly from intelligence feeds.",
-};
+  path: "/intelligence/content",
+});
 
 export default function IntelligenceContentPage() {
   return (

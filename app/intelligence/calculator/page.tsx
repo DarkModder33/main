@@ -2,12 +2,14 @@ import { IntelligencePageShell } from "@/components/intelligence/IntelligencePag
 import { PositionCalculatorPanel } from "@/components/intelligence/PositionCalculatorPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Risk Calculator | TradeHax Intelligence",
   description: "Quick position sizing and risk/reward planning calculator.",
-};
+  path: "/intelligence/calculator",
+});
 
 export default function IntelligenceCalculatorPage() {
   return (

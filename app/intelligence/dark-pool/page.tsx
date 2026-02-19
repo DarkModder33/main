@@ -2,12 +2,14 @@ import { DarkPoolPanel } from "@/components/intelligence/DarkPoolPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Dark Pool Scanner | TradeHax Intelligence",
   description: "Off-exchange trade scanner with side-estimate filters and AI context.",
-};
+  path: "/intelligence/dark-pool",
+});
 
 export default function IntelligenceDarkPoolPage() {
   return (

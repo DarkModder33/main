@@ -2,14 +2,18 @@ import { EmailCapture } from "@/components/EmailCapture";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
+import { siteConfig } from "@/lib/site-config";
 import { Award, Briefcase, Code, Mail } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Portfolio | TradeHax AI Service and Product Work",
   description:
-    "Portfolio featuring websites, web apps, Web3 features, and platform projects built by TradeHax AI.",
+    "Review TradeHax AI portfolio projects across web development, Web3 integrations, and service-platform implementation.",
+  path: "/portfolio",
+  imagePath: "/og-portfolio.svg",
+  imageAlt: "TradeHax AI portfolio preview",
   keywords: [
     "tradehax ai portfolio",
     "web developer portfolio",
@@ -17,30 +21,7 @@ export const metadata: Metadata = {
     "nextjs developer",
     "digital service projects",
   ],
-  openGraph: {
-    title: "TradeHax AI Portfolio",
-    description:
-      "Project portfolio covering web development, Web3 features, and service-platform execution.",
-    url: "https://tradehaxai.tech/portfolio",
-    type: "website",
-    images: [
-      {
-        url: "/og-portfolio.svg",
-        width: 1200,
-        height: 630,
-        alt: "Portfolio - Michael S. Flaherty",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "TradeHax AI Portfolio",
-    description:
-      "Browse web development, Web3, and product implementation projects.",
-    images: ["/og-portfolio.svg"],
-  },
-};
+});
 
 export default function PortfolioPage() {
   return (
@@ -174,7 +155,7 @@ export default function PortfolioPage() {
                 "Tailwind CSS",
                 "Anchor",
               ]}
-              link="https://tradehaxai.tech"
+              link={siteConfig.primarySiteUrl}
             />
             <ProjectCard
               title="Hyperborea Game"

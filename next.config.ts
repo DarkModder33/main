@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { siteConfig } from "./lib/site-config";
 
 const useStaticExport = process.env.NEXT_FORCE_STATIC_EXPORT === "1";
 
@@ -17,11 +18,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "tradehaxai.tech",
+        hostname: siteConfig.primarySiteDomain,
       },
       {
         protocol: "https",
-        hostname: "tradehaxai.me",
+        hostname: siteConfig.legacyDomains[1],
       },
       {
         protocol: "https",

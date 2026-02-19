@@ -6,6 +6,7 @@ import { TokenRoadmap } from "@/components/music/TokenRoadmap";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { bookingLinks } from "@/lib/booking";
+import { createPageMetadata } from "@/lib/seo";
 import {
     ArrowRight,
     Guitar,
@@ -14,14 +15,15 @@ import {
     TrendingUp,
     Users,
 } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title:
-    "Online Guitar Lessons and Artist Platform | TradeHax AI",
+export const metadata = createPageMetadata({
+  title: "Online Guitar Lessons and Artist Platform | TradeHax AI",
   description:
-    "Book remote guitar lessons, explore artist features, and follow music education roadmap updates from TradeHax AI.",
+    "Book remote guitar lessons, explore artist showcases, and follow scholarship-focused music education updates from TradeHax AI.",
+  path: "/music",
+  imagePath: "/og-music.svg",
+  imageAlt: "TradeHax AI music education and artist platform",
   keywords: [
     "guitar lessons",
     "online music teacher",
@@ -30,31 +32,9 @@ export const metadata: Metadata = {
     "music education",
     "artist showcase",
     "blockchain music",
+    "remote guitar lessons",
   ],
-  openGraph: {
-    title: "Music & Arts Platform - TradeHax AI",
-    description:
-      "Remote guitar lessons, artist showcase, and music education scholarships.",
-    url: "https://tradehaxai.tech/music",
-    type: "website",
-    images: [
-      {
-        url: "/og-music.svg",
-        width: 1200,
-        height: 630,
-        alt: "Music & Arts Platform",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Music & Arts Platform - TradeHax AI",
-    description:
-      "Learn guitar, showcase music, and follow scholarship roadmap updates.",
-    images: ["/og-music.svg"],
-  },
-};
+});
 
 export default function MusicPage() {
   return (

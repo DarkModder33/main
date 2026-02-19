@@ -1,13 +1,16 @@
 import { BillingConsole } from "@/components/monetization/BillingConsole";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Billing | TradeHax AI",
   description:
     "Manage TradeHax AI subscription tiers, usage quotas, and checkout methods for Stripe and Coinbase.",
-};
+  path: "/billing",
+  keywords: ["billing", "subscription management", "stripe checkout", "coinbase checkout"],
+});
 
 export default function BillingPage() {
   return (

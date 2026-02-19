@@ -64,7 +64,7 @@ export default function TwitterImage() {
             Websites, apps, device support, online guitar lessons, and Web3 consulting.
           </div>
           <div style={{ fontSize: "24px", color: "#98ffc2" }}>
-            tradehaxai.tech
+            tradehax.net
           </div>
         </div>
       </div>

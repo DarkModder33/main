@@ -2,13 +2,15 @@ import { IntelligencePageShell } from "@/components/intelligence/IntelligencePag
 import { WatchlistPanel } from "@/components/intelligence/WatchlistPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Watchlist Alerts | TradeHax Intelligence",
   description:
     "Build symbol watchlists, trigger cross-asset alerts, and route notifications to tier-based Discord channels.",
-};
+  path: "/intelligence/watchlist",
+});
 
 export default function IntelligenceWatchlistPage() {
   return (

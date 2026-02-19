@@ -3,6 +3,7 @@ import { CounterCard } from "@/components/counter/CounterCard";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
+import { createPageMetadata } from "@/lib/seo";
 import {
     Activity,
     BarChart3,
@@ -15,40 +16,22 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Dashboard | TradeHax AI",
   description:
     "Interactive dashboard preview for analytics, wallet tools, and strategy workflows inside the TradeHax AI platform.",
+  path: "/dashboard",
+  imagePath: "/og-dashboard.svg",
+  imageAlt: "TradeHax AI dashboard preview",
   keywords: [
     "trading dashboard",
     "analytics",
     "crypto trading",
     "performance tracking",
-    "Solana",
+    "solana",
+    "workflow dashboard",
   ],
-  openGraph: {
-    title: "Trading Dashboard - TradeHax AI",
-    description:
-      "Preview analytics, wallet tools, and strategy workflows.",
-    url: "https://tradehaxai.tech/dashboard",
-    type: "website",
-    images: [
-      {
-        url: "/og-dashboard.svg",
-        width: 1200,
-        height: 630,
-        alt: "Trading Dashboard",
-        type: "image/svg+xml",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Trading Dashboard - TradeHax AI",
-    description: "Interactive analytics and workflow dashboard preview.",
-    images: ["/og-dashboard.svg"],
-  },
-};
+});
 
 export default function DashboardPage() {
   return (

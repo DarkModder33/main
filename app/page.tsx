@@ -1,22 +1,21 @@
 "use client";
 
-import { ServiceGrid } from '@/components/landing/ServiceGrid';
-import { Roadmap } from '@/components/landing/Roadmap';
-import { AINeuralHub } from '@/components/landing/AINeuralHub';
-import { LiveActivity } from '@/components/ui/LiveActivity';
-import { GlitchText } from '@/components/ui/GlitchText';
 import { WalletButton } from "@/components/counter/WalletButton";
+import { AINeuralHub } from '@/components/landing/AINeuralHub';
+import { Roadmap } from '@/components/landing/Roadmap';
+import { ServiceGrid } from '@/components/landing/ServiceGrid';
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { businessProfile } from "@/lib/business-profile";
+import { GlitchText } from '@/components/ui/GlitchText';
+import { LiveActivity } from '@/components/ui/LiveActivity';
 import { bookingLinks } from "@/lib/booking";
+import { businessProfile } from "@/lib/business-profile";
 import {
-  ArrowRight,
-  CircuitBoard,
-  Guitar,
-  HandCoins,
-  MessageSquare,
-  MonitorSmartphone,
-  Wrench,
+    ArrowRight,
+    CircuitBoard,
+    Guitar,
+    MessageSquare,
+    MonitorSmartphone,
+    Wrench,
 } from "lucide-react";
 import Link from 'next/link';
 
@@ -69,7 +68,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="h-[80vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-        
+
         <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-6 italic uppercase">
           <GlitchText text="TRADEHAX" />
         </h1>

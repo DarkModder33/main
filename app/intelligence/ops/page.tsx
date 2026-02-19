@@ -2,13 +2,15 @@ import { IntelligenceOpsPanel } from "@/components/intelligence/IntelligenceOpsP
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Ops Metrics | TradeHax Intelligence",
   description:
     "Operational dashboard for live ingestion health and alert SLA metrics across provider and Discord routing layers.",
-};
+  path: "/intelligence/ops",
+});
 
 export default function IntelligenceOpsPage() {
   return (
