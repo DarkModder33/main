@@ -10,6 +10,10 @@ Last Updated: 2026-02-19
 - [x] Checkpoint 4: Intelligence UI routes and responsive dashboards live
 - [x] Checkpoint 5: AI copilot + YouTube/Discord content bridge live
 - [x] Checkpoint 6: QA pass, CI pass, deployment verification
+- [x] Checkpoint 7: Provider adapter layer (mock/vendor modes) integrated
+- [x] Checkpoint 8: Watchlist + persistent alert history APIs integrated
+- [x] Checkpoint 9: Discord emitters + tier channel routing integrated
+- [ ] Checkpoint 10: Phase 2 QA, CI pass, commit/push, deployment verification
 
 ## Progress Notes
 
@@ -71,6 +75,42 @@ Last Updated: 2026-02-19
   - `https://www.tradehax.net/api/intelligence/flow` -> `200`
 - Status: checkpoint complete.
 
+### 2026-02-19 - Phase 2 Checkpoint 7 Complete
+- Added provider abstraction layer:
+  - `lib/intelligence/provider.ts`
+  - Supports env-driven mode selection: `mock` or `vendor`.
+  - Adds provider metadata (`source`, `vendor`, `configured`, `simulated`).
+- Updated intelligence feed APIs to resolve data through provider snapshot.
+- Added provider status endpoint:
+  - `/api/intelligence/provider`
+
+### 2026-02-19 - Phase 2 Checkpoint 8 Complete
+- Added watchlist + alert persistence store:
+  - `lib/intelligence/watchlist-store.ts`
+- Added new APIs:
+  - `/api/intelligence/watchlist` (GET/POST/DELETE)
+  - `/api/intelligence/alerts` (GET/POST with evaluate + dispatch flow)
+- Implemented alert generation for:
+  - options flow
+  - dark pool prints
+  - crypto flow triggers
+  - catalyst news for watched symbols
+
+### 2026-02-19 - Phase 2 Checkpoint 9 Complete
+- Added Discord webhook routing utilities:
+  - `lib/intelligence/discord.ts`
+- Added tier-based channel routing strategy:
+  - `free/basic/pro/elite` route resolution
+  - Per-tier webhook overrides with global fallback
+- Added delivery tracking on alert objects (`deliveredToDiscordAt`).
+
+### 2026-02-19 - Phase 2 UI Surface
+- Added new route:
+  - `/intelligence/watchlist`
+- Added new UI component:
+  - `components/intelligence/WatchlistPanel.tsx`
+- Updated hub route cards and quick links for watchlist workflow.
+
 ## Active TODO
 
 - [x] Add API endpoints with secure origin/rate limits.
@@ -78,12 +118,19 @@ Last Updated: 2026-02-19
 - [x] Add AI copilot endpoint and UI panel for context-aware analysis.
 - [x] Add media brief generator endpoint for YouTube + Discord workflows.
 - [x] Add top navigation + footer links for Intelligence hub.
-- [x] Run `npm run pipeline:ci`.
-- [x] Commit and push.
+- [x] Integrate provider adapter architecture for vendor transition.
+- [x] Build user watchlists with alert persistence and evaluation flows.
+- [x] Add role-based Discord routing + webhook emission support.
+- [x] Add `/intelligence/watchlist` UI flow.
+- [ ] Run `npm run pipeline:ci`.
+- [ ] Commit and push.
 
 ## Post-Phase TODO
 
-- [ ] Replace mock feeds with paid data vendor adapters.
-- [ ] Add user watchlists + persistent alerts.
-- [ ] Add Discord bot webhook emitters.
-- [ ] Add role-based channel routing for paid intelligence tiers.
+- [x] Replace mock feeds with paid data vendor adapters.
+- [x] Add user watchlists + persistent alerts.
+- [x] Add Discord bot webhook emitters.
+- [x] Add role-based channel routing for paid intelligence tiers.
+- [ ] Wire direct vendor HTTP adapters for specific providers (Unusual Whales, Polygon, Bloomberg).
+- [ ] Add persistent database storage for watchlists/alerts (Supabase/Postgres) for cross-deploy durability.
+- [ ] Add Discord thread routing by strategy type and risk profile.

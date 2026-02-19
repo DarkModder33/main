@@ -1,23 +1,19 @@
 import { getLLMClient } from "@/lib/ai/hf-server";
-import {
-  getCryptoTape,
-  getFlowTape,
-  getIntelligenceNews,
-  getIntelligenceOverview,
-} from "@/lib/intelligence/mock-data";
 import { sanitizeQueryText } from "@/lib/intelligence/filters";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
 function buildFallbackBrief(focus: string) {
-  const overview = getIntelligenceOverview();
-  const topFlow = getFlowTape()
+  const snapshot = getIntelligenceSnapshot();
+  const overview = snapshot.overview;
+  const topFlow = snapshot.flowTape
     .slice()
     .sort((a, b) => b.unusualScore - a.unusualScore)[0];
-  const topCrypto = getCryptoTape()
+  const topCrypto = snapshot.cryptoTape
     .slice()
     .sort((a, b) => b.notionalUsd - a.notionalUsd)[0];
-  const topNews = getIntelligenceNews()[0];
+  const topNews = snapshot.news[0];
 
   return {
     focus,
@@ -51,10 +47,11 @@ function buildFallbackBrief(focus: string) {
 }
 
 function buildPrompt(focus: string) {
-  const overview = getIntelligenceOverview();
-  const flow = getFlowTape().slice(0, 3);
-  const crypto = getCryptoTape().slice(0, 3);
-  const news = getIntelligenceNews().slice(0, 3);
+  const snapshot = getIntelligenceSnapshot();
+  const overview = snapshot.overview;
+  const flow = snapshot.flowTape.slice(0, 3);
+  const crypto = snapshot.cryptoTape.slice(0, 3);
+  const news = snapshot.news.slice(0, 3);
 
   return [
     "You are a concise financial content strategist for TradeHax Intelligence.",
@@ -65,6 +62,7 @@ function buildPrompt(focus: string) {
     `Top flow: ${JSON.stringify(flow)}`,
     `Top crypto: ${JSON.stringify(crypto)}`,
     `Top news: ${JSON.stringify(news)}`,
+    `Provider: ${JSON.stringify(snapshot.status)}`,
   ].join("\n\n");
 }
 

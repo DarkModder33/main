@@ -1,0 +1,147 @@
+import {
+  dispatchAlertsToDiscord,
+  resolveDiscordRouteForTier,
+} from "@/lib/intelligence/discord";
+import {
+  evaluateWatchlistAlerts,
+  listAlerts,
+  markAlertsDeliveredToDiscord,
+} from "@/lib/intelligence/watchlist-store";
+import { resolveRequestUserId } from "@/lib/monetization/identity";
+import { getSubscription } from "@/lib/monetization/store";
+import {
+  enforceRateLimit,
+  enforceTrustedOrigin,
+  isJsonContentType,
+} from "@/lib/security";
+import { NextRequest, NextResponse } from "next/server";
+
+type AlertsMutationRequest = {
+  userId?: string;
+  evaluate?: boolean;
+  dispatchToDiscord?: boolean;
+  limit?: number;
+};
+
+function parseBoolean(value: unknown) {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+function parseLimit(value: unknown, fallback = 60) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(200, Math.max(1, Math.floor(value)));
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed)) {
+      return Math.min(200, Math.max(1, parsed));
+    }
+  }
+  return fallback;
+}
+
+export async function GET(request: NextRequest) {
+  const originBlock = enforceTrustedOrigin(request);
+  if (originBlock) {
+    return originBlock;
+  }
+
+  const rateLimit = enforceRateLimit(request, {
+    keyPrefix: "intelligence:alerts:get",
+    max: 60,
+    windowMs: 60_000,
+  });
+  if (!rateLimit.allowed) {
+    return rateLimit.response;
+  }
+
+  const search = request.nextUrl.searchParams;
+  const userId = await resolveRequestUserId(request, search.get("userId"));
+  const evaluate = parseBoolean(search.get("evaluate"));
+  const limit = parseLimit(search.get("limit"), 60);
+  const subscription = getSubscription(userId);
+  const route = resolveDiscordRouteForTier(subscription.tier);
+
+  const evaluation = evaluate ? evaluateWatchlistAlerts(userId) : null;
+  const alerts = evaluation ? evaluation.alerts.slice(0, limit) : listAlerts(userId, limit);
+
+  return NextResponse.json(
+    {
+      ok: true,
+      userId,
+      tier: subscription.tier,
+      generatedAt: new Date().toISOString(),
+      newAlertsCount: evaluation ? evaluation.newAlerts.length : 0,
+      alerts,
+      discordRoute: {
+        tier: subscription.tier,
+        channelLabel: route?.channelLabel ?? "not-configured",
+        viaFallback: route?.viaFallback ?? false,
+        webhookConfigured: Boolean(route),
+      },
+    },
+    { headers: rateLimit.headers },
+  );
+}
+
+export async function POST(request: NextRequest) {
+  const originBlock = enforceTrustedOrigin(request);
+  if (originBlock) {
+    return originBlock;
+  }
+  if (!isJsonContentType(request)) {
+    return NextResponse.json({ ok: false, error: "Expected JSON body." }, { status: 415 });
+  }
+
+  const rateLimit = enforceRateLimit(request, {
+    keyPrefix: "intelligence:alerts:post",
+    max: 50,
+    windowMs: 60_000,
+  });
+  if (!rateLimit.allowed) {
+    return rateLimit.response;
+  }
+
+  const body = (await request.json()) as AlertsMutationRequest;
+  const userId = await resolveRequestUserId(request, body.userId);
+  const shouldEvaluate = body.evaluate !== false;
+  const dispatchToDiscord = parseBoolean(body.dispatchToDiscord);
+  const limit = parseLimit(body.limit, 60);
+  const subscription = getSubscription(userId);
+
+  const evaluation = shouldEvaluate ? evaluateWatchlistAlerts(userId) : null;
+  const alerts = evaluation ? evaluation.alerts : listAlerts(userId, limit);
+  const newAlerts = evaluation?.newAlerts ?? [];
+  const alertsForDispatch = newAlerts.length > 0 ? newAlerts : alerts.slice(0, 12);
+
+  let dispatchResult: Awaited<ReturnType<typeof dispatchAlertsToDiscord>> | null = null;
+
+  if (dispatchToDiscord) {
+    dispatchResult = await dispatchAlertsToDiscord({
+      userId,
+      tier: subscription.tier,
+      alerts: alertsForDispatch,
+    });
+
+    if (dispatchResult.ok && alertsForDispatch.length > 0) {
+      markAlertsDeliveredToDiscord(
+        userId,
+        alertsForDispatch.map((alert) => alert.id),
+        dispatchResult.deliveredAt,
+      );
+    }
+  }
+
+  return NextResponse.json(
+    {
+      ok: true,
+      userId,
+      tier: subscription.tier,
+      generatedAt: new Date().toISOString(),
+      newAlertsCount: newAlerts.length,
+      alerts: listAlerts(userId, limit),
+      dispatch: dispatchResult,
+    },
+    { headers: rateLimit.headers },
+  );
+}

@@ -1,5 +1,5 @@
 import { parsePositiveNumber, sanitizeQueryText } from "@/lib/intelligence/filters";
-import { getDarkPoolTape } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
   const side = sanitizeQueryText(search.get("side"), 8);
   const minNotional = parsePositiveNumber(search.get("minNotional"));
   const minScore = parsePositiveNumber(search.get("minScore"));
+  const snapshot = getIntelligenceSnapshot();
 
-  const items = getDarkPoolTape()
+  const items = snapshot.darkPoolTape
     .filter((trade) => {
       if (symbol && trade.symbol !== symbol) return false;
       if (side && trade.sideEstimate !== side) return false;
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       items,
       count: items.length,
       generatedAt: new Date().toISOString(),
+      provider: snapshot.status,
     },
     { headers: rateLimit.headers },
   );

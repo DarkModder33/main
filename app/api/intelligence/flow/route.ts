@@ -1,5 +1,5 @@
 import { parsePositiveNumber, sanitizeQueryText } from "@/lib/intelligence/filters";
-import { getFlowTape } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
   const minPremium = parsePositiveNumber(search.get("minPremium"));
   const minScore = parsePositiveNumber(search.get("minScore"));
   const sort = sanitizeQueryText(search.get("sort"), 16) || "recent";
+  const snapshot = getIntelligenceSnapshot();
 
-  let items = getFlowTape().filter((trade) => {
+  let items = snapshot.flowTape.filter((trade) => {
     if (symbol && trade.symbol !== symbol) return false;
     if (side && trade.side !== side) return false;
     if (minPremium !== null && trade.premiumUsd < minPremium) return false;
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
       items,
       count: items.length,
       generatedAt: new Date().toISOString(),
+      provider: snapshot.status,
     },
     { headers: rateLimit.headers },
   );

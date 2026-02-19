@@ -1,5 +1,5 @@
 import { sanitizeQueryText } from "@/lib/intelligence/filters";
-import { getIntelligenceNews } from "@/lib/intelligence/mock-data";
+import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
   const impact = sanitizeQueryText(search.get("impact"), 8);
   const category = sanitizeQueryText(search.get("category"), 12);
   const q = sanitizeQueryText(search.get("q"), 64);
+  const snapshot = getIntelligenceSnapshot();
 
-  const items = getIntelligenceNews()
+  const items = snapshot.news
     .filter((item) => {
       if (symbol && item.symbol !== symbol) return false;
       if (impact && item.impact !== impact) return false;
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
       items,
       count: items.length,
       generatedAt: new Date().toISOString(),
+      provider: snapshot.status,
     },
     { headers: rateLimit.headers },
   );
