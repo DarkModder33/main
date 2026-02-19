@@ -153,7 +153,7 @@ export default function RootLayout({
                     <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
                     <a href="/games" className="hover:text-white transition-colors uppercase">Games</a>
                     <a href="https://calendar.app.google/hhBXuJjfaApoXVzc6" className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
-                    <a href="#" className="hover:text-white transition-colors uppercase">Staking</a>
+                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Staking</a>
                   </div>
                   <div className="hidden md:block">
                     <ConnectWalletBtn />
@@ -212,9 +212,13 @@ export default function RootLayout({
               <div>
                 <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Social</h4>
                 <ul className="text-zinc-500 text-sm space-y-2">
-                  <li><a href={businessProfile.socialLinks.x} className="hover:text-white transition-colors">Twitter / X</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Telegram</a></li>
+                  <li><a href={businessProfile.socialLinks.x} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter / X</a></li>
+                  <li><a href={businessProfile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
+                  <li><a href={businessProfile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">YouTube</a></li>
+                  <li><a href={businessProfile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a></li>
+                  <li><a href={businessProfile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
+                  <li><a href={businessProfile.socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Telegram</a></li>
+                  <li><a href={businessProfile.socialLinks.discord} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Discord</a></li>
                 </ul>
               </div>
             </div>
