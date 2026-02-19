@@ -1,0 +1,89 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: $REGISTRY/$CI_PROJECT_PATH
+  IMAGE_TAG: $CI_COMMIT_SHA
+
+build:docker:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $REGISTRY
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG -t $IMAGE_NAME:latest .
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $IMAGE_NAME:latest
+  only:
+    - main
+    - merge_requests
+
+test:ci:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npm ci
+    - npm run lint
+    - npm run build
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 hour
+  only:
+    - main
+    - merge_requests
+
+deploy:k8s:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+    url: https://tradehaxai.tech
+  script:
+    - kubectl set image deployment/tradehax-app tradehax=$IMAGE_NAME:$IMAGE_TAG -n default
+    - kubectl rollout status deployment/tradehax-app -n default
+  only:
+    - main
+
+deploy:helm:
+  stage: deploy
+  image: alpine/helm:latest
+  environment:
+    name: staging
+    url: https://staging.tradehaxai.tech
+  script:
+    - helm repo add tradehax https://charts.tradehaxai.tech || true
+    - helm repo update
+    - helm upgrade --install tradehax tradehax/tradehax
+        --namespace default
+        --values helm/values.yaml
+        --set image.tag=$IMAGE_TAG
+        --wait
+  only:
+    - main
+
+security:scan:
+  stage: test
+  image: aquasec/trivy:latest
+  script:
+    - trivy image --exit-code 0 $IMAGE_NAME:$IMAGE_TAG
+  allow_failure: true
+  only:
+    - main
+
+docs:deploy:
+  stage: deploy
+  script:
+    - mkdir -p public/docs
+    - cp TRADEHAX_AI_PLATFORM_SUMMARY.md public/docs/
+    - cp GITLAB_AGENT_DEPLOYMENT.md public/docs/
+    - cp HF_SETUP_GUIDE.md public/docs/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
