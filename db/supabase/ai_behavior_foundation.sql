@@ -61,6 +61,31 @@ create table if not exists public.ai_training_exports (
 create index if not exists idx_ai_training_exports_created_at
   on public.ai_training_exports (created_at desc);
 
+create table if not exists public.ai_retrieval_embeddings (
+  id text primary key,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  model text not null,
+  doc_id text not null,
+  title text not null,
+  path text not null,
+  source_type text not null,
+  chunk_index integer not null default 0,
+  content_hash text not null,
+  text text not null,
+  tags jsonb not null default '[]'::jsonb,
+  embedding jsonb not null default '[]'::jsonb
+);
+
+create index if not exists idx_ai_retrieval_embeddings_model
+  on public.ai_retrieval_embeddings (model);
+
+create index if not exists idx_ai_retrieval_embeddings_doc_hash
+  on public.ai_retrieval_embeddings (doc_id, content_hash);
+
+create index if not exists idx_ai_retrieval_embeddings_updated_at
+  on public.ai_retrieval_embeddings (updated_at desc);
+
 create materialized view if not exists public.ai_user_behavior_profiles as
 select
   user_key,
@@ -80,6 +105,7 @@ create unique index if not exists idx_ai_user_behavior_profiles_user_key
 alter table public.ai_behavior_events enable row level security;
 alter table public.ai_user_consent enable row level security;
 alter table public.ai_training_exports enable row level security;
+alter table public.ai_retrieval_embeddings enable row level security;
 
 do $$
 begin
@@ -92,6 +118,24 @@ begin
   ) then
     create policy service_role_full_access_ai_behavior_events
       on public.ai_behavior_events
+      for all
+      using (auth.role() = 'service_role')
+      with check (auth.role() = 'service_role');
+  end if;
+end;
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'ai_retrieval_embeddings'
+      and policyname = 'service_role_full_access_ai_retrieval_embeddings'
+  ) then
+    create policy service_role_full_access_ai_retrieval_embeddings
+      on public.ai_retrieval_embeddings
       for all
       using (auth.role() = 'service_role')
       with check (auth.role() = 'service_role');
