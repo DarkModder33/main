@@ -986,13 +986,13 @@ export default function GamePage() {
         </div>
 
         {/* Desktop fallback controls: helps when keyboard focus is lost */}
-        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 hidden -translate-x-1/2 sm:flex">
-          <div className="theme-floating-panel theme-floating-panel--info pointer-events-auto flex items-center gap-2 p-2">
+        <div className="pointer-events-none absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 sm:flex">
+          <div className="theme-floating-panel theme-floating-panel--info pointer-events-auto flex items-center gap-3 p-3">
             <button
               type="button"
               {...getHoldButtonHandlers("turn_left")}
               aria-label="Turn left"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-2 text-xs font-semibold"
+              className="theme-cta theme-cta--secondary px-4 py-3 text-sm font-semibold"
             >
               Turn L
             </button>
@@ -1000,7 +1000,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("forward")}
               aria-label="Move forward"
-              className="theme-cta theme-cta--loud theme-cta--compact px-3 py-2 text-xs font-semibold"
+              className="theme-cta theme-cta--loud px-4 py-3 text-sm font-semibold"
             >
               Forward
             </button>
@@ -1008,7 +1008,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="theme-cta theme-cta--muted theme-cta--compact px-3 py-2 text-xs font-semibold"
+              className="theme-cta theme-cta--muted px-4 py-3 text-sm font-semibold"
             >
               Back
             </button>
@@ -1016,7 +1016,7 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_right")}
               aria-label="Turn right"
-              className="theme-cta theme-cta--secondary theme-cta--compact px-3 py-2 text-xs font-semibold"
+              className="theme-cta theme-cta--secondary px-4 py-3 text-sm font-semibold"
             >
               Turn R
             </button>
@@ -1024,7 +1024,7 @@ export default function GamePage() {
               type="button"
               aria-label="Use or interact"
               onClick={() => emitControlAction("use", true)}
-              className={`theme-cta theme-cta--compact px-3 py-2 text-xs font-semibold ${
+              className={`theme-cta px-4 py-3 text-sm font-semibold ${
                 isInteractionReady ? "theme-cta--loud animate-pulse" : "theme-cta--secondary"
               }`}
             >
@@ -1034,17 +1034,17 @@ export default function GamePage() {
         </div>
 
         {/* Mobile touch controls: ergonomic layout */}
-        <div className="absolute bottom-4 inset-x-0 z-20 flex justify-between items-end px-4 pb-[max(env(safe-area-inset-bottom),0.5rem)] sm:hidden pointer-events-none">
+        <div className="absolute bottom-6 inset-x-0 z-20 flex justify-between items-end px-4 pb-[max(env(safe-area-inset-bottom),1rem)] sm:hidden pointer-events-none">
           {/* Movement Cluster (D-pad style) */}
-          <div className="pointer-events-auto grid grid-cols-3 gap-1 p-1.5 bg-black/20 backdrop-blur-[1px] rounded-2xl border border-white/5 shadow-2xl opacity-60 active:opacity-100 transition-opacity">
+          <div className="pointer-events-auto grid grid-cols-3 gap-2 p-3 bg-black/30 backdrop-blur-[1px] rounded-2xl border border-white/10 shadow-2xl opacity-75 active:opacity-100 transition-opacity">
             <div />
             <button
               type="button"
               {...getHoldButtonHandlers("forward")}
               aria-label="Move forward"
-              className="theme-cta theme-cta--loud w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-500/30 border-emerald-400/20 active:scale-90 transition-transform [touch-action:manipulation]"
+              className="theme-cta theme-cta--loud w-16 h-16 flex items-center justify-center rounded-xl bg-emerald-500/30 border-emerald-400/20 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-lg">↑</span>
+              <span className="text-2xl">↑</span>
             </button>
             <div />
 
@@ -1052,38 +1052,38 @@ export default function GamePage() {
               type="button"
               {...getHoldButtonHandlers("turn_left")}
               aria-label="Turn left"
-              className="theme-cta theme-cta--secondary w-12 h-12 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary w-16 h-16 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-lg">←</span>
+              <span className="text-2xl">←</span>
             </button>
             <button
               type="button"
               {...getHoldButtonHandlers("backward")}
               aria-label="Move backward"
-              className="theme-cta theme-cta--muted w-12 h-12 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
+              className="theme-cta theme-cta--muted w-16 h-16 flex items-center justify-center rounded-xl bg-white/10 border-white/10 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-lg">↓</span>
+              <span className="text-2xl">↓</span>
             </button>
             <button
               type="button"
               {...getHoldButtonHandlers("turn_right")}
               aria-label="Turn right"
-              className="theme-cta theme-cta--secondary w-12 h-12 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
+              className="theme-cta theme-cta--secondary w-16 h-16 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-lg">→</span>
+              <span className="text-2xl">→</span>
             </button>
           </div>
 
           {/* Action Button */}
-          <div className="pointer-events-auto opacity-60 active:opacity-100 transition-opacity">
+          <div className="pointer-events-auto opacity-75 active:opacity-100 transition-opacity">
             <button
               type="button"
               aria-label="Use or interact"
               onClick={() => emitControlAction("use", true)}
-              className={`w-20 h-20 rounded-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all [touch-action:manipulation] ${
+              className={`w-24 h-24 rounded-full flex items-center justify-center text-xs font-black uppercase tracking-widest shadow-2xl transition-all [touch-action:manipulation] ${
                 isInteractionReady
                   ? "bg-emerald-500 text-white border-4 border-emerald-300 animate-pulse scale-110 shadow-[0_0_20px_rgba(16,185,129,0.5)]"
-                  : "bg-white/10 text-white/50 border-2 border-white/10 active:scale-95"
+                  : "bg-white/15 text-white/60 border-2 border-white/15 active:scale-95"
               }`}
             >
               {isInteractionReady ? "USE" : "ACTION"}
