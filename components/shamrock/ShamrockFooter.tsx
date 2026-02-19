@@ -113,6 +113,11 @@ export function ShamrockFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/intelligence" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
+                  Intelligence Hub
+                </Link>
+              </li>
+              <li>
                 <Link href="/games" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
                   Games Hub
                 </Link>

@@ -127,6 +127,7 @@ export default function RootLayout({
                   <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
                     <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
                     <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
+                    <a href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</a>
                     <a href="/billing" className="hover:text-white transition-colors uppercase">Billing</a>
                     <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
                     <a href="/games" className="hover:text-white transition-colors uppercase">Games</a>

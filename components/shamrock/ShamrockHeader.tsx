@@ -22,6 +22,7 @@ const navigation: NavItem[] = [
     name: 'Ecosystem',
     href: '/dashboard',
     submenu: [
+      { name: 'Intelligence Hub', href: '/intelligence' },
       { name: 'Trading Dashboard', href: '/dashboard' },
       { name: 'Hyperborea Game', href: '/game' },
       { name: 'Music Platform', href: '/music' },
