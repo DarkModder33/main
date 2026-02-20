@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  ELDER_FUTHARK_RUNES,
-  calculateRuneScore,
-  getRuneForArtifact,
-  getRuneParticleConfig,
-  type ElderFutharkRune,
-  type RuneProperties,
+    ELDER_FUTHARK_RUNES,
+    calculateRuneScore,
+    getRuneForArtifact,
+    getRuneParticleConfig,
+    type ElderFutharkRune,
+    type RuneProperties,
 } from "@/lib/game/elder-futhark";
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
 import type {
