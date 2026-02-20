@@ -72,6 +72,13 @@ export default function MusicPage() {
               <Guitar className="w-5 h-5" />
               Book a Lesson
             </a>
+            <Link
+              href="/music/lessons"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-emerald-600 transition-all font-semibold text-lg"
+            >
+              <Sparkles className="w-5 h-5" />
+              Open Guitar Hub
+            </Link>
             <a
               href="#artists"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold text-lg"
@@ -79,6 +86,22 @@ export default function MusicPage() {
               <Users className="w-5 h-5" />
               Explore Artists
             </a>
+          </div>
+
+          <div className="mt-8 mx-auto max-w-3xl rounded-xl border border-emerald-400/35 bg-black/35 p-4 text-left">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-200/80 mb-2">New in last 24h</p>
+            <h2 className="text-xl font-bold text-white mb-2">Fortress Guitar Hub is now live</h2>
+            <p className="text-gray-300 text-sm mb-3">
+              Includes the founder profile section, embedded Instagram performance reel, AI smart lesson pipeline,
+              and the embedded live lesson studio.
+            </p>
+            <Link
+              href="/music/lessons"
+              className="inline-flex items-center gap-2 text-emerald-300 hover:text-emerald-200 font-semibold"
+            >
+              Go to /music/lessons
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
