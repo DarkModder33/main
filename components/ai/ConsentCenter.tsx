@@ -126,7 +126,7 @@ export function ConsentCenter() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-[80]">
+    <div className="fixed left-4 z-[80] bottom-[max(1rem,env(safe-area-inset-bottom))] max-[420px]:bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+4rem))]">
       {open && (
         <div className="mb-3 w-[min(92vw,360px)] rounded-xl border border-emerald-500/30 bg-black/95 p-3 shadow-[0_0_22px_rgba(16,185,129,0.25)] backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
