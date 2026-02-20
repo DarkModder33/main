@@ -20,7 +20,7 @@ export const MobileMenu = () => {
       {/* Trigger Button */}
       <button
         onClick={toggleMenu}
-        className="p-2 text-white"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white hover:bg-white/5 transition-colors motion-reduce:transition-none"
         aria-label="Toggle Menu"
       >
         <div className="w-6 h-5 flex flex-col justify-between items-end">
@@ -33,7 +33,7 @@ export const MobileMenu = () => {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/75 backdrop-blur-[3px] z-[60]"
+          className="fixed inset-0 bg-black/80 backdrop-blur-[5px] z-[60]"
           onClick={toggleMenu}
         />
       )}

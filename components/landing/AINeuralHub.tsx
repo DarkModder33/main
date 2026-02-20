@@ -132,7 +132,7 @@ export const AINeuralHub = () => {
   // --- CHAT LOGIC ---
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "NEURAL_LINK_ESTABLISHED. How can I assist with your trading or creative tasks today?" }
+    { role: "assistant", content: "Neural link established. How can I help with trading, build, or creative tasks today?" }
   ]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
@@ -375,14 +375,14 @@ export const AINeuralHub = () => {
                           type="text"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
-                          placeholder="Command neural engine..."
+                          placeholder="Ask AI for help..."
                           className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-cyan-500/50 transition-all"
                         />
                         <button
                           type="submit"
                           aria-label="Send chat message"
                           title="Send chat message"
-                          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-black hover:scale-105 transition-transform"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 bg-cyan-500 rounded-xl flex items-center justify-center text-black hover:scale-105 transition-transform"
                         >
                           <Send className="w-4 h-4" />
                         </button>
@@ -488,7 +488,7 @@ export const AINeuralHub = () => {
                               className="bg-zinc-900 border border-white/10 rounded-lg px-4 py-1.5 text-[10px] text-white focus:border-cyan-500 outline-none w-40"
                             />
                           </div>
-                          <button className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-cyan-500 text-black text-[10px] font-black uppercase italic hover:scale-105 transition-transform">
+                          <button className="flex min-h-[44px] items-center gap-2 px-4 py-1.5 rounded-lg bg-cyan-500 text-black text-[10px] font-black uppercase italic hover:scale-105 transition-transform">
                             <Plus className="w-3 h-3" /> Add
                           </button>
                         </div>
@@ -552,7 +552,7 @@ export const AINeuralHub = () => {
                 <div className="space-y-6">
                   <div>
                     <div className="flex justify-between text-[10px] font-mono text-zinc-500 mb-2 uppercase">
-                      <span>Compute_Load</span>
+                      <span>Compute Load</span>
                       <span className="text-cyan-400">42.8%</span>
                     </div>
                     <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
@@ -565,7 +565,7 @@ export const AINeuralHub = () => {
                   </div>
                   <div>
                     <div className="flex justify-between text-[10px] font-mono text-zinc-500 mb-2 uppercase">
-                      <span>Context_Retention</span>
+                      <span>Context Memory</span>
                       <span className="text-purple-400">98.2%</span>
                     </div>
                     <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
@@ -581,11 +581,11 @@ export const AINeuralHub = () => {
                 <div className="mt-10 space-y-4">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/50 border border-white/5">
                     <ShieldAlert className="w-4 h-4 text-zinc-600" />
-                    <span className="text-[10px] font-mono text-zinc-400 uppercase">Uncensored_Mode: ACTIVE</span>
+                    <span className="text-[10px] font-mono text-zinc-300 uppercase">Open Responses: On</span>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-900/50 border border-white/5">
                     <Sparkles className="w-4 h-4 text-zinc-600" />
-                    <span className="text-[10px] font-mono text-zinc-400 uppercase">Creative_Bypass: ENABLED</span>
+                    <span className="text-[10px] font-mono text-zinc-300 uppercase">Creative Tools: On</span>
                   </div>
                 </div>
               </div>
