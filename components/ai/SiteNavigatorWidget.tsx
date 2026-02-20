@@ -278,7 +278,7 @@ export function SiteNavigatorWidget() {
   }, [loading, open, pendingPrompt, sendPrompt]);
 
   return (
-    <div className={`fixed right-3 sm:right-4 z-[80] ${priorityDock ? "top-4" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))]"}`}>
+    <div className={`fixed right-3 sm:right-4 z-[80] ${priorityDock ? "top-4" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))] max-[420px]:bottom-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
       {open && (
         <div className={`${priorityDock ? "mt-3" : "mb-3"} w-[min(94vw,400px)] overflow-hidden rounded-xl border border-cyan-500/35 bg-[rgba(8,11,16,0.9)] shadow-[0_14px_40px_rgba(0,0,0,0.55),0_0_20px_rgba(6,182,212,0.24)] backdrop-blur-md`}>
           <div className="flex items-center justify-between border-b border-cyan-500/20 px-3 py-2">
