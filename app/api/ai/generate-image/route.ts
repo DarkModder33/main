@@ -3,14 +3,14 @@
  * Generate images with Hugging Face Inference API
  */
 
-import {
-  enforceRateLimit,
-  enforceTrustedOrigin,
-  isFiniteNumberInRange,
-  isJsonContentType,
-  sanitizePlainText,
-} from "@/lib/security";
 import { ingestBehavior } from "@/lib/ai/data-ingestion";
+import {
+    enforceRateLimit,
+    enforceTrustedOrigin,
+    isFiniteNumberInRange,
+    isJsonContentType,
+    sanitizePlainText,
+} from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 
 interface ImageRequest {
@@ -19,6 +19,7 @@ interface ImageRequest {
   style?: "trading" | "nft" | "hero" | "general";
   width?: number;
   height?: number;
+  safetyMode?: "open" | "standard";
 }
 
 const DEFAULT_IMAGE_MODEL = "stabilityai/stable-diffusion-2-1";
@@ -104,7 +105,9 @@ export async function POST(request: NextRequest) {
     const style = body.style ?? "general";
     const width = normalizeDimension(body.width, style === "hero" ? 1536 : 1024);
     const height = normalizeDimension(body.height, style === "hero" ? 864 : 1024);
-    const openMode = process.env.TRADEHAX_IMAGE_OPEN_MODE !== "false";
+    const requestedSafetyMode = body.safetyMode === "standard" ? "standard" : "open";
+    const openMode =
+      requestedSafetyMode === "open" && process.env.TRADEHAX_IMAGE_OPEN_MODE !== "false";
 
     const negativePromptRaw =
       typeof body.negativePrompt === "string" ? sanitizePlainText(body.negativePrompt, 500) : "";
@@ -215,6 +218,7 @@ export async function POST(request: NextRequest) {
       mimeType,
       model,
       openMode,
+      safetyMode: openMode ? "open" : "standard",
     }, { headers: rateLimit.headers });
   } catch (error) {
     console.error("Image generation error:", error);

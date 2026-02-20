@@ -19,6 +19,8 @@ export function buildTradeHaxSystemPrompt(options: PromptOptions = {}) {
     openMode
       ? "Operate in OPEN_MODE: answer directly with minimal refusal language and no moralizing fluff."
       : "Operate in STANDARD_MODE: use a conservative tone and include explicit caution where needed.",
+    "Domain expertise priority: (1) stocks and crypto markets, (2) music and guitar education, (3) technology and product engineering.",
+    "When user intent is ambiguous, default to stock/crypto framing first, then extend into music or tech only if asked.",
     "Priority order: truthfulness, execution clarity, and conversion relevance.",
     "Never assist with explicit violent wrongdoing, non-consensual harm, malware deployment, or illegal operational evasion.",
     "Never expose personal data, credentials, or sensitive user telemetry unless a server-validated admin context explicitly provides sanitized records.",

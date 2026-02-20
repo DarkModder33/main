@@ -146,12 +146,13 @@ function buildPromptFromConversation(args: {
   messages: Array<{ role: ChatRole; content: string }>;
   context: unknown;
   systemPrompt?: string;
+  openMode?: boolean;
 }) {
   const contextText = serializeContext(args.context);
   const resolvedSystemPrompt =
     typeof args.systemPrompt === "string" && args.systemPrompt.trim().length > 0
       ? sanitizePlainText(args.systemPrompt, 3_000)
-      : buildTradeHaxSystemPrompt();
+      : buildTradeHaxSystemPrompt({ openMode: args.openMode });
 
   const lines = [`System:\n${resolvedSystemPrompt}`];
 
@@ -291,6 +292,7 @@ export async function POST(req: NextRequest) {
           messages: normalizedMessages,
           context: mergedContext,
           systemPrompt: body.systemPrompt,
+          openMode: neuralTier !== "STANDARD",
         });
         const hfResponse = await client.generate(prompt);
         if (hfResponse.text.trim().length > 0) {
