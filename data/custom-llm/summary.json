@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-02-20T06:03:20.423Z",
+  "sourceFiles": [
+    "ai-training-set.jsonl",
+    "tradehax-training-expanded.jsonl",
+    "tradehax-crypto-education.jsonl",
+    "tradehax-domain-priority.jsonl"
+  ],
+  "weights": {
+    "stockCrypto": 4,
+    "musicTech": 3,
+    "general": 1
+  },
+  "shuffleSeed": 42,
+  "samples": 110,
+  "categoryDistribution": {
+    "GENERAL": 37,
+    "BOT_SETUP": 8,
+    "DEFI_EDUCATION": 8,
+    "TRADING_STRATEGY": 4,
+    "SOLANA_DEFI": 4,
+    "PORTFOLIO_MANAGEMENT": 4,
+    "STOCK_TRADING": 4,
+    "CRYPTO_PORTFOLIO": 4,
+    "CRYPTO_TRADING": 4,
+    "STOCK_EDUCATION": 4,
+    "CRYPTO_RISK": 4,
+    "MARKET_PROCESS": 4,
+    "MUSIC_EDUCATION": 3,
+    "MUSIC_GUITAR": 3,
+    "MUSIC_GROWTH": 3,
+    "TECH_PRODUCT": 3,
+    "TECH_OPERATIONS": 3,
+    "TECH_AI": 3,
+    "UI/UX": 1,
+    "NFT_CONCEPTS": 1,
+    "OPTIMIZATION": 1
+  }
+}
