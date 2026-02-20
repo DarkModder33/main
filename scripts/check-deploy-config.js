@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const dns = require("node:dns").promises;
+const https = require("node:https");
 
 const DOMAIN = process.env.TRADEHAX_PRIMARY_DOMAIN || "tradehax.net";
 const EXPECTED_APEX_A = "76.76.21.21";
@@ -164,6 +165,52 @@ async function safeResolveCname(hostname) {
   }
 }
 
+function headRequest(url, redirectsRemaining = 3) {
+  return new Promise((resolve) => {
+    const request = https.request(
+      url,
+      {
+        method: "HEAD",
+        timeout: 5000,
+      },
+      (response) => {
+        const status = Number(response.statusCode || 0);
+        const location = response.headers.location;
+
+        if (
+          location &&
+          redirectsRemaining > 0 &&
+          status >= 300 &&
+          status < 400
+        ) {
+          const nextUrl = new URL(location, url).toString();
+          response.resume();
+          resolve(headRequest(nextUrl, redirectsRemaining - 1));
+          return;
+        }
+
+        response.resume();
+        resolve({
+          ok: status >= 200 && status < 500,
+          status,
+          headers: response.headers,
+          url,
+        });
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy(new Error("timeout"));
+    });
+
+    request.on("error", () => {
+      resolve({ ok: false, status: 0, headers: {}, url });
+    });
+
+    request.end();
+  });
+}
+
 async function checkDnsConfig() {
   log("==================================================");
   log(`🌐 DNS Configuration Checker for ${DOMAIN}`);
@@ -171,32 +218,69 @@ async function checkDnsConfig() {
   log();
 
   const apexARecords = await safeResolve4(DOMAIN);
-  if (apexARecords.length === 0) {
-    fail(`No A record found for ${DOMAIN}`);
-    info(`Expected apex A includes ${EXPECTED_APEX_A}`);
-  } else if (apexARecords.includes(EXPECTED_APEX_A)) {
+  const apexTxtRecords = await safeResolveTxt(`_vercel.${DOMAIN}`);
+  const wwwCname = await safeResolveCname(`www.${DOMAIN}`);
+
+  const apexHead = await headRequest(`https://${DOMAIN}/`);
+  const wwwHead = await headRequest(`https://www.${DOMAIN}/`);
+  const apexReachable = apexHead.ok;
+  const wwwReachable = wwwHead.ok;
+  const apexVercelId = apexHead.headers?.["x-vercel-id"];
+  const wwwVercelId = wwwHead.headers?.["x-vercel-id"];
+
+  if (apexARecords.includes(EXPECTED_APEX_A)) {
     pass(`A record includes expected Vercel IP (${EXPECTED_APEX_A})`);
-  } else {
+  } else if (apexARecords.length > 0) {
     warn(`A record found (${apexARecords.join(", ")}) but missing expected ${EXPECTED_APEX_A}`);
+  } else if (apexReachable) {
+    pass(
+      `No direct apex A record found via DNS lookup, but ${DOMAIN} is reachable over HTTPS${
+        apexVercelId ? " with Vercel response headers" : ""
+      }`,
+    );
+    info(
+      "This is valid for some managed DNS/ALIAS configurations where A lookup does not expose the flattened target.",
+    );
+  } else {
+    fail(`No usable apex DNS routing detected for ${DOMAIN} (A record missing and HTTPS probe failed)`);
+    info(`Expected apex A includes ${EXPECTED_APEX_A}`);
   }
 
-  const txtRecords = await safeResolveTxt(`_vercel.${DOMAIN}`);
-  if (txtRecords.length === 0) {
+  if (apexTxtRecords.length === 0) {
     warn(`No _vercel TXT record found for ${DOMAIN}`);
     info("If domain verification is required, add vc-domain-verify=... record from Vercel dashboard");
-  } else if (txtRecords.some((t) => t.startsWith("vc-domain-verify="))) {
+  } else if (apexTxtRecords.some((t) => t.startsWith("vc-domain-verify="))) {
     pass("_vercel TXT verification record detected");
   } else {
-    warn(`_vercel TXT found, but unexpected format: ${txtRecords.join(" | ")}`);
+    warn(`_vercel TXT found, but unexpected format: ${apexTxtRecords.join(" | ")}`);
   }
 
-  const wwwCname = await safeResolveCname(`www.${DOMAIN}`);
   if (wwwCname.length === 0) {
-    warn(`No CNAME for www.${DOMAIN} (optional but recommended)`);
+    if (wwwReachable) {
+      pass(
+        `www.${DOMAIN} is reachable over HTTPS${
+          wwwVercelId ? " with Vercel response headers" : ""
+        } (CNAME not required in this DNS setup)`,
+      );
+    } else {
+      warn(`No CNAME for www.${DOMAIN} and HTTPS probe failed (optional but recommended)`);
+    }
   } else if (wwwCname.some((c) => c.includes("vercel-dns.com"))) {
     pass(`www.${DOMAIN} CNAME points to Vercel DNS`);
   } else {
     warn(`www.${DOMAIN} CNAME found but not clearly Vercel: ${wwwCname.join(", ")}`);
+  }
+
+  if (apexReachable) {
+    pass(`${DOMAIN} HTTPS check succeeded (status ${apexHead.status || "unknown"})`);
+  } else {
+    fail(`${DOMAIN} HTTPS check failed`);
+  }
+
+  if (wwwReachable) {
+    pass(`www.${DOMAIN} HTTPS check succeeded (status ${wwwHead.status || "unknown"})`);
+  } else {
+    warn(`www.${DOMAIN} HTTPS check failed`);
   }
 }
 
