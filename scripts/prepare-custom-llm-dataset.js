@@ -15,7 +15,7 @@ const OUTPUT_DIR = path.join(ROOT, "data", "custom-llm");
 const OUTPUT_FILE = path.join(OUTPUT_DIR, "train.jsonl");
 const SUMMARY_FILE = path.join(OUTPUT_DIR, "summary.json");
 
-const STOCK_CRYPTO_WEIGHT = Number.parseInt(process.env.TRADEHAX_WEIGHT_STOCK_CRYPTO || "4", 10);
+const STOCK_CRYPTO_WEIGHT = Number.parseInt(process.env.TRADEHAX_WEIGHT_STOCK_CRYPTO || "7", 10);
 const MUSIC_TECH_WEIGHT = Number.parseInt(process.env.TRADEHAX_WEIGHT_MUSIC_TECH || "3", 10);
 const GENERAL_WEIGHT = Number.parseInt(process.env.TRADEHAX_WEIGHT_GENERAL || "1", 10);
 const SHUFFLE_SEED = Number.parseInt(process.env.TRADEHAX_DATASET_SHUFFLE_SEED || "42", 10);
@@ -108,7 +108,7 @@ function resolvePriorityWeight(category) {
     normalized.includes("MARKET") ||
     normalized.includes("SOLANA")
   ) {
-    return safeWeight(STOCK_CRYPTO_WEIGHT, 4);
+    return safeWeight(STOCK_CRYPTO_WEIGHT, 7);
   }
 
   // Secondary priority: music + tech
@@ -177,7 +177,7 @@ function main() {
     generatedAt: new Date().toISOString(),
     sourceFiles: INPUT_FILES.map((filePath) => path.basename(filePath)),
     weights: {
-      stockCrypto: safeWeight(STOCK_CRYPTO_WEIGHT, 4),
+      stockCrypto: safeWeight(STOCK_CRYPTO_WEIGHT, 7),
       musicTech: safeWeight(MUSIC_TECH_WEIGHT, 3),
       general: safeWeight(GENERAL_WEIGHT, 1),
     },
