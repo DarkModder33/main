@@ -1,24 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { 
-  MessageSquare, 
-  Wand2, 
-  BarChart3, 
-  Sparkles, 
-  Zap, 
-  ShieldAlert,
-  RotateCw,
-  Send,
-  Plus,
-  TrendingUp,
-  Cpu,
-  Coins
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletButton } from "@/components/counter/WalletButton";
 import { HAX_TOKEN_CONFIG } from "@/lib/trading/hax-token";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+    Coins,
+    Cpu,
+    Plus,
+    RotateCw,
+    Send,
+    ShieldAlert,
+    Sparkles,
+    TrendingUp,
+    Wand2,
+    Zap
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 type HubTab = "CHAT" | "IMAGE_GEN" | "MARKET";
 
@@ -28,9 +26,27 @@ interface Message {
 }
 
 const FREE_USAGE_LIMIT = 3;
-const PAYMENT_AMOUNT_SOL = 0.05; 
+const PAYMENT_AMOUNT_SOL = 0.05;
 const PAYMENT_AMOUNT_HAX = 100;
 const TREASURY_WALLET = "6v6iK8kS1DqXhP9P8s7W6zX5B9Q4p7L3k2j1i0h9g8f7";
+
+const CHAT_MODELS = [
+  {
+    id: "mistralai/Mistral-7B-Instruct-v0.1",
+    label: "🧠 Mistral 7B",
+    hint: "Fast instruction model for general market + planning prompts",
+  },
+  {
+    id: "meta-llama/Llama-3.1-8B-Instruct",
+    label: "⚡ Llama 3.1 8B",
+    hint: "Balanced latency and reasoning depth",
+  },
+  {
+    id: "Qwen/Qwen2.5-7B-Instruct",
+    label: "🔮 Qwen 2.5 7B",
+    hint: "Strong structured output for workflows",
+  },
+] as const;
 
 const NeuralBackground = () => (
   <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
@@ -40,16 +56,16 @@ const NeuralBackground = () => (
         <path d="M2 2 L100 2 M2 2 L2 100" stroke="currentColor" strokeWidth="0.1" className="text-cyan-500/10" />
       </pattern>
       <rect width="100%" height="100%" fill="url(#neural-net)" />
-      <motion.circle 
-        animate={{ 
+      <motion.circle
+        animate={{
           cx: ["10%", "90%", "10%"],
           cy: ["10%", "50%", "90%", "10%"]
         }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         r="2" fill="cyan" className="blur-[2px]"
       />
-      <motion.circle 
-        animate={{ 
+      <motion.circle
+        animate={{
           cx: ["90%", "10%", "90%"],
           cy: ["90%", "50%", "10%", "90%"]
         }}
@@ -65,6 +81,7 @@ export const AINeuralHub = () => {
   const [usageCount, setUsageCount] = useState(0);
   const [isCharging, setIsOverLimit] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const [selectedChatModel, setSelectedChatModel] = useState<string>(CHAT_MODELS[0].id);
   const { connected, publicKey, sendTransaction } = useWallet();
 
   // Usage Tracking
@@ -75,7 +92,16 @@ export const AINeuralHub = () => {
       setUsageCount(count);
       if (count >= FREE_USAGE_LIMIT) setIsOverLimit(true);
     }
+
+    const storedModel = localStorage.getItem("tradehax_ai_chat_model");
+    if (storedModel && CHAT_MODELS.some((model) => model.id === storedModel)) {
+      setSelectedChatModel(storedModel);
+    }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tradehax_ai_chat_model", selectedChatModel);
+  }, [selectedChatModel]);
 
   const incrementUsage = () => {
     const newCount = usageCount + 1;
@@ -91,7 +117,7 @@ export const AINeuralHub = () => {
       // Logic for actual SOL transfer would go here
       // For now we mock success after a delay to show UI flow
       await new Promise(r => setTimeout(r, 2000));
-      
+
       localStorage.setItem("tradehax_ai_usage", "0");
       setUsageCount(0);
       setIsOverLimit(false);
@@ -123,7 +149,7 @@ export const AINeuralHub = () => {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, userId: "landing_hub" })
+        body: JSON.stringify({ message: userMsg, userId: "landing_hub", model: selectedChatModel })
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.response || "ERROR: NO_RESPONSE" }]);
@@ -156,10 +182,10 @@ export const AINeuralHub = () => {
       const res = await fetch("/api/ai/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          prompt: imgPrompt, 
+        body: JSON.stringify({
+          prompt: imgPrompt,
           style: "general",
-          model: selectedModel 
+          model: selectedModel
         })
       });
       const data = await res.json();
@@ -190,7 +216,7 @@ export const AINeuralHub = () => {
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-5xl mx-auto">
-          
+
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
@@ -211,14 +237,31 @@ export const AINeuralHub = () => {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all ${
-                      activeTab === tab 
-                        ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]" 
+                      activeTab === tab
+                        ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                         : "text-zinc-500 hover:text-white"
                     }`}
                   >
                     {tab === "CHAT" ? "GPT_CHAT" : tab === "IMAGE_GEN" ? "NEURAL_IMG" : "MARKET_PICKER"}
                   </button>
                 ))}
+              </div>
+              <div className="w-full md:w-[300px] rounded-xl border border-cyan-500/25 bg-[rgba(10,12,16,0.88)] px-3 py-2 shadow-[0_0_18px_rgba(6,182,212,0.12)]">
+                <label className="mb-1 block text-[10px] font-mono uppercase tracking-[0.2em] text-cyan-300/85">
+                  LLM Model
+                </label>
+                <select
+                  value={selectedChatModel}
+                  onChange={(event) => setSelectedChatModel(event.target.value)}
+                  className="w-full rounded-lg border border-cyan-500/35 bg-black/60 px-3 py-2 text-xs font-semibold text-zinc-100 outline-none transition-colors hover:border-cyan-400/60 focus:border-cyan-300"
+                  title="Select model for GPT_CHAT"
+                >
+                  {CHAT_MODELS.map((model) => (
+                    <option key={model.id} value={model.id} title={model.hint}>
+                      {model.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/5">
                 <div className={`w-1.5 h-1.5 rounded-full ${isCharging ? 'bg-red-500' : 'bg-emerald-500'} animate-pulse`} />
@@ -234,7 +277,7 @@ export const AINeuralHub = () => {
             <div className="lg:col-span-8">
               <div className="theme-panel min-h-[500px] flex flex-col relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                
+
                 {isCharging && (
                   <div className="absolute inset-0 z-50 backdrop-blur-xl bg-black/80 flex flex-col items-center justify-center p-8 text-center border border-cyan-500/20">
                     <div className="relative mb-8">
@@ -252,7 +295,7 @@ export const AINeuralHub = () => {
                         </div>
                       ) : (
                         <>
-                          <button 
+                          <button
                             onClick={handlePayment}
                             disabled={isPaying}
                             className="w-full px-8 py-4 bg-cyan-500 text-black font-black rounded-2xl text-xs hover:bg-white hover:scale-[1.02] transition-all uppercase italic flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)] disabled:opacity-50"
@@ -269,7 +312,7 @@ export const AINeuralHub = () => {
                               </>
                             )}
                           </button>
-                          <button 
+                          <button
                             onClick={handlePayment}
                             disabled={isPaying}
                             className="w-full px-8 py-4 bg-zinc-900 border border-white/10 text-white font-black rounded-2xl text-xs hover:border-cyan-500/50 transition-all uppercase italic flex items-center justify-center gap-2"
@@ -279,9 +322,9 @@ export const AINeuralHub = () => {
                           </button>
                         </>
                       )}
-                      <a 
-                        href={`https://jup.ag/swap/SOL-${HAX_TOKEN_CONFIG.SYMBOL}`} 
-                        target="_blank" 
+                      <a
+                        href={`https://jup.ag/swap/SOL-${HAX_TOKEN_CONFIG.SYMBOL}`}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="w-full px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black rounded-2xl text-[10px] hover:bg-emerald-500/20 transition-all uppercase italic text-center"
                       >
@@ -294,7 +337,7 @@ export const AINeuralHub = () => {
 
                 <AnimatePresence mode="wait">
                   {activeTab === "CHAT" && (
-                    <motion.div 
+                    <motion.div
                       key="chat"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -305,8 +348,8 @@ export const AINeuralHub = () => {
                         {messages.map((msg, i) => (
                           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${
-                              msg.role === 'user' 
-                                ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-100" 
+                              msg.role === 'user'
+                                ? "bg-cyan-500/10 border border-cyan-500/20 text-cyan-100"
                                 : "bg-zinc-900/80 border border-white/5 text-zinc-300"
                             }`}>
                               <p className="font-mono text-[10px] mb-1 opacity-50 uppercase tracking-widest">{msg.role}</p>
@@ -326,17 +369,19 @@ export const AINeuralHub = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <form onSubmit={handleSendMessage} className="relative">
-                        <input 
+                        <input
                           type="text"
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder="Command neural engine..."
                           className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-cyan-500/50 transition-all"
                         />
-                        <button 
+                        <button
                           type="submit"
+                          aria-label="Send chat message"
+                          title="Send chat message"
                           className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-black hover:scale-105 transition-transform"
                         >
                           <Send className="w-4 h-4" />
@@ -346,7 +391,7 @@ export const AINeuralHub = () => {
                   )}
 
                   {activeTab === "IMAGE_GEN" && (
-                    <motion.div 
+                    <motion.div
                       key="img"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -359,8 +404,8 @@ export const AINeuralHub = () => {
                             key={model.id}
                             onClick={() => setSelectedModel(model.id)}
                             className={`p-4 rounded-2xl border text-left transition-all ${
-                              selectedModel === model.id 
-                                ? "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.1)]" 
+                              selectedModel === model.id
+                                ? "bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.1)]"
                                 : "bg-zinc-900/50 border-white/5 hover:border-white/10"
                             }`}
                           >
@@ -379,13 +424,13 @@ export const AINeuralHub = () => {
                       </div>
 
                       <div className="relative">
-                        <textarea 
+                        <textarea
                           value={imgPrompt}
                           onChange={(e) => setImgPrompt(e.target.value)}
                           placeholder="Describe the neural construct to visualize..."
                           className="w-full h-32 bg-zinc-900/50 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-cyan-500/50 transition-all resize-none"
                         />
-                        <button 
+                        <button
                           onClick={handleGenerateImage}
                           disabled={isImgLoading || !imgPrompt.trim()}
                           className="absolute bottom-4 right-4 px-6 py-2 bg-cyan-500 text-black font-black text-xs rounded-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 flex items-center gap-2 uppercase italic"
@@ -397,11 +442,11 @@ export const AINeuralHub = () => {
 
                       <div className="flex-1 min-h-[200px] rounded-2xl border border-white/5 bg-zinc-950/50 flex items-center justify-center relative overflow-hidden">
                         {generatedImg ? (
-                          <motion.img 
+                          <motion.img
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            src={generatedImg} 
-                            className="w-full h-full object-cover" 
+                            src={generatedImg}
+                            className="w-full h-full object-cover"
                             alt="Generated neural construct"
                           />
                         ) : (
@@ -423,7 +468,7 @@ export const AINeuralHub = () => {
                   )}
 
                   {activeTab === "MARKET" && (
-                    <motion.div 
+                    <motion.div
                       key="market"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -437,9 +482,9 @@ export const AINeuralHub = () => {
                         </div>
                         <div className="flex gap-2">
                           <div className="relative">
-                            <input 
-                              type="text" 
-                              placeholder="Search_Ticker..." 
+                            <input
+                              type="text"
+                              placeholder="Search_Ticker..."
                               className="bg-zinc-900 border border-white/10 rounded-lg px-4 py-1.5 text-[10px] text-white focus:border-cyan-500 outline-none w-40"
                             />
                           </div>
@@ -511,7 +556,7 @@ export const AINeuralHub = () => {
                       <span className="text-cyan-400">42.8%</span>
                     </div>
                     <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: "42.8%" }}
                         className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
@@ -524,7 +569,7 @@ export const AINeuralHub = () => {
                       <span className="text-purple-400">98.2%</span>
                     </div>
                     <div className="h-1 bg-zinc-900 rounded-full overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: "98.2%" }}
                         className="h-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"

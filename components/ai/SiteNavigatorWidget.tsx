@@ -46,10 +46,21 @@ type IntroCompleteDetail = {
   preferredMode?: string;
 };
 
+type NavigatorPreference = {
+  hasInteracted: boolean;
+  autoOpen: boolean;
+};
+
+const NAVIGATOR_PREFERENCE_KEY = "tradehax:navigator-preference";
+
 export function SiteNavigatorWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [priorityDock, setPriorityDock] = useState(false);
+  const [navigatorPreference, setNavigatorPreference] = useState<NavigatorPreference>({
+    hasInteracted: false,
+    autoOpen: false,
+  });
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -69,6 +80,33 @@ export function SiteNavigatorWidget() {
   ]);
 
   const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(NAVIGATOR_PREFERENCE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<NavigatorPreference>;
+      const nextPreference: NavigatorPreference = {
+        hasInteracted: parsed.hasInteracted === true,
+        autoOpen: parsed.autoOpen === true,
+      };
+      setNavigatorPreference(nextPreference);
+
+      if (nextPreference.hasInteracted && nextPreference.autoOpen) {
+        setOpen(true);
+      }
+    } catch {
+      // keep defaults
+    }
+  }, []);
+
+  const persistNavigatorPreference = useCallback((next: NavigatorPreference) => {
+    setNavigatorPreference(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(NAVIGATOR_PREFERENCE_KEY, JSON.stringify(next));
+    }
+  }, []);
 
   useEffect(() => {
     const loadConsent = () => {
@@ -210,6 +248,10 @@ export function SiteNavigatorWidget() {
         return;
       }
 
+      if (!navigatorPreference.hasInteracted || !navigatorPreference.autoOpen) {
+        return;
+      }
+
       setPriorityDock(true);
       setOpen(true);
 
@@ -223,7 +265,7 @@ export function SiteNavigatorWidget() {
     return () => {
       window.removeEventListener(INTRO_COMPLETE_EVENT, onIntroComplete as EventListener);
     };
-  }, []);
+  }, [navigatorPreference.autoOpen, navigatorPreference.hasInteracted]);
 
   useEffect(() => {
     if (!open || loading || !pendingPrompt) {
@@ -236,9 +278,9 @@ export function SiteNavigatorWidget() {
   }, [loading, open, pendingPrompt, sendPrompt]);
 
   return (
-    <div className={`fixed right-4 z-[80] ${priorityDock ? "top-4" : "bottom-4"}`}>
+    <div className={`fixed right-3 sm:right-4 z-[80] ${priorityDock ? "top-4" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))]"}`}>
       {open && (
-        <div className={`${priorityDock ? "mt-3" : "mb-3"} w-[min(92vw,380px)] overflow-hidden rounded-xl border border-cyan-500/30 bg-black/95 shadow-[0_0_24px_rgba(6,182,212,0.28)] backdrop-blur-md`}>
+        <div className={`${priorityDock ? "mt-3" : "mb-3"} w-[min(94vw,400px)] overflow-hidden rounded-xl border border-cyan-500/35 bg-[rgba(8,11,16,0.9)] shadow-[0_14px_40px_rgba(0,0,0,0.55),0_0_20px_rgba(6,182,212,0.24)] backdrop-blur-md`}>
           <div className="flex items-center justify-between border-b border-cyan-500/20 px-3 py-2">
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-cyan-300">Site Navigator</div>
@@ -248,11 +290,14 @@ export function SiteNavigatorWidget() {
             </div>
             <button
               type="button"
-              className="rounded p-1 text-cyan-200/80 hover:bg-cyan-500/10 hover:text-white"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500/85 text-white shadow-sm hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/70"
               aria-label="Close navigator"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                persistNavigatorPreference({ hasInteracted: true, autoOpen: false });
+              }}
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -342,11 +387,13 @@ export function SiteNavigatorWidget() {
 
       <button
         type="button"
-        className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-cyan-100 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:bg-cyan-500/30"
+        className="inline-flex items-center gap-2 rounded-full border border-cyan-400/50 bg-cyan-500/25 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-cyan-100 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:bg-cyan-500/35"
         onClick={() => {
-          setOpen((prev) => !prev);
+          const nextOpen = !open;
+          setOpen(nextOpen);
+          persistNavigatorPreference({ hasInteracted: true, autoOpen: nextOpen });
           void trackEvent("navigator_widget_toggled", {
-            open_next: !open,
+            open_next: nextOpen,
           });
         }}
       >
