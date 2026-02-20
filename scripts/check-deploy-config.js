@@ -12,6 +12,7 @@ const EXPECTED_APEX_A = "76.76.21.21";
 const args = new Set(process.argv.slice(2));
 const runVercelOnly = args.has("--vercel");
 const runDnsOnly = args.has("--dns");
+const requireDnsARecord = args.has("--require-dns-a-record");
 const runAll = !runVercelOnly && !runDnsOnly;
 
 const colors = {
@@ -217,6 +218,10 @@ async function checkDnsConfig() {
   log("==================================================");
   log();
 
+  if (requireDnsARecord) {
+    info("Strict DNS mode: apex A record is required (--require-dns-a-record)");
+  }
+
   const apexARecords = await safeResolve4(DOMAIN);
   const apexTxtRecords = await safeResolveTxt(`_vercel.${DOMAIN}`);
   const wwwCname = await safeResolveCname(`www.${DOMAIN}`);
@@ -232,6 +237,9 @@ async function checkDnsConfig() {
     pass(`A record includes expected Vercel IP (${EXPECTED_APEX_A})`);
   } else if (apexARecords.length > 0) {
     warn(`A record found (${apexARecords.join(", ")}) but missing expected ${EXPECTED_APEX_A}`);
+  } else if (requireDnsARecord) {
+    fail(`No A record found for ${DOMAIN} (strict DNS mode requires apex A)`);
+    info(`Expected apex A includes ${EXPECTED_APEX_A}`);
   } else if (apexReachable) {
     pass(
       `No direct apex A record found via DNS lookup, but ${DOMAIN} is reachable over HTTPS${
