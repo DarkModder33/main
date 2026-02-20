@@ -1,3 +1,4 @@
+import { ELDER_FUTHARK_RUNES, getRuneForArtifact } from "@/lib/game/elder-futhark";
 import type {
     ArtifactRarity,
     GridPoint,
@@ -5,7 +6,6 @@ import type {
     LevelArtifact,
     LevelPuzzleNode,
 } from "@/lib/game/level-types";
-import { getRuneForArtifact, ELDER_FUTHARK_RUNES } from "@/lib/game/elder-futhark";
 
 interface LevelGenerationOptions {
   seed?: number;
