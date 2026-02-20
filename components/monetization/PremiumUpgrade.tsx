@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Zap, Star, Crown } from 'lucide-react';
+import { Check, Crown, Star, Zap } from 'lucide-react';
 
 /**
  * Premium subscription upgrade CTA
@@ -20,10 +20,10 @@ export function PremiumUpgrade() {
   };
 
   return (
-    <div className="theme-panel relative p-8">
+    <div className="theme-panel relative p-5 sm:p-6 lg:p-8">
       {/* Decorative background */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.08]" />
-      
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/grid.svg')] bg-[length:40px_40px] opacity-[0.08]" />
+
       <div className="relative z-10">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 rounded-full border border-[#ffd86d]/60 bg-[#261d08]/90 px-4 py-2 text-sm font-bold text-[#ffe7a9] mb-6">
@@ -32,16 +32,16 @@ export function PremiumUpgrade() {
         </div>
 
         {/* Title */}
-        <h2 className="theme-title text-3xl md:text-4xl font-bold mb-4">
+        <h2 className="theme-title text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
           Upgrade to Premium
         </h2>
-        
-        <p className="theme-subtitle text-lg mb-6">
+
+        <p className="theme-subtitle text-base sm:text-lg mb-6">
           Unlock advanced trading signals, ad-free experience, and exclusive strategies used by professional traders.
         </p>
 
         {/* Features */}
-        <div className="grid md:grid-cols-2 gap-4 mb-8">
+        <div className="grid md:grid-cols-2 gap-3 sm:gap-4 mb-8">
           <Feature icon={<Zap className="w-5 h-5" />} text="Real-time AI Trading Signals" />
           <Feature icon={<Star className="w-5 h-5" />} text="Ad-Free Experience" />
           <Feature icon={<Check className="w-5 h-5" />} text="Priority Support 24/7" />
@@ -51,10 +51,10 @@ export function PremiumUpgrade() {
         </div>
 
         {/* Pricing */}
-        <div className="flex items-baseline gap-2 mb-6">
-          <span className="text-5xl font-bold text-white">$9.99</span>
+        <div className="flex flex-wrap items-baseline gap-2 mb-6">
+          <span className="text-4xl sm:text-5xl font-bold text-white">$9.99</span>
           <span className="text-[#afc4d1]">/month</span>
-          <span className="ml-4 rounded-full border border-[#73f5ab]/45 bg-[#0d2118]/85 px-3 py-1 text-sm text-[#92ffc0]">
+          <span className="rounded-full border border-[#73f5ab]/45 bg-[#0d2118]/85 px-3 py-1 text-xs sm:text-sm text-[#92ffc0] sm:ml-4">
             Save $20 vs. competitors
           </span>
         </div>
@@ -62,7 +62,7 @@ export function PremiumUpgrade() {
         {/* CTA Button */}
         <button
           onClick={handleUpgradeClick}
-          className="theme-cta theme-cta--loud w-full md:w-auto px-8 py-4 text-lg"
+          className="theme-cta theme-cta--loud w-full md:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg"
         >
           Upgrade Now →
         </button>
@@ -108,15 +108,15 @@ export function PremiumBanner() {
         <Crown className="w-5 h-5 text-[#ffe08f]" />
         <span className="text-[#ffe08f] font-bold text-sm">PREMIUM</span>
       </div>
-      
+
       <h3 className="text-lg font-bold text-white mb-2">
         Go Ad-Free + Get Signals
       </h3>
-      
+
       <p className="text-[#a3bac8] text-sm mb-4">
         Unlock advanced features for $9.99/mo
       </p>
-      
+
       <button
         onClick={handleClick}
         className="theme-cta theme-cta--secondary w-full px-4 py-2"

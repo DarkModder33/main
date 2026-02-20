@@ -7,6 +7,8 @@ const ROOT = process.cwd();
 const INPUT_FILES = [
   "ai-training-set.jsonl",
   "tradehax-training-expanded.jsonl",
+  "tradehax-crypto-education.jsonl",
+  "tradehax-domain-priority.jsonl",
 ].map((relativePath) => path.join(ROOT, relativePath));
 
 const OUTPUT_DIR = path.join(ROOT, "data", "custom-llm");
@@ -56,7 +58,7 @@ function toTrainingRecord(raw) {
       {
         role: "system",
         content:
-          "You are TradeHax AI. Provide concise, safe, conversion-aware guidance for tradehax.net users.",
+          "You are TradeHax AI. Domain priority: (1) stocks+crypto markets, (2) music, (3) technology. Provide concise, safe, conversion-aware guidance for tradehax.net users.",
       },
       {
         role: "user",
@@ -74,9 +76,55 @@ function toTrainingRecord(raw) {
   };
 }
 
+function normalizeCategory(value) {
+  return String(value || "GENERAL").trim().toUpperCase();
+}
+
+function resolvePriorityWeight(category) {
+  const normalized = normalizeCategory(category);
+
+  // Highest priority: stock + crypto learning and execution
+  if (
+    normalized.includes("STOCK") ||
+    normalized.includes("CRYPTO") ||
+    normalized.includes("TRADING") ||
+    normalized.includes("DEFI") ||
+    normalized.includes("PORTFOLIO") ||
+    normalized.includes("HFT") ||
+    normalized.includes("BOT") ||
+    normalized.includes("MARKET") ||
+    normalized.includes("SOLANA")
+  ) {
+    return 3;
+  }
+
+  // Secondary priority: music + tech
+  if (normalized.includes("MUSIC") || normalized.includes("GUITAR") || normalized.includes("TECH")) {
+    return 2;
+  }
+
+  return 1;
+}
+
 function main() {
   const rows = INPUT_FILES.flatMap((filePath) => readJsonl(filePath));
-  const trainingRows = rows.map(toTrainingRecord).filter(Boolean);
+  const trainingRows = rows
+    .map(toTrainingRecord)
+    .filter(Boolean)
+    .flatMap((row) => {
+      const weight = resolvePriorityWeight(row.metadata.category);
+      const weightedRows = [];
+      for (let i = 0; i < weight; i += 1) {
+        weightedRows.push({
+          ...row,
+          metadata: {
+            ...row.metadata,
+            sampleWeight: weight,
+          },
+        });
+      }
+      return weightedRows;
+    });
 
   if (trainingRows.length === 0) {
     throw new Error("No valid training rows found.");
