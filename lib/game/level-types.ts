@@ -2,6 +2,11 @@ export type Pantheon = "norse" | "celtic";
 
 export type ArtifactRarity = "common" | "rare" | "epic" | "mythic";
 
+export type ElderFutharkRune =
+  | "fehu" | "uruz" | "thurisaz" | "ansuz" | "raidho" | "kenaz" | "gebo" | "wunjo"
+  | "hagalaz" | "nauthiz" | "isa" | "jera" | "eihwaz" | "perthro" | "algiz" | "sowilo"
+  | "tiwaz" | "berkano" | "ehwaz" | "mannaz" | "laguz" | "ingwaz" | "dagaz" | "othala";
+
 export type PuzzleNodeKind =
   | "key"
   | "lock"
@@ -36,6 +41,8 @@ export interface LevelArtifact {
   puzzleRequirementIds?: string[];
   tokenRewardUnits: number;
   lore: string;
+  rune: ElderFutharkRune;
+  runeSymbol: string;
 }
 
 export interface RunnerSpawnProfile {
@@ -101,8 +108,10 @@ export interface ArtifactCollectionEvent {
   lockedAtPickup?: boolean;
   claimEndpoint: string;
   web5Collection: string;
-  collectedAt: string;
-}
+  collectedAt: string;  rune: ElderFutharkRune;
+  runeSymbol: string;
+  runeBonus: number;
+  runeTier: string;}
 
 export interface GameScoreSnapshot {
   score: number;
