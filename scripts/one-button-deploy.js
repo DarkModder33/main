@@ -10,6 +10,7 @@ const skipBuild = args.has("--skip-build");
 const skipSocialCheck = args.has("--skip-social-check");
 const dryRun = args.has("--dry-run");
 const strictSocialCheck = args.has("--strict-social-check");
+const strictDnsCheck = args.has("--strict-dns");
 
 const npmExecPath = process.env.npm_execpath;
 const nodeExecPath = process.execPath;
@@ -66,9 +67,17 @@ function runDeploy() {
 (function main() {
   process.stdout.write("\nTradeHax One-Button Deploy\n");
   process.stdout.write(`Target: ${isProd ? "production" : "preview"}\n`);
+  if (strictDnsCheck) {
+    process.stdout.write("DNS mode: STRICT apex A record required\n");
+  }
 
   if (!skipPreflight) {
-    runNpm("Deployment preflight", ["run", "pipeline:deploy-checks"]);
+    runNpm(
+      "Deployment preflight",
+      strictDnsCheck
+        ? ["run", "pipeline:deploy-checks", "--", "--require-dns-a-record"]
+        : ["run", "pipeline:deploy-checks"],
+    );
   }
 
   if (!skipSocialCheck) {
