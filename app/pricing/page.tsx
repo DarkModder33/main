@@ -102,8 +102,9 @@ export default function PricingPage() {
         <section className="theme-panel p-6 sm:p-8">
           <h2 className="theme-title text-2xl font-bold mb-4">Payment Options</h2>
           <p className="theme-subtitle">
-            Card and crypto checkout routes are available through the billing
-            console with Stripe and Coinbase provider paths.
+            Multi-rail checkout routes are available through the billing
+            console (Stripe, Coinbase, PayPal, Square, Venmo, Cash App, eBay, and crypto links),
+            depending on your configured provider accounts.
           </p>
         </section>
       </main>

@@ -1,4 +1,43 @@
--- TradeHax AI training one-command ops checker (strict mode)
+# =============================
+# TradeHax Checkout URLs (PROD)
+# =============================
+
+# Stripe monthly
+TRADEHAX_STRIPE_CHECKOUT_URL_BASIC_MONTHLY=https://checkout.stripe.com/c/pay/cs_test_basic_monthly
+TRADEHAX_STRIPE_CHECKOUT_URL_PRO_MONTHLY=https://checkout.stripe.com/c/pay/cs_test_pro_monthly
+TRADEHAX_STRIPE_CHECKOUT_URL_ELITE_MONTHLY=https://checkout.stripe.com/c/pay/cs_test_elite_monthly
+
+# Stripe yearly
+TRADEHAX_STRIPE_CHECKOUT_URL_BASIC_YEARLY=https://checkout.stripe.com/c/pay/cs_test_basic_yearly
+TRADEHAX_STRIPE_CHECKOUT_URL_PRO_YEARLY=https://checkout.stripe.com/c/pay/cs_test_pro_yearly
+TRADEHAX_STRIPE_CHECKOUT_URL_ELITE_YEARLY=https://checkout.stripe.com/c/pay/cs_test_elite_yearly
+
+# Optional Stripe fallbacks (used if specific tier/cycle key is missing)
+TRADEHAX_STRIPE_CHECKOUT_URL_BASIC=https://checkout.stripe.com/c/pay/cs_test_basic_default
+TRADEHAX_STRIPE_CHECKOUT_URL_PRO=https://checkout.stripe.com/c/pay/cs_test_pro_default
+TRADEHAX_STRIPE_CHECKOUT_URL_ELITE=https://checkout.stripe.com/c/pay/cs_test_elite_default
+TRADEHAX_STRIPE_CHECKOUT_URL=https://checkout.stripe.com/c/pay/cs_test_global_default
+
+
+# Coinbase monthly
+TRADEHAX_COINBASE_CHECKOUT_URL_BASIC_MONTHLY=https://commerce.coinbase.com/checkout/coinbase_basic_monthly
+TRADEHAX_COINBASE_CHECKOUT_URL_PRO_MONTHLY=https://commerce.coinbase.com/checkout/coinbase_pro_monthly
+TRADEHAX_COINBASE_CHECKOUT_URL_ELITE_MONTHLY=https://commerce.coinbase.com/checkout/coinbase_elite_monthly
+
+# Coinbase yearly
+TRADEHAX_COINBASE_CHECKOUT_URL_BASIC_YEARLY=https://commerce.coinbase.com/checkout/coinbase_basic_yearly
+TRADEHAX_COINBASE_CHECKOUT_URL_PRO_YEARLY=https://commerce.coinbase.com/checkout/coinbase_pro_yearly
+TRADEHAX_COINBASE_CHECKOUT_URL_ELITE_YEARLY=https://commerce.coinbase.com/checkout/coinbase_elite_yearly
+
+# Optional Coinbase fallbacks
+TRADEHAX_COINBASE_CHECKOUT_URL_BASIC=https://commerce.coinbase.com/checkout/coinbase_basic_default
+TRADEHAX_COINBASE_CHECKOUT_URL_PRO=https://commerce.coinbase.com/checkout/coinbase_pro_default
+TRADEHAX_COINBASE_CHECKOUT_URL_ELITE=https://commerce.coinbase.com/checkout/coinbase_elite_default
+TRADEHAX_COINBASE_CHECKOUT_URL=https://commerce.coinbase.com/checkout/coinbase_global_default
+
+
+# Keep false in production unless intentionally simulating payments
+TRADEHAX_ALLOW_PAYMENT_SIMULATION=false-- TradeHax AI training one-command ops checker (strict mode)
 -- Run this entire file in Supabase SQL Editor as a single execution unit.
 -- Behavior:
 --   1) Prints one summary row with pass/fail + JSON details

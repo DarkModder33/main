@@ -5,7 +5,16 @@ import { enforceRateLimit, enforceTrustedOrigin, isJsonContentType } from "@/lib
 import { NextRequest, NextResponse } from "next/server";
 
 function parseProvider(value: unknown): BillingProvider {
-  if (value === "stripe" || value === "coinbase") {
+  if (
+    value === "stripe" ||
+    value === "coinbase" ||
+    value === "paypal" ||
+    value === "square" ||
+    value === "venmo" ||
+    value === "cashapp" ||
+    value === "ebay" ||
+    value === "crypto"
+  ) {
     return value;
   }
   return "stripe";
