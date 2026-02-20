@@ -69,6 +69,11 @@ function getEnvMap() {
   process.stdout.write("===============================================\n\n");
 
   process.stdout.write(`Providers in scope: ${providers.join(", ")}\n\n`);
+  process.stdout.write(
+    strictMode
+      ? "Mode: STRICT (missing variables will fail this check)\n\n"
+      : "Mode: WARN-ONLY (missing variables are informational and will not block deploy)\n\n",
+  );
 
   let warningCount = 0;
 
@@ -93,6 +98,11 @@ function getEnvMap() {
 
   process.stdout.write("ℹ️  Add missing values in .env.local or Vercel Environment Variables.\n");
   process.stdout.write("ℹ️  Run npm run social:setup to scaffold templates.\n");
+  process.stdout.write(
+    strictMode
+      ? "ℹ️  Strict mode is enabled. CI/deploy should fail until missing values are provided.\n"
+      : "ℹ️  This check is non-blocking by default. Use --strict only when you intentionally want to gate deployment.\n",
+  );
 
   if (strictMode) {
     process.stderr.write("\n❌ Strict mode enabled and missing social API variables were detected.\n");
