@@ -1,9 +1,9 @@
 import { getUserSnapshot, parseTierOrDefault, setTierForUser } from "@/lib/monetization/engine";
 import { resolveRequestUserId } from "@/lib/monetization/identity";
 import {
-  cancelSubscriptionAtPeriodEnd,
-  reactivateSubscription,
-  updateSubscriptionRecord,
+    cancelSubscriptionAtPeriodEnd,
+    reactivateSubscription,
+    updateSubscriptionRecord,
 } from "@/lib/monetization/store";
 import { BillingProvider } from "@/lib/monetization/types";
 import { enforceRateLimit, enforceTrustedOrigin, isJsonContentType } from "@/lib/security";
@@ -12,7 +12,17 @@ import { NextRequest, NextResponse } from "next/server";
 type SubscriptionAction = "set-tier" | "cancel" | "reactivate";
 
 function parseProvider(value: unknown): BillingProvider {
-  if (value === "stripe" || value === "coinbase" || value === "none") {
+  if (
+    value === "stripe" ||
+    value === "coinbase" ||
+    value === "paypal" ||
+    value === "square" ||
+    value === "venmo" ||
+    value === "cashapp" ||
+    value === "ebay" ||
+    value === "crypto" ||
+    value === "none"
+  ) {
     return value;
   }
   return "none";

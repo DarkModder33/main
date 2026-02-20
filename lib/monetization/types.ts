@@ -1,6 +1,15 @@
 export type SubscriptionTier = "free" | "basic" | "pro" | "elite";
 
-export type BillingProvider = "none" | "stripe" | "coinbase";
+export type BillingProvider =
+  | "none"
+  | "stripe"
+  | "coinbase"
+  | "paypal"
+  | "square"
+  | "venmo"
+  | "cashapp"
+  | "ebay"
+  | "crypto";
 
 export type SubscriptionStatus =
   | "active"

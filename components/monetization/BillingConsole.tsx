@@ -4,6 +4,31 @@ import { PlanDefinition } from "@/lib/monetization/types";
 import { Crown, Loader2, ShieldCheck, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+type CheckoutProvider =
+  | "stripe"
+  | "coinbase"
+  | "paypal"
+  | "square"
+  | "venmo"
+  | "cashapp"
+  | "ebay"
+  | "crypto";
+
+const CHECKOUT_PROVIDERS: Array<{
+  id: CheckoutProvider;
+  label: string;
+  loud?: boolean;
+}> = [
+  { id: "stripe", label: "Stripe", loud: true },
+  { id: "coinbase", label: "Coinbase" },
+  { id: "paypal", label: "PayPal" },
+  { id: "square", label: "Square" },
+  { id: "venmo", label: "Venmo" },
+  { id: "cashapp", label: "Cash App" },
+  { id: "ebay", label: "eBay" },
+  { id: "crypto", label: "Crypto" },
+];
+
 type Snapshot = {
   userId: string;
   subscription: {
@@ -106,7 +131,7 @@ export function BillingConsole() {
     return `Renews ${date.toLocaleDateString()}`;
   }, [snapshot?.subscription.currentPeriodEnd]);
 
-  async function handleCheckout(tier: string, provider: "stripe" | "coinbase") {
+  async function handleCheckout(tier: string, provider: CheckoutProvider) {
     if (!userId) return;
     setBusy(`${tier}:${provider}`);
     setMessage("");
@@ -288,8 +313,6 @@ export function BillingConsole() {
         <section className="grid gap-5 lg:grid-cols-2">
           {plans.map((plan) => {
             const isCurrent = currentTier === plan.id;
-            const stripeBusy = busy === `${plan.id}:stripe`;
-            const coinbaseBusy = busy === `${plan.id}:coinbase`;
             const freeBusy = busy === "free:none";
             const isFreePlan = plan.id === "free";
 
@@ -335,20 +358,22 @@ export function BillingConsole() {
                     </>
                   ) : (
                     <>
-                      <button
-                        onClick={() => handleCheckout(plan.id, "stripe")}
-                        disabled={stripeBusy}
-                        className="theme-cta theme-cta--loud"
-                      >
-                        {stripeBusy ? "Starting..." : "Checkout with Stripe"}
-                      </button>
-                      <button
-                        onClick={() => handleCheckout(plan.id, "coinbase")}
-                        disabled={coinbaseBusy}
-                        className="theme-cta theme-cta--secondary"
-                      >
-                        {coinbaseBusy ? "Starting..." : "Checkout with Coinbase"}
-                      </button>
+                      {CHECKOUT_PROVIDERS.map((provider) => {
+                        const providerBusy = busy === `${plan.id}:${provider.id}`;
+                        return (
+                          <button
+                            key={provider.id}
+                            onClick={() => handleCheckout(plan.id, provider.id)}
+                            disabled={providerBusy}
+                            className={`theme-cta ${provider.loud ? "theme-cta--loud" : "theme-cta--secondary"}`}
+                          >
+                            {providerBusy ? "Starting..." : `Checkout with ${provider.label}`}
+                          </button>
+                        );
+                      })}
+                      <span className="w-full text-xs text-[#9eb5c8]">
+                        Choose any available payment rail. If a provider is not configured yet, you&apos;ll see a setup prompt.
+                      </span>
                     </>
                   )}
                 </div>
