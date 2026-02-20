@@ -72,25 +72,25 @@ export default function Home() {
         <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-6 italic uppercase">
           <GlitchText text="TRADEHAX" />
         </h1>
-        <p className="text-zinc-500 max-w-xl text-lg mb-10 font-medium leading-relaxed">
-          The cross-chain intersection of institutional-grade AI, decentralized gaming, and elite skill acquisition.
+        <p className="text-zinc-300 max-w-xl text-lg mb-10 font-medium leading-relaxed">
+          AI tools, digital services, and game-powered rewards in one clear platform.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 relative z-10 items-center">
           <TrackedCtaLink
             href="/schedule"
             conversionId="open_schedule"
             surface="home:hero"
-            className="px-10 py-5 bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105"
+            className="px-10 py-5 min-h-[44px] bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105"
           >
             BOOK_SERVICE
           </TrackedCtaLink>
           <Link href="/game">
-            <button className="px-10 py-5 border border-zinc-700 text-white font-black rounded-full hover:bg-zinc-800 transition-all">
+            <button className="px-10 py-5 min-h-[44px] border border-zinc-700 text-white font-black rounded-full hover:bg-zinc-800 transition-all">
               PLAY_RUNNER
             </button>
           </Link>
           <Link href="/billing">
-            <button className="px-10 py-5 border border-cyan-500/50 text-cyan-300 font-black rounded-full hover:bg-cyan-500 hover:text-black transition-all">
+            <button className="px-10 py-5 min-h-[44px] border border-cyan-500/50 text-cyan-300 font-black rounded-full hover:bg-cyan-500 hover:text-black transition-all">
               UPGRADE_AI
             </button>
           </Link>
@@ -107,7 +107,7 @@ export default function Home() {
         <div className="theme-panel p-8 md:p-12">
           <span className="theme-kicker mb-4">Start Here</span>
           <h2 className="theme-title text-4xl md:text-5xl mb-6">What Are You Here For Today?</h2>
-          <p className="text-zinc-500 max-w-2xl mb-12 text-lg">
+          <p className="text-zinc-300 max-w-2xl mb-12 text-lg">
             Pick the path that matches your intent. Each route is optimized for clear next steps and fast booking.
           </p>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -117,7 +117,7 @@ export default function Home() {
                   <lane.icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-bold text-white uppercase italic">{lane.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">{lane.detail}</p>
+                <p className="text-zinc-300 text-sm leading-relaxed">{lane.detail}</p>
                 <TrackedCtaLink
                   href={lane.href}
                   external={lane.external}
@@ -144,7 +144,7 @@ export default function Home() {
       {/* Quick Contact Rail */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-wrap items-center justify-center gap-6 p-8 glass-panel rounded-3xl border border-white/5">
-          <p className="text-zinc-400 font-mono text-xs uppercase tracking-widest">Direct_Access:</p>
+          <p className="text-zinc-300 font-mono text-xs uppercase tracking-widest">Direct_Access:</p>
           <TrackedCtaLink
             href={businessProfile.contactLinks.text}
             conversionId="contact_text"
