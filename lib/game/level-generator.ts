@@ -1,11 +1,10 @@
 import type {
-  ArtifactRarity,
-  GridPoint,
-  HyperboreaLevelDefinition,
-  LevelArtifact,
-  LevelPuzzleNode,
+    ArtifactRarity,
+    GridPoint,
+    HyperboreaLevelDefinition,
+    LevelArtifact,
+    LevelPuzzleNode,
 } from "@/lib/game/level-types";
-
 interface LevelGenerationOptions {
   seed?: number;
   width?: number;
@@ -282,10 +281,15 @@ function buildArtifacts(path: GridPoint[], deadEnds: GridPoint[]): LevelArtifact
 
   return templates.map((template, index) => {
     const position = selected[index] ?? selected[selected.length - 1] ?? { x: 1, y: 1 };
+    const rune = getRuneForArtifact(template.pantheon, template.rarity, index);
+    const runeProps = ELDER_FUTHARK_RUNES[rune];
+
     return {
       ...template,
       position,
       tokenRewardUnits: rarityToTokenUnits(template.rarity),
+      rune,
+      runeSymbol: runeProps.symbol,
     };
   });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { ELDER_FUTHARK_RUNES, calculateRuneScore, getRuneParticleConfig } from "@/lib/game/elder-futhark";
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
 import type {
     ArtifactCollectionEvent,
@@ -388,14 +389,21 @@ export function HyperboreaGame({
     };
     const artifactInstances: ArtifactInstance[] = [];
     for (const artifact of activeLevel.artifacts) {
-      const geometry = new THREE.DodecahedronGeometry(0.46);
-      const color = rarityColorMap[artifact.rarity] ?? 0xffffff;
+      // Get rune properties for enhanced visuals
+      const runeProps = ELDER_FUTHARK_RUNES[artifact.rune];
+      const particleConfig = getRuneParticleConfig(artifact.rune);
+
+      // Create main artifact mesh with enhanced geometry
+      const geometry = new THREE.DodecahedronGeometry(0.52);
+      const color = parseInt(runeProps.color.slice(1), 16);
+      const glowColor = parseInt(runeProps.glowColor.slice(1), 16);
+
       const material = new THREE.MeshStandardMaterial({
         color,
-        emissive: color,
-        emissiveIntensity: 1.2,
-        roughness: 0.1,
-        metalness: 0.9,
+        emissive: glowColor,
+        emissiveIntensity: particleConfig.intensity * 0.8,
+        roughness: 0.08,
+        metalness: 0.95,
       });
       const mesh = new THREE.Mesh(geometry, material);
       const world = gridToWorld(artifact.position.x, artifact.position.y);
@@ -403,8 +411,39 @@ export function HyperboreaGame({
       mesh.castShadow = true;
       scene.add(mesh);
 
-      // Add a small point light to each artifact to make it pop
-      const light = new THREE.PointLight(color, 0.8, 4);
+      // Add rune symbol text sprite above artifact
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = runeProps.glowColor;
+        ctx.font = 'bold 180px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Add glow effect
+        ctx.shadowColor = runeProps.glowColor;
+        ctx.shadowBlur = 40;
+        ctx.fillText(artifact.runeSymbol, 128, 128);
+        ctx.shadowBlur = 60;
+        ctx.fillText(artifact.runeSymbol, 128, 128);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: false,
+      });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      sprite.position.set(world.x, 1.8, world.z);
+      sprite.scale.set(0.9, 0.9, 1);
+      scene.add(sprite);
+
+      // Enhanced point light with rune color
+      const light = new THREE.PointLight(glowColor, particleConfig.intensity * 1.2, 5.5);
       light.position.set(world.x, 1.1, world.z);
       scene.add(light);
 
@@ -412,8 +451,9 @@ export function HyperboreaGame({
         data: artifact,
         mesh,
         collected: false,
-        // @ts-ignore - injecting light reference for cleanup
-        light
+        // @ts-ignore - injecting light and sprite reference for cleanup
+        light,
+        sprite,
       });
     }
 
@@ -794,6 +834,8 @@ export function HyperboreaGame({
       artifact: LevelArtifact,
       awardedTokenUnits: number,
       lockedAtPickup: boolean,
+      runeBonus: number,
+      runeTier: string,
     ) => {
       if (!onArtifactCollected) return;
       const event: ArtifactCollectionEvent = {
@@ -814,6 +856,10 @@ export function HyperboreaGame({
         claimEndpoint: activeLevel.tokenConfig.claimEndpoint,
         web5Collection: activeLevel.tokenConfig.web5Collection,
         collectedAt: new Date().toISOString(),
+        rune: artifact.rune,
+        runeSymbol: artifact.runeSymbol,
+        runeBonus,
+        runeTier,
       };
       onArtifactCollected(event);
     };
@@ -824,6 +870,11 @@ export function HyperboreaGame({
       const lockedAtPickup = missingRequirements.length > 0;
       const awardedTokenUnits = lockedAtPickup ? 0 : instance.data.tokenRewardUnits;
 
+      // Get rune properties and calculate rune-based scoring
+      const runeProps = ELDER_FUTHARK_RUNES[instance.data.rune];
+      const baseRelicScore = (lockedAtPickup ? 70 : 120) + Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.8 : 2));
+      const runeScoring = calculateRuneScore(instance.data.rune, baseRelicScore, combo);
+
       instance.collected = true;
       collectedArtifactIds.add(instance.data.id);
       instance.mesh.visible = false;
@@ -832,18 +883,25 @@ export function HyperboreaGame({
         // @ts-ignore
         scene.remove(instance.light);
       }
+      // @ts-ignore - Remove rune sprite
+      if (instance.sprite) {
+        // @ts-ignore
+        scene.remove(instance.sprite);
+      }
 
       coinsCollected += 1;
       relicsCollected = collectedArtifactIds.size;
       emitRelics();
 
-      if (instance.data.rarity === "epic" || instance.data.rarity === "mythic") {
-        screenFlash = 0.8;
-        triggerHapticFeedback('heavy');
-      } else {
-        screenFlash = 0.3;
-        triggerHapticFeedback('medium');
-      }
+      // Enhanced screen flash based on rune tier
+      const tierFlashMap = {
+        'divine': 1.0,
+        'supreme': 0.85,
+        'greater': 0.65,
+        'lesser': 0.4,
+      };
+      screenFlash = tierFlashMap[runeProps.tier as keyof typeof tierFlashMap] || 0.3;
+      triggerHapticFeedback(runeProps.tier === 'divine' || runeProps.tier === 'supreme' ? 'heavy' : 'medium');
 
       // Use the scoring engine for accumulation logic
       const yieldData = calculateUtilityYield({
@@ -854,35 +912,50 @@ export function HyperboreaGame({
         isLockedAtPickup: lockedAtPickup
       });
 
-      const utilityDelta = yieldData.utilityPoints;
+      const utilityDelta = yieldData.utilityPoints + runeProps.utilityBonus;
       coinPoints += Math.max(8, Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.35 : 1)));
-      const relicScoreGain =
-        (lockedAtPickup ? 70 : 120) + Math.round(instance.data.tokenRewardUnits * (lockedAtPickup ? 0.8 : 2));
-      relicPoints += relicScoreGain;
+
+      // Apply rune scoring
+      relicPoints += runeScoring.totalScore;
       utilityPoints += utilityDelta;
-      score += relicScoreGain;
+      score += runeScoring.totalScore;
       lastProgressTimestampMs = performance.now();
       combo += 1;
       comboTimer = 240;
+      comboWarningShown = false;
+
+      // Enhanced energy bonus from rune
       const rarityEnergyBonus =
-        instance.data.rarity === "mythic"
+        instance.data.rarity === 'mythic'
           ? 24
-          : instance.data.rarity === "epic"
+          : instance.data.rarity === 'epic'
             ? 18
-            : instance.data.rarity === "rare"
+            : instance.data.rarity === 'rare'
               ? 13
               : 9;
-      updateEnergy(energy + rarityEnergyBonus);
+      updateEnergy(energy + rarityEnergyBonus + runeProps.energyBonus);
+
       emitScore(true);
       emitUtilityPoints(true);
       emitStructuredScore(true);
 
-      emitArtifactEvent({
-        ...instance.data,
-        tokenRewardUnits: yieldData.projectedTokens,
-      }, yieldData.projectedTokens, lockedAtPickup);
-      if (instance.data.rarity === "mythic") {
-        emitStatus("EMERGENT_AI_EVENT: Mythic artifact detected. Utility yield maximized.");
+      // Enhanced status message with rune info
+      const statusMsg = `⚜ ${runeProps.name} Rune (${runeProps.symbol}) - ${runeProps.tier.toUpperCase()} tier! +${runeScoring.runeBonus} bonus`;
+      emitStatus(statusMsg);
+
+      emitArtifactEvent(
+        {
+          ...instance.data,
+          tokenRewardUnits: yieldData.projectedTokens,
+        },
+        yieldData.projectedTokens,
+        lockedAtPickup,
+        runeScoring.runeBonus,
+        runeProps.tier
+      );
+
+      if (instance.data.rarity === 'mythic') {
+        emitStatus(`MYTHIC ${runeProps.name.toUpperCase()}: ${runeProps.power}`);
         utilityPoints += 500;
         updateEnergy(100);
       }
@@ -1502,8 +1575,29 @@ export function HyperboreaGame({
 
       for (const artifact of artifactInstances) {
         if (artifact.collected) continue;
-        artifact.mesh.rotation.y += 0.035;
-        artifact.mesh.position.y = 1.1 + Math.sin(nowMs * 0.004 + artifact.mesh.position.x) * 0.08;
+
+        // Enhanced rune-based animations
+        const rune = artifact.data.elderFutharkRune;
+        const baseRotation = 0.035;
+        const baseBobSpeed = 0.004;
+        const baseBobAmplitude = 0.08;
+
+        // Higher multiplier runes spin faster and pulse more dramatically
+        const multiplier = rune?.scoreMultiplier || 1.5;
+        const intensityFactor = (multiplier - 1.0) / 2.0; // 0.25 for 1.5x, 1.0 for 3.0x, 1.25 for 3.5x
+
+        artifact.mesh.rotation.y += baseRotation * (1 + intensityFactor * 0.8);
+        const bobSpeed = baseBobSpeed * (1 + intensityFactor * 0.5);
+        const bobAmplitude = baseBobAmplitude * (1 + intensityFactor * 0.6);
+        artifact.mesh.position.y = 1.1 + Math.sin(nowMs * bobSpeed + artifact.mesh.position.x) * bobAmplitude;
+
+        // Pulse the glow intensity based on rune power
+        if (artifact.light) {
+          const baseLightIntensity = artifact.data.rarity === 'mythic' ? 1.5 :
+                                      artifact.data.rarity === 'epic' ? 1.3 : 1.1;
+          const pulseFactor = Math.sin(nowMs * (0.003 + intensityFactor * 0.002)) * 0.3 * (1 + intensityFactor);
+          artifact.light.intensity = baseLightIntensity * (1 + pulseFactor);
+        }
       }
 
       for (const puzzle of puzzleInstances) {
