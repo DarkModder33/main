@@ -1,14 +1,16 @@
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { businessProfile } from "@/lib/business-profile";
 import {
-  Facebook,
-  Github,
-  Instagram,
-  Mail,
-  MessageSquare,
-  Phone,
-  Twitter,
-  Youtube,
+    Facebook,
+    Github,
+    Instagram,
+    Mail,
+    MessageCircle,
+    MessageSquare,
+    Phone,
+    Send,
+    Twitter,
+    Youtube,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -87,6 +89,30 @@ export function ShamrockFooter() {
                   ariaLabel="Instagram"
                 >
                   <Instagram className="w-4 h-4" />
+                </TrackedCtaLink>
+              )}
+              {businessProfile.socialLinks.telegram && (
+                <TrackedCtaLink
+                  href={businessProfile.socialLinks.telegram}
+                  conversionId="open_social_telegram"
+                  surface="footer:social"
+                  external
+                  className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
+                  ariaLabel="Telegram"
+                >
+                  <Send className="w-4 h-4" />
+                </TrackedCtaLink>
+              )}
+              {businessProfile.socialLinks.discord && (
+                <TrackedCtaLink
+                  href={businessProfile.socialLinks.discord}
+                  conversionId="open_social_discord"
+                  surface="footer:social"
+                  external
+                  className="p-2 rounded-lg border border-[#4f678e]/40 bg-[#071222] text-[#9fb2d4] hover:border-[#00ff41]/50 hover:text-[#8fffb6] transition-colors"
+                  ariaLabel="Discord"
+                >
+                  <MessageCircle className="w-4 h-4" />
                 </TrackedCtaLink>
               )}
             </div>

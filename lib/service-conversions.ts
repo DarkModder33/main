@@ -27,6 +27,8 @@ export type ServiceConversionId =
   | "open_social_github"
   | "open_social_facebook"
   | "open_social_instagram"
+  | "open_social_telegram"
+  | "open_social_discord"
   | "open_affiliate_tools"
   | "donate_cashapp";
 
@@ -193,6 +195,18 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
   open_social_instagram: {
     action: "open_social_instagram",
     label: "social_instagram",
+    value: 1,
+    stage: "awareness",
+  },
+  open_social_telegram: {
+    action: "open_social_telegram",
+    label: "social_telegram",
+    value: 1,
+    stage: "awareness",
+  },
+  open_social_discord: {
+    action: "open_social_discord",
+    label: "social_discord",
     value: 1,
     stage: "awareness",
   },

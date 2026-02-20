@@ -1,3 +1,5 @@
+import { siteConfig } from "@/lib/site-config";
+
 export type SharePlatform = {
   id: string;
   label: string;
@@ -5,7 +7,7 @@ export type SharePlatform = {
   shareComposerUrl: string;
 };
 
-const SITE_ORIGIN = "https://tradehaxai.tech";
+const SITE_ORIGIN = siteConfig.primarySiteUrl;
 const SITE_PATH = "/";
 const CAMPAIGN = "brand_preview";
 const SHARE_MESSAGE =

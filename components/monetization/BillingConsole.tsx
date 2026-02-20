@@ -139,6 +139,41 @@ export function BillingConsole() {
     }
   }
 
+  async function handleSetFreeTier() {
+    if (!userId) return;
+    setBusy("free:none");
+    setMessage("");
+    try {
+      const response = await fetch("/api/monetization/subscription", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: "set-tier",
+          tier: "free",
+          provider: "none",
+          metadata: {
+            source: "billing_console_free_tier",
+          },
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) {
+        setMessage(payload.error ?? "Unable to activate free tier right now.");
+        return;
+      }
+
+      setSnapshot(payload.snapshot ?? null);
+      setMessage("Free tier is active. No checkout required.");
+    } catch (error) {
+      setMessage("Unable to activate free tier right now.");
+      console.error(error);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function handleCancel() {
     if (!userId) return;
     setBusy("cancel");
@@ -255,6 +290,8 @@ export function BillingConsole() {
             const isCurrent = currentTier === plan.id;
             const stripeBusy = busy === `${plan.id}:stripe`;
             const coinbaseBusy = busy === `${plan.id}:coinbase`;
+            const freeBusy = busy === "free:none";
+            const isFreePlan = plan.id === "free";
 
             return (
               <article
@@ -283,20 +320,37 @@ export function BillingConsole() {
                   ))}
                 </ul>
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <button
-                    onClick={() => handleCheckout(plan.id, "stripe")}
-                    disabled={stripeBusy}
-                    className="theme-cta theme-cta--loud"
-                  >
-                    {stripeBusy ? "Starting..." : "Checkout with Stripe"}
-                  </button>
-                  <button
-                    onClick={() => handleCheckout(plan.id, "coinbase")}
-                    disabled={coinbaseBusy}
-                    className="theme-cta theme-cta--secondary"
-                  >
-                    {coinbaseBusy ? "Starting..." : "Checkout with Coinbase"}
-                  </button>
+                  {isFreePlan ? (
+                    <>
+                      <button
+                        onClick={handleSetFreeTier}
+                        disabled={isCurrent || freeBusy}
+                        className="theme-cta theme-cta--loud"
+                      >
+                        {isCurrent ? "Free Tier Active" : freeBusy ? "Activating..." : "Use Free Tier"}
+                      </button>
+                      <span className="self-center text-xs text-[#9eb5c8]">
+                        No checkout required.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleCheckout(plan.id, "stripe")}
+                        disabled={stripeBusy}
+                        className="theme-cta theme-cta--loud"
+                      >
+                        {stripeBusy ? "Starting..." : "Checkout with Stripe"}
+                      </button>
+                      <button
+                        onClick={() => handleCheckout(plan.id, "coinbase")}
+                        disabled={coinbaseBusy}
+                        className="theme-cta theme-cta--secondary"
+                      >
+                        {coinbaseBusy ? "Starting..." : "Checkout with Coinbase"}
+                      </button>
+                    </>
+                  )}
                 </div>
               </article>
             );
