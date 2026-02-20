@@ -5,6 +5,8 @@ import type {
     LevelArtifact,
     LevelPuzzleNode,
 } from "@/lib/game/level-types";
+import { getRuneForArtifact, ELDER_FUTHARK_RUNES } from "@/lib/game/elder-futhark";
+
 interface LevelGenerationOptions {
   seed?: number;
   width?: number;
@@ -227,7 +229,7 @@ function buildArtifacts(path: GridPoint[], deadEnds: GridPoint[]): LevelArtifact
 
   const selected = candidates.slice(0, 6);
   const templates: Array<
-    Omit<LevelArtifact, "position" | "tokenRewardUnits"> & { rarity: ArtifactRarity }
+    Omit<LevelArtifact, "position" | "tokenRewardUnits" | "rune" | "runeSymbol"> & { rarity: ArtifactRarity }
   > = [
     {
       id: "artifact-gungnir-shard",

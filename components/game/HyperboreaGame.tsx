@@ -41,6 +41,8 @@ interface ExternalControlDetail {
 interface ArtifactInstance {
   data: LevelArtifact;
   mesh: THREE.Mesh;
+  light?: THREE.PointLight;
+  sprite?: THREE.Sprite;
   collected: boolean;
 }
 
@@ -451,7 +453,6 @@ export function HyperboreaGame({
         data: artifact,
         mesh,
         collected: false,
-        // @ts-ignore - injecting light and sprite reference for cleanup
         light,
         sprite,
       });
@@ -1577,31 +1578,19 @@ export function HyperboreaGame({
         if (artifact.collected) continue;
 
         // Enhanced rune-based animations
-        const rune = artifact.data.elderFutharkRune;
+        const rune = artifact.data.rune;
+        const runeProps = ELDER_FUTHARK_RUNES[rune];
         const baseRotation = 0.035;
         const baseBobSpeed = 0.004;
         const baseBobAmplitude = 0.08;
 
         // Higher multiplier runes spin faster and pulse more dramatically
-        const multiplier = rune?.scoreMultiplier || 1.5;
-        const intensityFactor = (multiplier - 1.0) / 2.0; // 0.25 for 1.5x, 1.0 for 3.0x, 1.25 for 3.5x
+        const multiplier = runeProps.scoreMultiplier;
+        const intensityFactor = (multiplier - 1.0) / 1.5; // Normalize based on multiplier range
 
         artifact.mesh.rotation.y += baseRotation * (1 + intensityFactor * 0.8);
         const bobSpeed = baseBobSpeed * (1 + intensityFactor * 0.5);
         const bobAmplitude = baseBobAmplitude * (1 + intensityFactor * 0.6);
-        artifact.mesh.position.y = 1.1 + Math.sin(nowMs * bobSpeed + artifact.mesh.position.x) * bobAmplitude;
-
-        // Pulse the glow intensity based on rune power
-        if (artifact.light) {
-          const baseLightIntensity = artifact.data.rarity === 'mythic' ? 1.5 :
-                                      artifact.data.rarity === 'epic' ? 1.3 : 1.1;
-          const pulseFactor = Math.sin(nowMs * (0.003 + intensityFactor * 0.002)) * 0.3 * (1 + intensityFactor);
-          artifact.light.intensity = baseLightIntensity * (1 + pulseFactor);
-        }
-      }
-
-      for (const puzzle of puzzleInstances) {
-        puzzle.mesh.rotation.y += puzzle.data.kind === "pressure_plate" ? 0 : 0.009;
       }
 
       simulationFrame += 1;
