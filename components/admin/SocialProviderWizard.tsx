@@ -293,15 +293,15 @@ export function SocialProviderWizard() {
         </p>
       </section>
 
-      <section className="theme-panel p-6 sm:p-8 space-y-5">
-        <div className="flex items-center justify-between">
+      <section className="theme-panel p-5 sm:p-8 space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold text-cyan-200">1) Select providers</h2>
-          <Button variant="outline" size="sm" onClick={resetWizard}>
+          <Button variant="outline" size="sm" onClick={resetWizard} className="w-full sm:w-auto">
             <RefreshCcw className="size-4" /> Reset
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {PROVIDERS.map((provider) => {
             const active = selected[provider.id];
             return (
@@ -334,7 +334,7 @@ export function SocialProviderWizard() {
         </div>
       </section>
 
-      <section className="theme-panel p-6 sm:p-8 space-y-5">
+      <section className="theme-panel p-5 sm:p-8 space-y-5">
         <h2 className="text-xl font-semibold text-emerald-200">2) Enter credential values</h2>
         {requiredKeys.length === 0 ? (
           <p className="text-sm text-emerald-100/70">Select at least one provider to generate required fields.</p>
@@ -343,7 +343,7 @@ export function SocialProviderWizard() {
             <div className="text-xs text-emerald-100/70">
               Completion: <span className="font-semibold text-emerald-200">{completion.filled}/{completion.total}</span>
             </div>
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {requiredKeys.map((key) => (
                 <div key={key} className="space-y-1">
                   <label className="text-xs font-medium text-emerald-100/80">{key}</label>
@@ -360,20 +360,20 @@ export function SocialProviderWizard() {
         )}
       </section>
 
-      <section className="theme-panel p-6 sm:p-8 space-y-5">
+      <section className="theme-panel p-5 sm:p-8 space-y-5">
         <h2 className="text-xl font-semibold text-fuchsia-200">3) Export for Vercel in one click</h2>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => copyToClipboard(envPayload, ".env payload")}>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <Button onClick={() => copyToClipboard(envPayload, ".env payload")} className="w-full justify-start sm:justify-center">
             <Copy className="size-4" /> Copy .env Payload
           </Button>
-          <Button variant="secondary" onClick={() => copyToClipboard(vercelJsonPayload, "Vercel JSON payload")}>
+          <Button variant="secondary" onClick={() => copyToClipboard(vercelJsonPayload, "Vercel JSON payload")} className="w-full justify-start sm:justify-center">
             <Copy className="size-4" /> Copy Vercel JSON
           </Button>
-          <Button variant="outline" onClick={downloadVercelPayload}>
+          <Button variant="outline" onClick={downloadVercelPayload} className="w-full justify-start sm:justify-center">
             <Download className="size-4" /> Download JSON
           </Button>
-          <Button variant="ghost" asChild>
+          <Button variant="ghost" asChild className="w-full justify-start sm:justify-center">
             <a href="https://vercel.com/docs/projects/environment-variables" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-4" /> Vercel Env Docs
             </a>
@@ -382,12 +382,12 @@ export function SocialProviderWizard() {
 
         <div className="rounded-lg border border-fuchsia-500/20 bg-black/40 p-4">
           <p className="text-xs text-fuchsia-100/70 mb-2">.env payload preview</p>
-          <pre className="text-xs text-fuchsia-100/90 whitespace-pre-wrap break-all">{envPayload}</pre>
+          <pre className="max-h-56 overflow-auto text-xs text-fuchsia-100/90 whitespace-pre-wrap break-all">{envPayload}</pre>
         </div>
 
         <div className="rounded-lg border border-cyan-500/20 bg-black/40 p-4">
           <p className="text-xs text-cyan-100/70 mb-2">Vercel JSON payload preview</p>
-          <pre className="text-xs text-cyan-100/90 whitespace-pre-wrap break-all">{vercelJsonPayload}</pre>
+          <pre className="max-h-72 overflow-auto text-xs text-cyan-100/90 whitespace-pre-wrap break-all">{vercelJsonPayload}</pre>
         </div>
 
         <div className="rounded-lg border border-emerald-500/20 bg-black/40 p-4 space-y-3">
@@ -396,7 +396,7 @@ export function SocialProviderWizard() {
             Enter admin credentials for this app route. The server uses secure Vercel env vars (<code className="rounded bg-black/60 px-1">VERCEL_TOKEN</code>, <code className="rounded bg-black/60 px-1">VERCEL_PROJECT_ID</code>) to sync.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-medium text-emerald-100/80">x-tradehax-admin-key</label>
               <Input
@@ -451,22 +451,22 @@ export function SocialProviderWizard() {
             )}
           </div>
 
-          <Button onClick={pushToVercel} disabled={isPushing}>
+          <Button onClick={pushToVercel} disabled={isPushing} className="w-full sm:w-auto">
             <UploadCloud className="size-4" /> {isPushing ? "Pushing to Vercel..." : "Push to Vercel"}
           </Button>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => validateHook(false)} disabled={isValidatingHook}>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button variant="secondary" onClick={() => validateHook(false)} disabled={isValidatingHook} className="w-full justify-start sm:justify-center">
               <ShieldCheck className="size-4" /> {isValidatingHook ? "Validating..." : "Validate Hook URL"}
             </Button>
-            <Button variant="outline" onClick={() => validateHook(true)} disabled={isValidatingHook}>
+            <Button variant="outline" onClick={() => validateHook(true)} disabled={isValidatingHook} className="w-full justify-start sm:justify-center">
               <ShieldCheck className="size-4" /> {isValidatingHook ? "Pinging..." : "Ping Hook"}
             </Button>
           </div>
         </div>
 
         {status && (
-          <div className="inline-flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-600/15 px-3 py-2 text-sm text-emerald-100">
+          <div className="flex w-full items-start gap-2 rounded-md border border-emerald-500/30 bg-emerald-600/15 px-3 py-2 text-sm text-emerald-100 sm:inline-flex sm:w-auto sm:items-center">
             <CheckCircle2 className="size-4" /> {status}
           </div>
         )}
