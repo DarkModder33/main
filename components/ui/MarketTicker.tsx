@@ -7,11 +7,11 @@ export const MarketTicker = () => {
   const pathname = usePathname();
   const hideTickerForGame = pathname?.startsWith('/game') ?? false;
 
-  if (hideTickerForGame) {
-    return null;
-  }
-
   useEffect(() => {
+    if (hideTickerForGame) {
+      return;
+    }
+
     if (container.current && !container.current.querySelector('script')) {
       const script = document.createElement("script");
       script.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
@@ -34,7 +34,11 @@ export const MarketTicker = () => {
       });
       container.current.appendChild(script);
     }
-  }, []);
+  }, [hideTickerForGame]);
+
+  if (hideTickerForGame) {
+    return null;
+  }
 
   return (
     <div className="w-full bg-black/80 backdrop-blur-md border-y border-white/5 overflow-hidden h-[46px]" ref={container}>
