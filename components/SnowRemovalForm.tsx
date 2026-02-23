@@ -50,23 +50,29 @@ export default function SnowRemovalForm() {
   const nameValue = watch('name');
   const addressValue = watch('address');
 
-  const hasContactInfo = (phoneValue?.trim() || '') || (emailValue?.trim() || '');
+  const hasContactInfo = Boolean((phoneValue?.trim() || '') || (emailValue?.trim() || ''));
 
   const onSubmit = async (values: SnowRemovalLeadForm) => {
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
-    if (!serviceId || !templateId || !publicKey) {
-      setStatus({
-        type: 'error',
-        message:
-          '⚠️ Form is not configured yet. Please contact us directly at (856) 320-8570 or email njsnowremoval26@gmail.com',
-      });
-      return;
+    const trimmedName = values.name?.trim() || '';
+    const trimmedPhone = values.phone?.trim() || '';
+    const trimmedEmail = values.email?.trim() || '';
+    const trimmedAddress = values.address?.trim() || '';
+    const trimmedSqFt = values.sqFt?.trim() || '';
+    const trimmedNotes = values.notes?.trim() || '';
+
+    let preferredContact: PreferredContact = values.preferredContact;
+    if (preferredContact === 'email' && !trimmedEmail) {
+      preferredContact = trimmedPhone ? 'phone' : 'text';
+    }
+    if (preferredContact === 'phone' && !trimmedPhone && trimmedEmail) {
+      preferredContact = 'email';
     }
 
-    if (!values.name?.trim()) {
+    if (!trimmedName) {
       setStatus({
         type: 'error',
         message: '❌ Please enter your full name.',
@@ -74,15 +80,7 @@ export default function SnowRemovalForm() {
       return;
     }
 
-    if (!values.address?.trim()) {
-      setStatus({
-        type: 'error',
-        message: '❌ Please enter your service address.',
-      });
-      return;
-    }
-
-    if (!values.phone?.trim() && !values.email?.trim()) {
+    if (!trimmedPhone && !trimmedEmail) {
       setStatus({
         type: 'error',
         message: '❌ Please include at least a phone number or an email address so we can reach you.',
@@ -101,13 +99,60 @@ export default function SnowRemovalForm() {
     try {
       setStatus({
         type: 'validating',
-        message: '⏳ Sending your request...',
+        message: '⏳ Validating your request...',
       });
 
-      await emailjs.sendForm(serviceId, templateId, formRef.current, { publicKey });
+      const apiResponse = await fetch('/api/snow-removal/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          phone: trimmedPhone,
+          email: trimmedEmail,
+          preferredContact,
+          address: trimmedAddress,
+          sqFt: trimmedSqFt,
+          notes: trimmedNotes,
+        }),
+      });
+
+      const apiBody = await apiResponse.json().catch(() => null);
+
+      if (!apiResponse.ok) {
+        setStatus({
+          type: 'error',
+          message: apiBody?.error || '❌ We could not process your request. Please try again.',
+        });
+        return;
+      }
+
+      const backendMessage =
+        typeof apiBody?.message === 'string' && apiBody.message.trim().length > 0
+          ? apiBody.message.trim()
+          : 'Request received.';
+
+      let emailjsSent = false;
+      if (serviceId && templateId && publicKey) {
+        setStatus({
+          type: 'validating',
+          message: '⏳ Sending your request...',
+        });
+
+        try {
+          await emailjs.sendForm(serviceId, templateId, formRef.current, { publicKey });
+          emailjsSent = true;
+        } catch (emailjsError) {
+          console.warn('EmailJS delivery failed, backend request already accepted:', emailjsError);
+        }
+      }
+
       setStatus({
         type: 'success',
-        message: '✅ Request sent successfully! We\'ll contact you within 24 hours using your preferred method.',
+        message: emailjsSent
+          ? `✅ ${backendMessage} We\'ll contact you within 24 hours using your preferred method.`
+          : '✅ Request received! We\'ll contact you within 24 hours using your preferred method.',
       });
       reset({
         preferredContact: 'phone',
@@ -208,18 +253,16 @@ export default function SnowRemovalForm() {
         <div className="md:col-span-2">
           <label htmlFor="address" className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-sky-100 sm:text-sm">
             <span>Service Address</span>
-            <span className="text-rose-400">*</span>
             {addressValue?.trim() && <span className="ml-auto text-emerald-400">✓</span>}
           </label>
           <input
             id="address"
             type="text"
-            {...register('address', { required: true })}
+            {...register('address')}
             className="w-full rounded-lg border border-slate-600/70 bg-slate-950/70 px-3 py-2 text-sm text-white outline-none transition sm:rounded-xl sm:py-2.5 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/40"
             placeholder="123 Main St, Anytown, NJ"
-            aria-describedby={errors.address ? 'address-error' : undefined}
           />
-          {errors.address && <p id="address-error" className="mt-1 text-xs text-rose-300">Required field</p>}
+          <p className="mt-1 text-xs text-slate-400">Optional, but helpful for quicker quoting</p>
         </div>
 
         <div className="md:col-span-2">
@@ -267,7 +310,7 @@ export default function SnowRemovalForm() {
         <div className="md:col-span-2 flex flex-col gap-2 pt-2 xs:gap-2.5 sm:flex-row sm:items-center sm:gap-3 sm:pt-3">
           <button
             type="submit"
-            disabled={isSubmitting || !nameValue?.trim() || !addressValue?.trim() || !hasContactInfo}
+            disabled={isSubmitting || !nameValue?.trim() || !hasContactInfo}
             className="inline-flex items-center justify-center rounded-lg bg-sky-500 px-4 py-2.5 text-xs font-black uppercase tracking-wide text-slate-950 transition sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-500/50 disabled:text-slate-400"
           >
             {isSubmitting ? '⏳ Sending...' : '✓ Submit Request'}
