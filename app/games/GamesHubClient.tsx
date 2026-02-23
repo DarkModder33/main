@@ -92,6 +92,15 @@ export function GamesHubClient() {
             </Link>
           </article>
           <article className="theme-grid-card">
+            <h3 className="text-xl font-bold text-white">Spades Tournament Arena</h3>
+            <p className="text-[#afc4d4]">
+              Graphic-intensive card gameplay with tournament room APIs and wallet-aware wager simulation.
+            </p>
+            <Link href="/spades" className="theme-cta theme-cta--secondary mt-2 self-start">
+              Open Spades
+            </Link>
+          </article>
+          <article className="theme-grid-card">
             <h3 className="text-xl font-bold text-white">LibRetro Core Queue</h3>
             <p className="text-[#afc4d4]">
               Queue ROM metadata for approved cores while upload processing is staged for production.

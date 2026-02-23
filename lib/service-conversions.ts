@@ -1,6 +1,7 @@
 import { event } from "@/lib/analytics";
 
 export type ServiceConversionId =
+  | "open_services"
   | "open_schedule"
   | "open_pricing"
   | "open_crypto_project"
@@ -42,6 +43,12 @@ interface ConversionMeta {
 }
 
 export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMeta> = {
+  open_services: {
+    action: "open_services",
+    label: "services_route",
+    value: 2,
+    stage: "consideration",
+  },
   open_schedule: {
     action: "open_schedule",
     label: "schedule_route",
