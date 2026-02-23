@@ -25,6 +25,8 @@ type TournamentPayload = {
   mode?: unknown;
 };
 
+const ROOM_CAPACITY = 4;
+
 const tournamentStore = (() => {
   const globalRef = globalThis as typeof globalThis & {
     __TRADEHAX_SPADES_TOURNAMENTS__?: Map<string, TournamentEntry[]>;
@@ -81,6 +83,8 @@ export async function GET(request: NextRequest) {
         alias: entry.alias,
       })),
       count: entries.length,
+      capacity: ROOM_CAPACITY,
+      potLamports: entries.reduce((sum, entry) => sum + entry.wagerLamports, 0),
     },
     { headers: rateLimit.headers },
   );
@@ -142,6 +146,19 @@ export async function POST(request: NextRequest) {
     const roomEntries = tournamentStore.get(roomId) || [];
     const alreadyJoined = roomEntries.some((entry) => entry.did === did);
 
+    if (!alreadyJoined && roomEntries.length >= ROOM_CAPACITY) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Tournament room is full. Please join another room.',
+        },
+        {
+          status: 409,
+          headers: rateLimit.headers,
+        },
+      );
+    }
+
     if (!alreadyJoined) {
       roomEntries.push({
         did,
@@ -158,6 +175,8 @@ export async function POST(request: NextRequest) {
         ok: true,
         roomId,
         players: roomEntries.map((entry) => ({ did: entry.did, alias: entry.alias })),
+        capacity: ROOM_CAPACITY,
+        potLamports: roomEntries.reduce((sum, entry) => sum + entry.wagerLamports, 0),
       },
       {
         headers: rateLimit.headers,
