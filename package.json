@@ -19,7 +19,7 @@
     "check:dns": "node ./scripts/check-deploy-config.js --dns",
     "pipeline:quality": "npm run lint && npm run type-check",
     "pipeline:local": "npm run pipeline:quality && npm run build",
-    "pipeline:deploy-checks": "node ./scripts/check-deploy-config.js",
+    "pipeline:deploy-checks": "node ./scripts/check-deploy-config.js && npm run snow:env:check",
     "pipeline:ci": "node ./scripts/run-pipeline-ci.js",
     "deploy:one-click": "node ./scripts/one-button-deploy.js --prod",
     "deploy:one-click:strict-dns": "node ./scripts/one-button-deploy.js --prod --strict-dns",
@@ -30,6 +30,8 @@
     "llm:prepare-and-validate": "npm run llm:prepare-dataset && npm run llm:validate-dataset",
     "social:setup": "node ./scripts/setup-social-apis.js",
     "social:check": "node ./scripts/check-social-api-config.js",
+    "snow:env:check": "node ./scripts/check-snow-removal-env.js",
+    "snow:env:check:strict": "node ./scripts/check-snow-removal-env.js --strict",
     "discord:register-commands": "node ./scripts/discord/register-commands.mjs",
     "repo:status": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/repo-status.ps1",
     "repo:sync-mirror": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-mirror-from-canonical.ps1"
