@@ -10,15 +10,18 @@ import {
   BookOpen,
   Brain,
   Coins,
+  Command,
   Copy,
   Cpu,
   Download,
   Eraser,
+  List,
   Lock,
   Pencil,
   Plus,
   RotateCcw,
   RotateCw,
+  Search,
   Send,
   ShieldAlert,
   ShieldCheck,
@@ -38,6 +41,33 @@ type RiskStance = "guarded" | "balanced" | "aggressive";
 type PersonaPresetId = "mystic" | "analyst" | "mentor";
 type MemoryScope = "short" | "long";
 type SocialChannel = "youtube" | "discord" | "x" | "linkedin" | "instagram" | "facebook" | "telegram" | "tiktok";
+type LlmWorkflowTask = "chat" | "generate" | "summarize" | "qa";
+type LlmDepth = "quick" | "balanced" | "deep";
+
+interface ResponseQualitySnapshot {
+  task: LlmWorkflowTask;
+  model: string;
+  latencyMs: number;
+  words: number;
+  chars: number;
+  clarity: number;
+  actionability: number;
+  riskDiscipline: number;
+}
+
+type PromptLibraryItem = {
+  id: string;
+  title: string;
+  category: "trading" | "content" | "ops";
+  value: string;
+};
+
+type SlashCommand = {
+  id: string;
+  label: string;
+  description: string;
+  execute: () => void;
+};
 
 interface Message {
   role: "user" | "assistant";
@@ -140,6 +170,80 @@ const QUICK_RITUAL_PROMPTS = [
     value: "I feel emotionally noisy. Give me a short reset protocol before I make trading decisions.",
   },
 ] as const;
+
+const LLM_WORKFLOW_TASKS: Array<{ id: LlmWorkflowTask; label: string; hint: string }> = [
+  { id: "chat", label: "Neural Chat", hint: "Full guided assistant with relationship memory + persona controls" },
+  { id: "generate", label: "Generate", hint: "High-quality text drafting for ideas, scripts, and content" },
+  { id: "summarize", label: "Summarize", hint: "Compress long content into concise, decision-ready outputs" },
+  { id: "qa", label: "Q&A", hint: "Answer strictly from provided context to improve factual discipline" },
+];
+
+const LLM_WORKFLOW_TEMPLATES: Array<{
+  id: "exec" | "thread" | "sop";
+  label: string;
+  task: LlmWorkflowTask;
+  prompt: string;
+  context?: string;
+}> = [
+  {
+    id: "exec",
+    label: "Exec Brief",
+    task: "summarize",
+    prompt: "Summarize this into: key signals, risks, opportunities, and one immediate action for today.",
+  },
+  {
+    id: "thread",
+    label: "Social Thread",
+    task: "generate",
+    prompt: "Turn this into a high-converting social thread with hook, value bullets, CTA, and risk-aware language.",
+  },
+  {
+    id: "sop",
+    label: "Risk SOP",
+    task: "qa",
+    prompt: "Create a strict execution SOP with pre-trade checks, invalidation triggers, and post-trade review steps.",
+    context: "Use only the context provided here. Do not infer unsupported facts.",
+  },
+];
+
+const PROMPT_LIBRARY: PromptLibraryItem[] = [
+  {
+    id: "trade-plan-week",
+    title: "Weekly Risk Plan",
+    category: "trading",
+    value: "Build my weekly trade plan with risk budget, A+ setup filter, and a no-trade checklist.",
+  },
+  {
+    id: "trade-postmortem",
+    title: "Trade Postmortem",
+    category: "trading",
+    value: "Review this trade like a coach: what was valid, what was emotional noise, and what to do next time.",
+  },
+  {
+    id: "content-thread",
+    title: "Social Thread Builder",
+    category: "content",
+    value: "Turn this into a high-converting thread with hook, authority proof, value bullets, and CTA.",
+  },
+  {
+    id: "content-brief",
+    title: "Executive Brief",
+    category: "content",
+    value: "Summarize this into key points, risks, opportunities, and one immediate action.",
+  },
+  {
+    id: "ops-checklist",
+    title: "Ops Checklist",
+    category: "ops",
+    value: "Create an operator checklist for execution: prep, trigger, risk limits, and post-action review.",
+  },
+  {
+    id: "ops-standard",
+    title: "SOP Draft",
+    category: "ops",
+    value: "Draft a concise SOP with prerequisites, step-by-step actions, failure modes, and escalation path.",
+  },
+];
 
 const PERSONA_PRESETS: Array<{ id: PersonaPresetId; label: string; description: string; prompt: string }> = [
   {
@@ -311,6 +415,9 @@ export const AINeuralHub = () => {
   const [editingMessageDraft, setEditingMessageDraft] = useState("");
   const [replayCursor, setReplayCursor] = useState(0);
   const [timeTick, setTimeTick] = useState(Date.now());
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState("");
+  const [isPromptLibraryOpen, setIsPromptLibraryOpen] = useState(false);
   const { connected, publicKey, sendTransaction } = useWallet();
 
   // Usage Tracking
@@ -355,6 +462,11 @@ export const AINeuralHub = () => {
     const storedPersona = localStorage.getItem("tradehax_ai_persona_preset");
     if (storedPersona === "mystic" || storedPersona === "analyst" || storedPersona === "mentor") {
       setPersonaPreset(storedPersona);
+    }
+
+    const storedPromptLibrary = localStorage.getItem("tradehax_ai_prompt_library_open");
+    if (storedPromptLibrary === "true") {
+      setIsPromptLibraryOpen(true);
     }
 
     const storedVideoUrl = localStorage.getItem("tradehax_ai_video_source_url");
@@ -492,6 +604,29 @@ export const AINeuralHub = () => {
   }, [personaPreset]);
 
   useEffect(() => {
+    localStorage.setItem("tradehax_ai_prompt_library_open", String(isPromptLibraryOpen));
+  }, [isPromptLibraryOpen]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isMetaCommand = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k";
+      if (isMetaCommand) {
+        event.preventDefault();
+        setActiveTab("CHAT");
+        setIsCommandPaletteOpen(true);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        setIsCommandPaletteOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("tradehax_ai_video_source_url", videoSourceUrl);
   }, [videoSourceUrl]);
 
@@ -587,6 +722,11 @@ export const AINeuralHub = () => {
   ]);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatStatus, setChatStatus] = useState<string>("");
+  const [workflowTask, setWorkflowTask] = useState<LlmWorkflowTask>("chat");
+  const [workflowDepth, setWorkflowDepth] = useState<LlmDepth>("balanced");
+  const [workflowCreativity, setWorkflowCreativity] = useState(65);
+  const [workflowContext, setWorkflowContext] = useState("");
+  const [qualitySnapshot, setQualitySnapshot] = useState<ResponseQualitySnapshot | null>(null);
 
   const relationshipScore = Math.min(100, 18 + usageCount * 20 + Math.min(messages.length, 12) * 4);
   const relationshipTier = relationshipScore >= 85
@@ -725,6 +865,188 @@ export const AINeuralHub = () => {
         ? "Mode: Mystic Open. Be direct and creative while preserving safety and privacy."
         : "Mode: Guardian Standard. Be conservative, compliance-friendly, and explicit about uncertainty.",
     ].join(" ");
+  }
+
+  function getMaxTokensForDepth(depth: LlmDepth) {
+    if (depth === "quick") return 320;
+    if (depth === "deep") return 1100;
+    return 700;
+  }
+
+  function scoreResponseQuality(text: string, task: LlmWorkflowTask) {
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    const sentences = text
+      .split(/[.!?]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const avgWordsPerSentence = words.length / Math.max(1, sentences.length);
+    const bullets = (text.match(/(^|\n)\s*[-•\d]+[.)-]?\s+/g) || []).length;
+    const hasRiskLanguage = /(risk|stop|invalidation|drawdown|position size|exposure)/i.test(text);
+    const hasNextStep = /(next step|immediate action|do this now|first step|checklist)/i.test(text);
+
+    const clarity = Math.max(35, Math.min(100, Math.round(100 - Math.abs(16 - avgWordsPerSentence) * 2.8)));
+    const actionability = Math.max(30, Math.min(100, Math.round(40 + bullets * 14 + (hasNextStep ? 16 : 0))));
+    const riskDiscipline = Math.max(28, Math.min(100, Math.round(45 + (hasRiskLanguage ? 32 : 0) + (task === "qa" ? 10 : 0))));
+
+    return {
+      words: words.length,
+      chars: text.length,
+      clarity,
+      actionability,
+      riskDiscipline,
+    };
+  }
+
+  function applyWorkflowTemplate(templateId: "exec" | "thread" | "sop") {
+    const template = LLM_WORKFLOW_TEMPLATES.find((item) => item.id === templateId);
+    if (!template) return;
+    setWorkflowTask(template.task);
+    setChatInput((prev) => `${template.prompt}\n\n${prev.trim()}`.trim().slice(0, 1800));
+    if (template.context) {
+      setWorkflowContext(template.context);
+    }
+    setChatStatus(`${template.label} template loaded.`);
+  }
+
+  function buildQaContext() {
+    const memoryContext = [...longMemoryCards, ...shortMemoryCards]
+      .slice(0, 6)
+      .map((card) => `${card.title}: ${card.content}`)
+      .join("\n");
+
+    return [
+      workflowContext.trim(),
+      `Guide profile: ${guideName} • ${selectedPersona.label}`,
+      `Session intent: ${sessionIntent}`,
+      memoryContext,
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+      .slice(0, 8000);
+  }
+
+  function injectPrompt(prompt: string) {
+    setActiveTab("CHAT");
+    setChatInput((prev) => `${prompt}\n\n${prev.trim()}`.trim().slice(0, 2500));
+  }
+
+  function addPromptLibraryItem(item: PromptLibraryItem) {
+    injectPrompt(item.value);
+    setIsPromptLibraryOpen(false);
+    setChatStatus(`Loaded prompt: ${item.title}`);
+  }
+
+  const slashCommands: SlashCommand[] = [
+    {
+      id: "new",
+      label: "/new",
+      description: "Start a new secure chat session",
+      execute: () => startNewChat(),
+    },
+    {
+      id: "palette",
+      label: "/palette",
+      description: "Open command palette",
+      execute: () => setIsCommandPaletteOpen(true),
+    },
+    {
+      id: "library",
+      label: "/library",
+      description: "Toggle prompt library drawer",
+      execute: () => setIsPromptLibraryOpen((prev) => !prev),
+    },
+    {
+      id: "task-chat",
+      label: "/chat",
+      description: "Switch to Neural Chat task",
+      execute: () => setWorkflowTask("chat"),
+    },
+    {
+      id: "task-generate",
+      label: "/generate",
+      description: "Switch to Generate task",
+      execute: () => setWorkflowTask("generate"),
+    },
+    {
+      id: "task-summarize",
+      label: "/summarize",
+      description: "Switch to Summarize task",
+      execute: () => setWorkflowTask("summarize"),
+    },
+    {
+      id: "task-qa",
+      label: "/qa",
+      description: "Switch to QA task",
+      execute: () => setWorkflowTask("qa"),
+    },
+  ];
+
+  const commandPaletteEntries: Array<{ id: string; label: string; hint: string; action: () => void }> = [
+    { id: "new-chat", label: "New Chat", hint: "Start a fresh secure session", action: () => startNewChat() },
+    { id: "toggle-library", label: "Toggle Prompt Library", hint: "Open/close curated prompt drawer", action: () => setIsPromptLibraryOpen((prev) => !prev) },
+    { id: "task-chat", label: "Mode: Neural Chat", hint: "Relationship-aware assistant mode", action: () => setWorkflowTask("chat") },
+    { id: "task-generate", label: "Mode: Generate", hint: "Draft long-form or short-form output", action: () => setWorkflowTask("generate") },
+    { id: "task-summarize", label: "Mode: Summarize", hint: "Compress dense source into action summary", action: () => setWorkflowTask("summarize") },
+    { id: "task-qa", label: "Mode: Q&A", hint: "Ground answers in explicit context", action: () => setWorkflowTask("qa") },
+    { id: "copy-last", label: "Copy Last Reply", hint: "Copy latest assistant output", action: () => { void copyLastReply(); } },
+    { id: "export", label: "Export Transcript", hint: "Download current session transcript", action: () => exportTranscript() },
+  ];
+
+  const slashQuery = chatInput.startsWith("/") ? chatInput.slice(1).trim().toLowerCase() : "";
+  const filteredSlashCommands = chatInput.startsWith("/")
+    ? slashCommands.filter((command) =>
+        command.label.replace(/^\//, "").includes(slashQuery) || command.description.toLowerCase().includes(slashQuery),
+      )
+    : [];
+  const filteredCommandPaletteEntries = commandPaletteEntries.filter((entry) => {
+    const query = commandQuery.trim().toLowerCase();
+    if (!query) return true;
+    return entry.label.toLowerCase().includes(query) || entry.hint.toLowerCase().includes(query);
+  });
+
+  function applySlashCommand(command: SlashCommand) {
+    command.execute();
+    setChatInput("");
+    setChatStatus(`Executed ${command.label}`);
+  }
+
+  function tryExecuteSlashInput(input: string) {
+    if (!input.startsWith("/")) return false;
+    const slashToken = input.split(/\s+/)[0].trim().toLowerCase();
+    const command = slashCommands.find((item) => item.label === slashToken);
+    if (!command) {
+      setChatStatus("Unknown slash command. Try /palette, /library, /chat, /generate, /summarize, /qa.");
+      return true;
+    }
+
+    applySlashCommand(command);
+    return true;
+  }
+
+  function runPaletteCommand(id: string) {
+    const match = commandPaletteEntries.find((entry) => entry.id === id);
+    if (!match) return;
+    match.action();
+    setIsCommandPaletteOpen(false);
+    setCommandQuery("");
+  }
+
+  async function transformAssistantMessage(index: number, mode: "improve" | "rewrite" | "shorten") {
+    if (isChatLoading || isCharging) return;
+    const target = messages[index];
+    if (!target || target.role !== "assistant") return;
+
+    const directive =
+      mode === "improve"
+        ? "Improve the following response for clarity, stronger structure, and sharper actionability while preserving intent."
+        : mode === "rewrite"
+          ? "Rewrite the following response with a higher-end, executive tone and cleaner structure while preserving meaning."
+          : "Shorten the following response into concise bullets with one immediate action line.";
+
+    const transformPrompt = `${directive}\n\nOriginal response:\n${target.content}`;
+    setWorkflowTask("generate");
+    await requestAssistantReply(transformPrompt, { appendUser: true });
   }
 
   function applyRitualPrompt(value: string) {
@@ -1200,41 +1522,90 @@ export const AINeuralHub = () => {
 
     setIsChatLoading(true);
     setChatStatus(options?.regenerate ? "Regenerating response..." : "");
+    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
 
     try {
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg,
-          userId: buildHubUserId(),
-          model: selectedChatModel,
-          tier: openModeEnabled ? "UNCENSORED" : "STANDARD",
-          systemPrompt: buildPremierSystemPrompt(),
-          context: {
-            relationshipTier,
-            riskStance,
-            focusSymbol,
-            sessionIntent,
-          },
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data?.ok && typeof data?.response === "string" && data.response.trim()) {
-        setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
-        if (typeof data?.model === "string") {
-          setChatStatus(`Model: ${data.model}${typeof data?.provider === "string" ? ` • Provider: ${data.provider}` : ""}`);
+      let responseText = "";
+      let resolvedModel = selectedChatModel;
+      let providerLabel = "";
+
+      if (workflowTask === "chat") {
+        const res = await fetch("/api/ai/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: userMsg,
+            userId: buildHubUserId(),
+            model: selectedChatModel,
+            tier: openModeEnabled ? "UNCENSORED" : "STANDARD",
+            systemPrompt: buildPremierSystemPrompt(),
+            context: {
+              relationshipTier,
+              riskStance,
+              focusSymbol,
+              sessionIntent,
+            },
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data?.ok && typeof data?.response === "string" && data.response.trim()) {
+          responseText = data.response;
+          resolvedModel = typeof data?.model === "string" ? data.model : selectedChatModel;
+          providerLabel = typeof data?.provider === "string" ? ` • Provider: ${data.provider}` : "";
+        } else {
+          const errorMessage =
+            typeof data?.message === "string" && data.message.trim()
+              ? data.message
+              : typeof data?.error === "string" && data.error.trim()
+                ? data.error
+                : "AI temporarily unavailable. Please try again.";
+          setMessages(prev => [...prev, { role: "assistant", content: `ERROR: ${errorMessage}` }]);
+          setChatStatus("The assistant hit an issue. You can retry or switch models.");
+          return;
         }
-        incrementUsage();
       } else {
-        const errorMessage =
-          typeof data?.message === "string" && data.message.trim()
-            ? data.message
-            : typeof data?.error === "string" && data.error.trim()
+        const res = await fetch("/api/llm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            task: workflowTask,
+            userId: buildHubUserId(),
+            model: selectedChatModel,
+            temperature: Number((workflowCreativity / 100).toFixed(2)),
+            maxTokens: getMaxTokensForDepth(workflowDepth),
+            topP: 0.95,
+            ...(workflowTask === "generate" ? { prompt: userMsg } : {}),
+            ...(workflowTask === "summarize" ? { text: userMsg } : {}),
+            ...(workflowTask === "qa" ? { question: userMsg, context: buildQaContext() } : {}),
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data?.ok && typeof data?.result === "string" && data.result.trim()) {
+          responseText = data.result;
+          resolvedModel = typeof data?.model === "string" ? data.model : selectedChatModel;
+        } else {
+          const errorMessage =
+            typeof data?.error === "string" && data.error.trim()
               ? data.error
-              : "AI temporarily unavailable. Please try again.";
-        setMessages(prev => [...prev, { role: "assistant", content: `ERROR: ${errorMessage}` }]);
-        setChatStatus("The assistant hit an issue. You can retry or switch models.");
+              : "LLM task failed. Please retry with adjusted settings.";
+          setMessages(prev => [...prev, { role: "assistant", content: `ERROR: ${errorMessage}` }]);
+          setChatStatus("Task execution failed. Consider switching task mode or reducing complexity.");
+          return;
+        }
+      }
+
+      if (responseText.trim()) {
+        setMessages(prev => [...prev, { role: "assistant", content: responseText }]);
+        const elapsedMs = Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt);
+        const quality = scoreResponseQuality(responseText, workflowTask);
+        setQualitySnapshot({
+          task: workflowTask,
+          model: resolvedModel,
+          latencyMs: elapsedMs,
+          ...quality,
+        });
+        setChatStatus(`Model: ${resolvedModel}${providerLabel} • Task: ${workflowTask.toUpperCase()} • ${elapsedMs}ms`);
+        incrementUsage();
       }
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "ERROR: NEURAL_TIMEOUT" }]);
@@ -1283,6 +1654,9 @@ export const AINeuralHub = () => {
     if (!chatInput.trim() || isChatLoading || isCharging) return;
 
     const userMsg = chatInput.trim();
+    if (tryExecuteSlashInput(userMsg)) {
+      return;
+    }
     setChatInput("");
     await requestAssistantReply(userMsg, { appendUser: true });
   };
@@ -1812,6 +2186,27 @@ export const AINeuralHub = () => {
                               <Download className="h-3.5 w-3.5" />
                               Export Chat
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => setIsPromptLibraryOpen((prev) => !prev)}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-100"
+                              title="Toggle prompt library drawer"
+                            >
+                              <List className="h-3.5 w-3.5" />
+                              Prompt Library
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCommandPaletteOpen(true);
+                                setActiveTab("CHAT");
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-fuchsia-300/30 bg-fuchsia-500/10 px-2.5 py-1 text-[10px] font-semibold text-fuchsia-100"
+                              title="Open command palette (Ctrl/Cmd + K)"
+                            >
+                              <Command className="h-3.5 w-3.5" />
+                              Command Palette
+                            </button>
                             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10px] text-zinc-300">
                               <SlidersHorizontal className="h-3.5 w-3.5" />
                               {responseStyle.toUpperCase()} • {riskStance.toUpperCase()}
@@ -2273,6 +2668,40 @@ export const AINeuralHub = () => {
                                     </button>
                                   </div>
                                 )}
+                                {msg.role === "assistant" && (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        void transformAssistantMessage(i, "improve");
+                                      }}
+                                      className="rounded-full border border-cyan-300/30 bg-cyan-500/10 px-2 py-0.5 text-[9px] uppercase text-cyan-100 hover:border-cyan-300/50"
+                                      title="Improve this response"
+                                    >
+                                      Improve
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        void transformAssistantMessage(i, "rewrite");
+                                      }}
+                                      className="rounded-full border border-fuchsia-300/30 bg-fuchsia-500/10 px-2 py-0.5 text-[9px] uppercase text-fuchsia-100 hover:border-fuchsia-300/50"
+                                      title="Rewrite this response"
+                                    >
+                                      Rewrite
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        void transformAssistantMessage(i, "shorten");
+                                      }}
+                                      className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2 py-0.5 text-[9px] uppercase text-emerald-100 hover:border-emerald-300/50"
+                                      title="Shorten this response"
+                                    >
+                                      Shorten
+                                    </button>
+                                  </div>
+                                )}
                               </div>
 
                               {editingMessageIndex === i ? (
@@ -2326,8 +2755,144 @@ export const AINeuralHub = () => {
                       </div>
 
                       <div className="mb-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-[11px] text-cyan-100/85">
-                        Try: I&apos;m new to trading. Give me a safe beginner plan for this week.
+                        {workflowTask === "chat"
+                          ? "Try: I&apos;m new to trading. Give me a safe beginner plan for this week."
+                          : workflowTask === "generate"
+                            ? "Generate mode tip: ask for exact format (e.g. 5 bullets + 1 action)."
+                            : workflowTask === "summarize"
+                              ? "Summarize mode tip: paste the full source text for stronger compression quality."
+                              : "Q&A mode tip: add context below so answers stay grounded and factual."}
                       </div>
+
+                      <div className="mb-3 rounded-xl border border-white/10 bg-[rgba(8,12,18,0.82)] px-3 py-3">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-zinc-300">Operator Workflow Dock</p>
+                          <span className="rounded-full border border-cyan-300/20 bg-cyan-500/10 px-2 py-0.5 text-[9px] uppercase text-cyan-100">Industry-grade controls</span>
+                        </div>
+
+                        <div className="mb-2 flex flex-wrap gap-2">
+                          {LLM_WORKFLOW_TASKS.map((task) => (
+                            <button
+                              key={task.id}
+                              type="button"
+                              onClick={() => setWorkflowTask(task.id)}
+                              className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                                workflowTask === task.id
+                                  ? "border-cyan-300/40 bg-cyan-500/15 text-cyan-100"
+                                  : "border-white/15 bg-black/35 text-zinc-300 hover:border-cyan-300/30"
+                              }`}
+                              title={task.hint}
+                            >
+                              {task.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="grid gap-2 md:grid-cols-[1fr_1fr]">
+                          <div>
+                            <p className="text-[10px] font-mono uppercase tracking-[0.1em] text-zinc-400">Depth</p>
+                            <div className="mt-1 flex gap-1.5">
+                              {(["quick", "balanced", "deep"] as LlmDepth[]).map((depth) => (
+                                <button
+                                  key={depth}
+                                  type="button"
+                                  onClick={() => setWorkflowDepth(depth)}
+                                  className={`rounded-full border px-2 py-0.5 text-[9px] uppercase ${
+                                    workflowDepth === depth
+                                      ? "border-fuchsia-300/40 bg-fuchsia-500/15 text-fuchsia-100"
+                                      : "border-white/15 bg-black/35 text-zinc-300"
+                                  }`}
+                                >
+                                  {depth}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.1em] text-zinc-400" htmlFor="workflow-creativity-range">
+                              <span>Creativity</span>
+                              <span>{workflowCreativity}%</span>
+                            </label>
+                            <input
+                              id="workflow-creativity-range"
+                              type="range"
+                              min={20}
+                              max={100}
+                              value={workflowCreativity}
+                              onChange={(event) => setWorkflowCreativity(Number(event.target.value))}
+                              className="mt-1 w-full accent-cyan-400"
+                              title="Adjust generation creativity"
+                            />
+                          </div>
+                        </div>
+
+                        {workflowTask === "qa" && (
+                          <div className="mt-2">
+                            <label className="text-[10px] font-mono uppercase tracking-[0.1em] text-zinc-400" htmlFor="workflow-context-input">
+                              Context (used by Q&A task)
+                            </label>
+                            <textarea
+                              id="workflow-context-input"
+                              value={workflowContext}
+                              onChange={(event) => setWorkflowContext(event.target.value.slice(0, 2000))}
+                              rows={3}
+                              className="mt-1 w-full rounded-md border border-white/15 bg-black/50 px-2.5 py-2 text-[11px] text-white outline-none focus:border-cyan-300/60"
+                              placeholder="Paste source context here so answers remain grounded."
+                            />
+                          </div>
+                        )}
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {LLM_WORKFLOW_TEMPLATES.map((template) => (
+                            <button
+                              key={template.id}
+                              type="button"
+                              onClick={() => applyWorkflowTemplate(template.id)}
+                              className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase text-emerald-100"
+                              title={`Load ${template.label} template`}
+                            >
+                              {template.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {isPromptLibraryOpen && (
+                        <div className="mb-3 rounded-xl border border-cyan-400/20 bg-[rgba(6,10,16,0.84)] px-3 py-3">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-cyan-200">Prompt Library</p>
+                            <button
+                              type="button"
+                              onClick={() => setIsPromptLibraryOpen(false)}
+                              className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[9px] uppercase text-zinc-300"
+                            >
+                              Close
+                            </button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {(["trading", "content", "ops"] as const).map((category) => (
+                              <div key={category} className="rounded-lg border border-white/10 bg-black/35 px-2.5 py-2">
+                                <p className="mb-1 text-[9px] font-mono uppercase tracking-[0.12em] text-zinc-400">{category}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {PROMPT_LIBRARY.filter((item) => item.category === category).map((item) => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => addPromptLibraryItem(item)}
+                                      className="rounded-full border border-cyan-300/25 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-100 hover:border-cyan-300/45"
+                                      title={item.value}
+                                    >
+                                      {item.title}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mb-3 flex flex-wrap gap-2">
                         {[...activePromptPack, ...QUICK_RITUAL_PROMPTS].map((prompt) => (
@@ -2360,8 +2925,63 @@ export const AINeuralHub = () => {
                           <Send className="w-4 h-4" />
                         </button>
                       </form>
+                      {filteredSlashCommands.length > 0 && (
+                        <div className="mt-2 rounded-lg border border-white/10 bg-black/40 px-2 py-2">
+                          <p className="mb-1 text-[9px] font-mono uppercase tracking-[0.12em] text-zinc-400">Slash commands</p>
+                          <div className="space-y-1">
+                            {filteredSlashCommands.slice(0, 6).map((command) => (
+                              <button
+                                key={command.id}
+                                type="button"
+                                onClick={() => applySlashCommand(command)}
+                                className="flex w-full items-center justify-between rounded-md border border-white/10 bg-black/35 px-2 py-1 text-left hover:border-cyan-300/35"
+                              >
+                                <span className="text-[10px] font-semibold text-cyan-100">{command.label}</span>
+                                <span className="text-[9px] text-zinc-400">{command.description}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {chatStatus && (
                         <p className="mt-3 text-[11px] text-cyan-300/80 font-mono">{chatStatus}</p>
+                      )}
+                      {qualitySnapshot && (
+                        <div className="mt-3 rounded-xl border border-white/10 bg-black/35 px-3 py-2">
+                          <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-wide text-zinc-300">
+                            <span className="text-cyan-200">Response Scorecard</span>
+                            <span className="rounded-full border border-white/10 bg-black/40 px-2 py-0.5 text-[9px] text-zinc-400">
+                              {qualitySnapshot.task.toUpperCase()} • {qualitySnapshot.model}
+                            </span>
+                          </div>
+                          <div className="grid gap-2 md:grid-cols-3">
+                            {[
+                              { label: "Clarity", value: qualitySnapshot.clarity, tone: "from-cyan-400 to-blue-400" },
+                              { label: "Actionability", value: qualitySnapshot.actionability, tone: "from-emerald-400 to-teal-400" },
+                              { label: "Risk Discipline", value: qualitySnapshot.riskDiscipline, tone: "from-fuchsia-400 to-purple-400" },
+                            ].map((metric) => (
+                              <div key={metric.label} className="rounded-lg border border-white/10 bg-black/35 px-2 py-1.5">
+                                <div className="mb-1 flex items-center justify-between text-[10px] text-zinc-300">
+                                  <span>{metric.label}</span>
+                                  <span>{metric.value}%</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-zinc-800/80">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${metric.value}%` }}
+                                    transition={{ duration: 0.4, ease: "easeOut" }}
+                                    className={`h-1.5 rounded-full bg-gradient-to-r ${metric.tone}`}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-zinc-400">
+                            <span className="rounded-full border border-white/10 bg-black/35 px-2 py-0.5">Latency: {qualitySnapshot.latencyMs}ms</span>
+                            <span className="rounded-full border border-white/10 bg-black/35 px-2 py-0.5">Words: {qualitySnapshot.words}</span>
+                            <span className="rounded-full border border-white/10 bg-black/35 px-2 py-0.5">Chars: {qualitySnapshot.chars}</span>
+                          </div>
+                        </div>
                       )}
                     </motion.div>
                   )}
@@ -2590,6 +3210,69 @@ export const AINeuralHub = () => {
 
         </div>
       </div>
+
+      <AnimatePresence>
+        {isCommandPaletteOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] flex items-start justify-center bg-black/65 px-4 pt-24 backdrop-blur-sm"
+            onClick={() => setIsCommandPaletteOpen(false)}
+          >
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -14, opacity: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="w-full max-w-2xl rounded-2xl border border-cyan-400/25 bg-[rgba(8,12,18,0.96)] shadow-[0_0_40px_rgba(34,211,238,0.12)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
+                <Search className="h-4 w-4 text-cyan-300" />
+                <input
+                  value={commandQuery}
+                  onChange={(event) => setCommandQuery(event.target.value.slice(0, 80))}
+                  placeholder="Search commands..."
+                  className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+                  autoFocus
+                />
+                <span className="rounded-md border border-white/10 bg-black/30 px-1.5 py-0.5 text-[9px] uppercase text-zinc-400">
+                  Esc
+                </span>
+              </div>
+
+              <div className="max-h-[360px] overflow-y-auto p-2">
+                {filteredCommandPaletteEntries.length > 0 ? (
+                  filteredCommandPaletteEntries.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => runPaletteCommand(entry.id)}
+                      className="mb-1 flex w-full items-center justify-between rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-left hover:border-cyan-300/35"
+                    >
+                      <div>
+                        <p className="text-[11px] font-semibold text-cyan-100">{entry.label}</p>
+                        <p className="text-[10px] text-zinc-400">{entry.hint}</p>
+                      </div>
+                      <Command className="h-3.5 w-3.5 text-zinc-500" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-lg border border-white/10 bg-black/35 px-3 py-4 text-center text-[11px] text-zinc-500">
+                    No commands match your query.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-white/10 px-3 py-2 text-[10px] text-zinc-400">
+                <span>Tip: press Ctrl/Cmd + K any time</span>
+                <span>Phase 2 Operator Palette</span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
