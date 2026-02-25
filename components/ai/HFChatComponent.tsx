@@ -195,6 +195,63 @@ const QUICK_START_PROMPTS = [
   },
 ] as const;
 
+const COMPOSER_QUICK_ACTIONS: Array<{
+  label: string;
+  prompt: string;
+  mode?: ChatMode;
+  preset?: LlmPresetId;
+}> = [
+  {
+    label: "7-day plan",
+    prompt: "Build me a 7-day execution plan with one high-impact task per day, estimated effort, and measurable outcome.",
+    mode: "chat",
+    preset: "operator_exec",
+  },
+  {
+    label: "Risk check",
+    prompt: "Audit my current strategy for downside risk. Give invalidation points, risk limits, and one safer alternative.",
+    mode: "chat",
+    preset: "analyst_risk",
+  },
+  {
+    label: "Growth content",
+    prompt: "Create 3 high-conviction content ideas with hooks, CTA, and platform-specific formatting.",
+    mode: "chat",
+    preset: "creative_growth",
+  },
+  {
+    label: "Deep brief",
+    prompt: "Give me a deep comparative brief: assumptions, tradeoffs, key risks, and recommended decision path.",
+    mode: "chat",
+    preset: "deep_research",
+  },
+];
+
+function resolveSlashShortcut(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  const [command, ...rest] = trimmed.split(" ");
+  const tail = rest.join(" ").trim();
+
+  if (command === "/plan") {
+    return `Create a step-by-step execution plan with milestones, owners, and due windows.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/risk") {
+    return `Run a risk analysis with probability, impact, mitigation, and invalidation criteria.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/content") {
+    return `Generate content assets: headline, hook, body draft, CTA, and 3 variants.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/next") {
+    return `Given current context, tell me the single highest-leverage next action and why.`;
+  }
+
+  return trimmed;
+}
+
 type DecisionSignals = {
   confidence: number;
   risk: number;
@@ -316,7 +373,7 @@ export function HFChatComponent() {
   const [objective, setObjective] = useState("");
   const [autoAdvanceMessage, setAutoAdvanceMessage] = useState("");
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
-    const [llmPreset, setLlmPreset] = useState<LlmPresetId>("navigator_fast");
+  const [llmPreset, setLlmPreset] = useState<LlmPresetId>("navigator_fast");
   const [autoFallback, setAutoFallback] = useState(true);
   const [freedomMode, setFreedomMode] = useState<FreedomMode>("uncensored");
   const [showControlPanel, setShowControlPanel] = useState(true);
@@ -329,7 +386,7 @@ export function HFChatComponent() {
     setSelectedStep(session.selectedStep);
     setMode(session.mode);
     setResponseStyle(session.responseStyle);
-      setLlmPreset(session.llmPreset);
+    setLlmPreset(session.llmPreset);
     setAutoFallback(session.autoFallback);
     setFreedomMode(session.freedomMode);
     setAutoAdvanceMessage("");
@@ -538,7 +595,7 @@ export function HFChatComponent() {
   }, [messages, loading]);
 
   const sendMessage = useCallback(async () => {
-    const trimmedInput = input.trim();
+    const trimmedInput = resolveSlashShortcut(input.trim());
     if (!trimmedInput) return;
 
     const objectiveForRequest = (objective.trim() || trimmedInput).slice(0, 200);
@@ -594,6 +651,7 @@ export function HFChatComponent() {
                   objective: objectiveForRequest,
                   responseStyle,
                 },
+                preset: llmPreset,
                 userId,
               }
             : {
@@ -602,6 +660,7 @@ export function HFChatComponent() {
                 sessionId: `session-${Date.now()}`,
                 objective: objectiveForRequest,
                 responseStyle,
+                preset: llmPreset,
                 userId,
               };
 
@@ -725,6 +784,19 @@ export function HFChatComponent() {
     setMessages([]);
     setError("");
     setAutoAdvanceMessage("");
+  };
+
+  const applyComposerQuickAction = (action: (typeof COMPOSER_QUICK_ACTIONS)[number]) => {
+    setInput(action.prompt);
+    if (action.mode) {
+      setMode(action.mode);
+    }
+    if (action.preset) {
+      setLlmPreset(action.preset);
+    }
+    if (!objective.trim()) {
+      setObjective(action.label);
+    }
   };
 
   const createSession = () => {
@@ -1310,7 +1382,6 @@ export function HFChatComponent() {
             <div>
               <h3 className="font-bold text-emerald-300">AI Assistant Console</h3>
               <p className="text-xs text-emerald-200/70">
-                {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Step {selectedStep + 1}/4
                 {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Preset: {LLM_PRESET_META[llmPreset].label} • Step {selectedStep + 1}/4
               </p>
             </div>
@@ -1357,7 +1428,8 @@ export function HFChatComponent() {
                     <Compass className="w-4 h-4" />
                     Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
                   </p>
-                  <p className="text-sm">Use the control panel to seed a prompt, then iterate here.</p>
+                  <p className="text-sm">Use the control panel or quick actions below, then iterate like a modern AI workspace.</p>
+                  <p className="mt-2 text-[11px] text-emerald-200/60">Tip: slash shortcuts supported — <span className="font-mono">/plan</span>, <span className="font-mono">/risk</span>, <span className="font-mono">/content</span>, <span className="font-mono">/next</span></p>
                 </div>
               </div>
             )}
@@ -1452,12 +1524,24 @@ export function HFChatComponent() {
             {autoAdvanceMessage && (
               <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
             )}
+            <div className="mb-2 flex flex-wrap gap-2">
+              {COMPOSER_QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => applyComposerQuickAction(action)}
+                  className="rounded-lg border border-white/15 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-200 hover:bg-white/[0.08]"
+                  title={action.prompt}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
             <div className="flex gap-2 items-end">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask naturally: goal, constraints, risk level, and desired next step."
+                placeholder="Ask naturally (or use /plan, /risk, /content, /next)…"
                 rows={3}
                 disabled={loading}
                 className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"

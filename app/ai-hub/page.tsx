@@ -192,6 +192,25 @@ export default function AIHubPage() {
           </p>
         </div>
 
+        <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider text-emerald-200/80">Primary Interface</p>
+            <p className="mt-1 text-sm font-semibold text-emerald-100">Conversation-first workspace</p>
+          </div>
+          <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider text-cyan-200/80">Session Memory</p>
+            <p className="mt-1 text-sm font-semibold text-cyan-100">Resume and continue where you left off</p>
+          </div>
+          <div className="rounded-lg border border-fuchsia-500/20 bg-fuchsia-500/10 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider text-fuchsia-200/80">Preset Intelligence</p>
+            <p className="mt-1 text-sm font-semibold text-fuchsia-100">Role-based AI profiles for each objective</p>
+          </div>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider text-amber-200/80">Operator Visibility</p>
+            <p className="mt-1 text-sm font-semibold text-amber-100">Decision signals + next action every turn</p>
+          </div>
+        </div>
+
         <HubSectionProgressRail steps={[...progressSteps]} />
 
         {/* Smart Environment Monitor */}
@@ -258,41 +277,23 @@ export default function AIHubPage() {
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-12">
-          {/* Image Generator */}
-          <div id="image-generator" className="scroll-mt-28">
-            <div className="flex items-center gap-2 mb-4">
-              <Wand2 className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-xl font-bold text-cyan-300">Image Generator (Simple)</h2>
-            </div>
-            <Suspense
-              fallback={
-                <div className="rounded-xl border border-cyan-500/20 bg-cyan-600/10 px-4 py-3 text-xs text-cyan-100/80">
-                  Loading image generator...
-                </div>
-              }
-            >
-              <ImageGeneratorComponent />
-            </Suspense>
-          </div>
-
-          {/* AI Chat */}
-          <div id="ai-chat" className="scroll-mt-28">
-            <div className="flex items-center gap-2 mb-4">
+        <div id="ai-chat" className="mb-12 scroll-mt-28">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-xl font-bold text-emerald-300">AI Chat (Recommended First)</h2>
+              <h2 className="text-xl font-bold text-emerald-300">AI Command Center</h2>
             </div>
-            <Suspense
-              fallback={
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-600/10 px-4 py-3 text-xs text-emerald-100/80">
-                  Loading AI chat...
-                </div>
-              }
-            >
-              <HFChatComponent />
-            </Suspense>
+            <p className="text-xs text-emerald-100/75">Built for fast intent-to-execution flow, inspired by best-in-class AI chat UX.</p>
           </div>
+          <Suspense
+            fallback={
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-600/10 px-4 py-3 text-xs text-emerald-100/80">
+                Loading AI chat...
+              </div>
+            }
+          >
+            <HFChatComponent />
+          </Suspense>
         </div>
 
         {/* Additional Tools */}
@@ -313,6 +314,26 @@ export default function AIHubPage() {
               <HFGeneratorComponent />
             </Suspense>
           </div>
+
+          {/* Image Generator */}
+          <div id="image-generator" className="scroll-mt-28">
+            <div className="flex items-center gap-2 mb-4">
+              <Wand2 className="w-5 h-5 text-cyan-400" />
+              <h2 className="text-xl font-bold text-cyan-300">Image Generator (Simple)</h2>
+            </div>
+            <Suspense
+              fallback={
+                <div className="rounded-xl border border-cyan-500/20 bg-cyan-600/10 px-4 py-3 text-xs text-cyan-100/80">
+                  Loading image generator...
+                </div>
+              }
+            >
+              <ImageGeneratorComponent />
+            </Suspense>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 mb-12">
 
           {/* Capabilities */}
           <div className="theme-panel p-6">
@@ -348,6 +369,28 @@ export default function AIHubPage() {
                 title="Model Fine-tuning"
                 description="Train models on TradeHax datasets for custom predictions"
               />
+            </div>
+          </div>
+
+          <div className="theme-panel p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Workspace Principles</h2>
+            <div className="space-y-3 text-sm text-zinc-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <p className="font-semibold text-white">1. Conversation-first</p>
+                <p className="mt-1 text-zinc-400">Chat is the control tower, with tools as specialized accelerators.</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <p className="font-semibold text-white">2. Explainable outputs</p>
+                <p className="mt-1 text-zinc-400">Decision signals and explicit next actions keep users confident and oriented.</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <p className="font-semibold text-white">3. Speed without clutter</p>
+                <p className="mt-1 text-zinc-400">Quick actions and presets reduce friction for beginners while preserving depth for operators.</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <p className="font-semibold text-white">4. Brand legacy quality</p>
+                <p className="mt-1 text-zinc-400">Every interaction is designed to reflect precision, craft, and trust.</p>
+              </div>
             </div>
           </div>
         </div>
