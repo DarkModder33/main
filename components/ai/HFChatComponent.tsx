@@ -31,7 +31,22 @@ type PipelineMemory = {
 type ResponseStyle = "concise" | "coach" | "operator";
 type FreedomMode = "uncensored" | "standard";
 
+type ChatSession = {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: Message[];
+  objective: string;
+  selectedStep: number;
+  mode: ChatMode;
+  responseStyle: ResponseStyle;
+  autoFallback: boolean;
+  freedomMode: FreedomMode;
+};
+
 const PIPELINE_MEMORY_KEY = "tradehax-ai-pipeline-memory-v1";
+const CHAT_SESSIONS_KEY = "tradehax-ai-chat-sessions-v1";
+const PINNED_PROMPTS_KEY = "tradehax-ai-pinned-prompts-v1";
 
 const MODE_META: Record<
   ChatMode,
@@ -111,6 +126,31 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function buildSessionTitle(messages: Message[], fallback = "New session") {
+  const firstUserMessage = messages.find((message) => message.role === "user")?.content?.trim();
+  if (!firstUserMessage) return fallback;
+  return firstUserMessage.length > 48
+    ? `${firstUserMessage.slice(0, 48).trim()}…`
+    : firstUserMessage;
+}
+
+function createEmptySession(overrides?: Partial<ChatSession>): ChatSession {
+  const now = Date.now();
+  return {
+    id: `session-${now}-${Math.random().toString(36).slice(2, 8)}`,
+    title: "New session",
+    updatedAt: now,
+    messages: [],
+    objective: "",
+    selectedStep: 0,
+    mode: "navigator",
+    responseStyle: "coach",
+    autoFallback: true,
+    freedomMode: "uncensored",
+    ...overrides,
+  };
+}
+
 function scoreAssistantResponse(content: string, step: number, mode: ChatMode): DecisionSignals {
   const text = content.toLowerCase();
   const actionableMatches = (text.match(/\b(step|next|then|open|visit|click|start|do this|checklist)\b/g) || []).length;
@@ -155,6 +195,13 @@ function scoreAssistantResponse(content: string, step: number, mode: ChatMode): 
 export function HFChatComponent() {
   const searchParams = useSearchParams();
   const [userId, setUserId] = useState("");
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState("");
+  const [isRenamingSession, setIsRenamingSession] = useState(false);
+  const [sessionDraftName, setSessionDraftName] = useState("");
+  const [pinnedPrompts, setPinnedPrompts] = useState<string[]>([]);
+  const [pinInput, setPinInput] = useState("");
+  const [storageWarning, setStorageWarning] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -170,12 +217,56 @@ export function HFChatComponent() {
   const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const applySession = useCallback((session: ChatSession) => {
+    setMessages(session.messages);
+    setObjective(session.objective);
+    setSelectedStep(session.selectedStep);
+    setMode(session.mode);
+    setResponseStyle(session.responseStyle);
+    setAutoFallback(session.autoFallback);
+    setFreedomMode(session.freedomMode);
+    setAutoAdvanceMessage("");
+    setError("");
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const storedUserId = window.localStorage.getItem("tradehax_user_id") || "";
     if (storedUserId.trim().length > 0) {
       setUserId(storedUserId.trim());
+    }
+
+    try {
+      const rawSessions = window.localStorage.getItem(CHAT_SESSIONS_KEY);
+      if (rawSessions) {
+        const parsedSessions = JSON.parse(rawSessions) as ChatSession[];
+        if (Array.isArray(parsedSessions) && parsedSessions.length > 0) {
+          const sortedSessions = [...parsedSessions]
+            .filter((session) => typeof session?.id === "string" && session.id.length > 0)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+
+          if (sortedSessions.length > 0) {
+            setSessions(sortedSessions);
+            setActiveSessionId(sortedSessions[0].id);
+            applySession(sortedSessions[0]);
+          }
+        }
+      }
+    } catch {
+      setStorageWarning("Session history could not be loaded. Starting with a clean workspace.");
+    }
+
+    try {
+      const rawPinned = window.localStorage.getItem(PINNED_PROMPTS_KEY);
+      if (rawPinned) {
+        const parsedPinned = JSON.parse(rawPinned) as string[];
+        if (Array.isArray(parsedPinned)) {
+          setPinnedPrompts(parsedPinned.filter((item) => typeof item === "string" && item.trim().length > 0));
+        }
+      }
+    } catch {
+      setStorageWarning((prev) => prev || "Pinned prompts could not be loaded from local storage.");
     }
 
     try {
@@ -204,7 +295,25 @@ export function HFChatComponent() {
     } catch {
       // Ignore malformed memory payloads
     }
-  }, []);
+  }, [applySession]);
+
+  useEffect(() => {
+    if (sessions.length > 0 || activeSessionId) return;
+
+    const initialSession = createEmptySession({
+      mode,
+      responseStyle,
+      autoFallback,
+      freedomMode,
+      selectedStep,
+      objective,
+      messages,
+      title: buildSessionTitle(messages),
+    });
+
+    setSessions([initialSession]);
+    setActiveSessionId(initialSession.id);
+  }, [sessions.length, activeSessionId, mode, responseStyle, autoFallback, freedomMode, selectedStep, objective, messages]);
 
   useEffect(() => {
     const starter = searchParams.get("starter");
@@ -237,8 +346,57 @@ export function HFChatComponent() {
       autoFallback,
       freedomMode,
     };
-    window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
+    try {
+      window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
+    } catch {
+      setStorageWarning((prev) => prev || "Pipeline memory could not be saved locally.");
+    }
   }, [objective, selectedStep, mode, responseStyle, autoFallback, freedomMode]);
+
+  useEffect(() => {
+    if (!activeSessionId) return;
+
+    setSessions((prev) =>
+      prev
+        .map((session) =>
+          session.id === activeSessionId
+            ? {
+                ...session,
+                title: buildSessionTitle(messages, session.title),
+                updatedAt: Date.now(),
+                messages,
+                objective: objective.trim().slice(0, 200),
+                selectedStep,
+                mode,
+                responseStyle,
+                autoFallback,
+                freedomMode,
+              }
+            : session,
+        )
+        .sort((a, b) => b.updatedAt - a.updatedAt),
+    );
+  }, [activeSessionId, messages, objective, selectedStep, mode, responseStyle, autoFallback, freedomMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (sessions.length === 0) return;
+
+    try {
+      window.localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+    } catch {
+      setStorageWarning((prev) => prev || "Session history could not be saved due to local storage limits.");
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(PINNED_PROMPTS_KEY, JSON.stringify(pinnedPrompts));
+    } catch {
+      setStorageWarning((prev) => prev || "Pinned prompts could not be saved.");
+    }
+  }, [pinnedPrompts]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -432,6 +590,81 @@ export function HFChatComponent() {
     setAutoAdvanceMessage("");
   };
 
+  const createSession = () => {
+    const newSession = createEmptySession({
+      mode,
+      responseStyle,
+      autoFallback,
+      freedomMode,
+    });
+    setSessions((prev) => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+    applySession(newSession);
+  };
+
+  const switchSession = (sessionId: string) => {
+    const targetSession = sessions.find((session) => session.id === sessionId);
+    if (!targetSession) return;
+    setActiveSessionId(targetSession.id);
+    setIsRenamingSession(false);
+    setSessionDraftName("");
+    applySession(targetSession);
+  };
+
+  const startRenameSession = () => {
+    const activeSession = sessions.find((session) => session.id === activeSessionId);
+    if (!activeSession) return;
+    setSessionDraftName(activeSession.title);
+    setIsRenamingSession(true);
+  };
+
+  const saveRenameSession = () => {
+    const trimmed = sessionDraftName.trim().slice(0, 60);
+    if (!trimmed) {
+      setIsRenamingSession(false);
+      setSessionDraftName("");
+      return;
+    }
+
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === activeSessionId
+          ? {
+              ...session,
+              title: trimmed,
+              updatedAt: Date.now(),
+            }
+          : session,
+      ),
+    );
+
+    setIsRenamingSession(false);
+    setSessionDraftName("");
+  };
+
+  const addPinnedPrompt = () => {
+    const trimmed = pinInput.trim().replace(/\s+/g, " ");
+    if (!trimmed) return;
+    if (trimmed.length > 220) {
+      setStorageWarning("Pinned prompt is too long. Keep it under 220 characters.");
+      return;
+    }
+
+    setPinnedPrompts((prev) => {
+      if (prev.some((item) => item.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      return [trimmed, ...prev].slice(0, 16);
+    });
+
+    setStorageWarning("");
+    setPinInput("");
+  };
+
+  const removePinnedPrompt = (prompt: string) => {
+    setPinnedPrompts((prev) => prev.filter((item) => item !== prompt));
+  };
+
   const promptQualityScore = (() => {
     const text = input.trim();
     if (!text) return 0;
@@ -462,6 +695,71 @@ export function HFChatComponent() {
       <div className="grid h-full lg:grid-cols-[320px_1fr]">
         {showControlPanel && (
           <aside className="border-b lg:border-b-0 lg:border-r border-emerald-500/20 bg-black/35 p-4 overflow-y-auto">
+            <div className="mb-3 rounded border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] uppercase tracking-wide text-emerald-200/80">Sessions</p>
+                <button
+                  onClick={createSession}
+                  className="rounded border border-emerald-500/30 bg-emerald-600/10 px-2 py-1 text-[11px] text-emerald-100 hover:border-emerald-300/50"
+                  title="Create session"
+                >
+                  <Plus className="w-3 h-3 inline mr-1" />New
+                </button>
+              </div>
+              <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
+                {sessions.map((session) => {
+                  const active = session.id === activeSessionId;
+                  return (
+                    <button
+                      key={session.id}
+                      onClick={() => switchSession(session.id)}
+                      className={`w-full rounded px-2 py-1.5 text-left text-[11px] border transition ${
+                        active
+                          ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                          : "border-white/10 bg-black/25 text-emerald-100/80 hover:border-emerald-400/40"
+                      }`}
+                    >
+                      <div className="font-semibold truncate">{session.title}</div>
+                      <div className="opacity-70">{new Date(session.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                {isRenamingSession ? (
+                  <>
+                    <input
+                      value={sessionDraftName}
+                      onChange={(e) => setSessionDraftName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveRenameSession();
+                        if (e.key === "Escape") {
+                          setIsRenamingSession(false);
+                          setSessionDraftName("");
+                        }
+                      }}
+                      className="flex-1 rounded border border-cyan-500/30 bg-black/40 px-2 py-1 text-[11px] text-cyan-100 outline-none"
+                      placeholder="Rename session"
+                    />
+                    <button
+                      onClick={saveRenameSession}
+                      className="rounded border border-cyan-400/40 bg-cyan-500/15 px-2 py-1 text-[11px] text-cyan-100"
+                    >
+                      Save
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={startRenameSession}
+                    disabled={!activeSessionId}
+                    className="rounded border border-white/15 bg-black/20 px-2 py-1 text-[11px] text-emerald-100/85 disabled:opacity-50"
+                  >
+                    <Pencil className="w-3 h-3 inline mr-1" />Rename active
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="mb-3 rounded border border-cyan-500/20 bg-cyan-600/10 px-3 py-2 text-xs text-cyan-100/90">
               <p className="font-semibold">Start here if you&apos;re new</p>
               <p className="mt-1 text-cyan-100/75">Pick a quick prompt, send it, then follow the 4-step flow.</p>
@@ -544,6 +842,56 @@ export function HFChatComponent() {
               </div>
             </div>
 
+            <div className="mb-3 rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
+              <label className="block text-[11px] uppercase tracking-wide text-fuchsia-100/80 mb-1">
+                Pinned prompts
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addPinnedPrompt();
+                    }
+                  }}
+                  placeholder="Add reusable prompt"
+                  className="flex-1 rounded border border-fuchsia-500/30 bg-black/35 px-2 py-1 text-[11px] text-fuchsia-100 outline-none"
+                />
+                <button
+                  onClick={addPinnedPrompt}
+                  title="Pin prompt"
+                  aria-label="Pin prompt"
+                  className="rounded border border-fuchsia-400/40 bg-fuchsia-500/20 px-2 py-1 text-[11px] text-fuchsia-100"
+                >
+                  <Pin className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                {pinnedPrompts.length === 0 && (
+                  <p className="text-[11px] text-fuchsia-100/60">No pinned prompts yet.</p>
+                )}
+                {pinnedPrompts.map((prompt) => (
+                  <div key={prompt} className="flex items-start gap-1 rounded border border-fuchsia-500/20 bg-black/25 px-2 py-1">
+                    <button
+                      onClick={() => setInput(prompt)}
+                      className="flex-1 text-left text-[11px] text-fuchsia-100/90 hover:text-fuchsia-50"
+                    >
+                      {prompt}
+                    </button>
+                    <button
+                      onClick={() => removePinnedPrompt(prompt)}
+                      className="text-fuchsia-100/70 hover:text-fuchsia-50"
+                      title="Remove pinned prompt"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 gap-2">
               <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
                 <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
@@ -593,7 +941,9 @@ export function HFChatComponent() {
           <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3">
             <div>
               <h3 className="font-bold text-emerald-300">AI Assistant Console</h3>
-              <p className="text-xs text-emerald-200/70">Mode: {MODE_META[mode].label} • Step {selectedStep + 1}/4</p>
+              <p className="text-xs text-emerald-200/70">
+                {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Step {selectedStep + 1}/4
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -626,6 +976,7 @@ export function HFChatComponent() {
             <span>Response style: {responseStyle}</span>
             <span>{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
             {copied && <span className="text-cyan-200">Copied last response.</span>}
+            {storageWarning && <span className="text-amber-200">{storageWarning}</span>}
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
