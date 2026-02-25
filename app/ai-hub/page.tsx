@@ -78,65 +78,47 @@ export default function AIHubPage() {
             and follow guided next steps even if you&apos;re brand new.
           </p>
 
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="#ai-chat"
+              className="rounded-xl border border-emerald-300/40 bg-emerald-500/20 px-5 py-2 text-sm font-semibold text-emerald-50 transition hover:-translate-y-0.5 hover:bg-emerald-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/80"
+            >
+              Start in AI Chat
+            </Link>
+            <Link
+              href="/ai-hub?starter=new-user-setup#ai-chat"
+              className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-sm font-semibold text-zinc-100 transition hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300/70"
+            >
+              Launch New User Setup
+            </Link>
+          </div>
+
           <div className="mx-auto max-w-3xl rounded-xl border border-emerald-500/20 bg-emerald-600/10 px-4 py-3 text-sm text-emerald-100/90">
             <p className="font-semibold">How to use this page</p>
             <p className="mt-1 text-emerald-100/75">1) Start with AI Chat, 2) ask for a step-by-step plan, 3) use Text/Image tools only when needed.</p>
           </div>
         </div>
 
-        <div className="mb-10 rounded-2xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-600/15 via-indigo-600/10 to-cyan-600/10 p-5 sm:p-6">
-          <div className="flex items-center gap-2 text-fuchsia-100 mb-3">
-            <Crown className="w-5 h-5" />
-            <h2 className="text-lg sm:text-xl font-bold">TradeHax Launchpad (1-click starts)</h2>
-          </div>
-          <p className="text-sm text-fuchsia-100/80 mb-4">
-            Designed for new users: pick your goal and we pre-configure the assistant flow so you start with momentum, not confusion.
-          </p>
-          <div className="grid gap-3 md:grid-cols-3">
-            <Link
-              href="/ai-hub?starter=new-user-setup"
-              className="rounded-xl border border-fuchsia-400/20 bg-black/30 p-4 hover:border-fuchsia-300/40 hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-300/70"
-            >
-              <div className="text-sm font-semibold text-fuchsia-100">New User Setup</div>
-              <p className="mt-1 text-xs text-fuchsia-100/70">Auto-loads onboarding objective + guided first question.</p>
-            </Link>
-            <Link
-              href="/ai-hub?starter=first-trade-plan"
-              className="rounded-xl border border-cyan-400/20 bg-black/30 p-4 hover:border-cyan-300/40 hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
-            >
-              <div className="text-sm font-semibold text-cyan-100">First Trade Plan</div>
-              <p className="mt-1 text-xs text-cyan-100/70">Sets up a risk-aware beginner plan workflow.</p>
-            </Link>
-            <Link
-              href="/ai-hub?starter=content-engine"
-              className="rounded-xl border border-emerald-400/20 bg-black/30 p-4 hover:border-emerald-300/40 hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70"
-            >
-              <div className="text-sm font-semibold text-emerald-100">Content Engine</div>
-              <p className="mt-1 text-xs text-emerald-100/70">Pre-fills text + image generation for social growth.</p>
-            </Link>
-          </div>
-        </div>
-
         <div className="mb-8 grid gap-4 md:grid-cols-3">
           <QuickStartCard
             title="I&apos;m new"
-            description="Open AI Chat and ask: 'What should I do first?'"
-            cta="Go to AI Chat"
-            href="#ai-chat"
+            description="Start with a guided onboarding flow and get your first objective set in seconds."
+            cta="Start New User Setup"
+            href="/ai-hub?starter=new-user-setup#ai-chat"
             tone="emerald"
           />
           <QuickStartCard
-            title="I need content"
-            description="Use Text Generator for posts, docs, and strategy notes."
-            cta="Open Text Generator"
-            href="#text-generator"
+            title="I need a plan"
+            description="Generate a risk-aware execution plan with clear steps and milestones."
+            cta="Launch First Trade Plan"
+            href="/ai-hub?starter=first-trade-plan#ai-chat"
             tone="yellow"
           />
           <QuickStartCard
-            title="I need visuals"
-            description="Use Image Generator for charts, social art, and hero images."
-            cta="Open Image Generator"
-            href="#image-generator"
+            title="I need growth assets"
+            description="Generate text + visuals for posts, pages, and campaigns from one objective."
+            cta="Launch Content Engine"
+            href="/ai-hub?starter=content-engine#ai-chat"
             tone="cyan"
           />
         </div>
@@ -151,6 +133,25 @@ export default function AIHubPage() {
               <Link href="#ai-autopilot" className="rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1 text-[11px] font-semibold text-fuchsia-100 hover:bg-fuchsia-500/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-300/70">Autopilot</Link>
               <Link href="#getting-started" className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-semibold text-zinc-100 hover:bg-white/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-200/70">5-Min Path</Link>
             </div>
+          </div>
+        </div>
+
+        <div className="mb-8 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-cyan-500/20 bg-cyan-600/10 px-5 py-4">
+            <p className="text-sm font-semibold text-cyan-100">What you can finish in 2 minutes</p>
+            <ul className="mt-2 space-y-1 text-xs text-cyan-100/80">
+              <li>• Get a clear step-by-step action plan from AI Chat</li>
+              <li>• Draft a publish-ready post with Text Generator</li>
+              <li>• Produce a visual concept for social/landing with Image Generator</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-600/10 px-5 py-4 text-sm text-emerald-100/90">
+            <p className="font-semibold">Sustainable usage model</p>
+            <p className="mt-1 text-emerald-100/75">
+              Pricing is designed to remain beginner-friendly while covering model/API costs.
+              Visit <Link href="/pricing" className="underline underline-offset-2"> pricing </Link>
+              for limits and included usage.
+            </p>
           </div>
         </div>
 
@@ -172,24 +173,6 @@ export default function AIHubPage() {
               </Link>
             ))}
           </div>
-        </div>
-
-        <div className="mb-10 rounded-xl border border-cyan-500/20 bg-cyan-600/10 px-5 py-4">
-          <p className="text-sm font-semibold text-cyan-100">What you can finish in 2 minutes</p>
-          <ul className="mt-2 space-y-1 text-xs text-cyan-100/80">
-            <li>• Get a clear step-by-step action plan from AI Chat</li>
-            <li>• Draft a publish-ready post with Text Generator</li>
-            <li>• Produce a visual concept for social/landing with Image Generator</li>
-          </ul>
-        </div>
-
-        <div className="mb-12 rounded-xl border border-cyan-500/20 bg-cyan-600/10 px-5 py-4 text-sm text-cyan-100/90">
-          <p className="font-semibold">Low-cost usage model (for API sustainability)</p>
-          <p className="mt-1 text-cyan-100/75">
-            We keep pricing lightweight: enough to cover model/API costs while staying affordable for regular users.
-            Visit <Link href="/pricing" className="underline underline-offset-2"> pricing </Link>
-            for current limits and included usage.
-          </p>
         </div>
 
         <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -302,7 +285,7 @@ export default function AIHubPage() {
           <div id="text-generator" className="scroll-mt-28">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-yellow-400" />
-              <h2 className="text-xl font-bold text-yellow-300">Text Generator (Templates)</h2>
+              <h2 className="text-xl font-bold text-yellow-300">Text Studio</h2>
             </div>
             <Suspense
               fallback={
@@ -319,7 +302,7 @@ export default function AIHubPage() {
           <div id="image-generator" className="scroll-mt-28">
             <div className="flex items-center gap-2 mb-4">
               <Wand2 className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-xl font-bold text-cyan-300">Image Generator (Simple)</h2>
+              <h2 className="text-xl font-bold text-cyan-300">Image Studio</h2>
             </div>
             <Suspense
               fallback={
