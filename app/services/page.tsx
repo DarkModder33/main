@@ -9,18 +9,18 @@ import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
-  ArrowRight,
-  CheckCircle2,
-  Code,
-  Database,
-  LineChart,
-  Megaphone,
-  Server,
-  ShoppingCart,
-  Smartphone,
-  Users,
-  Wrench,
-  Zap,
+    ArrowRight,
+    CheckCircle2,
+    Code,
+    Database,
+    LineChart,
+    Megaphone,
+    Server,
+    ShoppingCart,
+    Smartphone,
+    Users,
+    Wrench,
+    Zap,
 } from "lucide-react";
 import Link from "next/link";
 import Script from "next/script";
