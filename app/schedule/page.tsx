@@ -132,7 +132,7 @@ export default function SchedulePage() {
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <TrackedCtaLink
-              href={businessProfile.scheduling.meetIntake}
+              href={businessProfile.scheduling.calendarOpen}
               conversionId="open_google_calendar"
               surface="schedule:calendar"
               external
@@ -150,7 +150,8 @@ export default function SchedulePage() {
               Open Google Meet / Booking
             </TrackedCtaLink>
             <span className="text-xs text-[#9ca9c5]">
-              Calendar and Meet links are configurable for your Google Workspace setup.
+              If the embedded calendar is blocked by browser privacy settings, use
+              <strong> Open Calendar in New Tab</strong>.
             </span>
           </div>
         </section>
