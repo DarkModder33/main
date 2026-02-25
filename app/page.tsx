@@ -7,15 +7,17 @@ import { ServiceGrid } from '@/components/landing/ServiceGrid';
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { GlitchText } from '@/components/ui/GlitchText';
 import { LiveActivity } from '@/components/ui/LiveActivity';
-import { bookingLinks } from "@/lib/booking";
+import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import {
-  ArrowRight,
-  CircuitBoard,
-  Guitar,
-  MessageSquare,
-  MonitorSmartphone,
-  Wrench,
+    ArrowRight,
+    CheckCircle2,
+    CircuitBoard,
+    Guitar,
+    MessageSquare,
+    MonitorSmartphone,
+    Sparkles,
+    Wrench,
 } from "lucide-react";
 import Link from 'next/link';
 
@@ -23,8 +25,8 @@ const intentLanes = [
   {
     title: "Need Service Now",
     detail: "Phone/computer repair, optimization, and urgent troubleshooting with rapid intake.",
-    href: bookingLinks.techSupport,
-    external: true,
+    href: scheduleLinks.techSupport,
+    external: false,
     conversionId: "book_repair_quote",
     surface: "home:intent_lane",
     cta: "Start Tech Support Intake",
@@ -33,8 +35,8 @@ const intentLanes = [
   {
     title: "Need a Build Partner",
     detail: "Website creation, app development, blockchain/crypto systems, and AI automation delivery.",
-    href: bookingLinks.webDevConsult,
-    external: true,
+    href: scheduleLinks.webDevConsult,
+    external: false,
     conversionId: "book_web3_consult",
     surface: "home:intent_lane",
     cta: "Book Build Consultation",
@@ -75,37 +77,80 @@ const intentLanes = [
 export default function Home() {
   return (
     <main className="min-h-screen bg-black">
-      {/* Hero Section */}
-      <section className="h-[80vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* Hero + Scaffold */}
+      <section className="relative overflow-hidden px-6 pt-20 pb-14">
+        <div className="absolute top-[-8rem] right-[-6rem] w-[460px] h-[460px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-9rem] left-[-4rem] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <h1 className="text-7xl md:text-9xl font-black text-white tracking-tighter mb-6 italic uppercase">
-          <GlitchText text="TRADEHAX" />
-        </h1>
-        <p className="text-zinc-300 max-w-xl text-lg mb-10 font-medium leading-relaxed">
-          AI tools, digital services, and game-powered rewards in one clear platform.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 relative z-10 items-center">
-          <TrackedCtaLink
-            href="/schedule"
-            conversionId="open_schedule"
-            surface="home:hero"
-            className="px-10 py-5 min-h-[44px] bg-white text-black font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105"
-          >
-            BOOK_SERVICE
-          </TrackedCtaLink>
-          <Link href="/game">
-            <button className="px-10 py-5 min-h-[44px] border border-zinc-700 text-white font-black rounded-full hover:bg-zinc-800 transition-all">
-              PLAY_RUNNER
-            </button>
-          </Link>
-          <Link href="/billing">
-            <button className="px-10 py-5 min-h-[44px] border border-cyan-500/50 text-cyan-300 font-black rounded-full hover:bg-cyan-500 hover:text-black transition-all">
-              UPGRADE_AI
-            </button>
-          </Link>
-          <div className="min-h-10">
-            <WalletButton />
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-start">
+          <div className="theme-panel p-8 md:p-12">
+            <span className="theme-kicker mb-4">Operational Entry</span>
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter italic uppercase mb-5">
+              <GlitchText text="TradeHax" />
+            </h1>
+            <p className="text-zinc-300 text-lg max-w-2xl leading-relaxed mb-8">
+              Professional digital execution for service, growth, and AI workflows.
+              Start with a clear intent and move through a predictable path.
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <TrackedCtaLink
+                href={scheduleLinks.root}
+                conversionId="open_schedule"
+                surface="home:hero"
+                className="theme-cta theme-cta--loud px-6 py-3"
+              >
+                Start Service Intake
+              </TrackedCtaLink>
+              <Link
+                href="/ai-hub"
+                className="theme-cta theme-cta--secondary px-6 py-3"
+              >
+                Open AI Workspace
+              </Link>
+              <Link
+                href="/pricing"
+                className="theme-cta theme-cta--muted px-6 py-3"
+              >
+                Review Plans
+              </Link>
+            </div>
+          </div>
+
+          <div className="theme-panel p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Execution Scaffold</h2>
+              <Sparkles className="w-4 h-4 text-cyan-300" />
+            </div>
+            <div className="space-y-3">
+              {[
+                {
+                  title: "1) Define Intent",
+                  detail: "Choose service, AI workflow, or market research path.",
+                },
+                {
+                  title: "2) Follow Route",
+                  detail: "Use guided page flow with minimal decision overhead.",
+                },
+                {
+                  title: "3) Execute Next Action",
+                  detail: "Book, deploy, or run the recommended operation.",
+                },
+              ].map((step) => (
+                <article key={step.title} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-zinc-400">{step.detail}</p>
+                </article>
+              ))}
+            </div>
+            <div className="mt-5">
+              <div className="min-h-10">
+                <WalletButton />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -116,17 +161,17 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="theme-panel p-8 md:p-12">
           <span className="theme-kicker mb-4">Start Here</span>
-          <h2 className="theme-title text-4xl md:text-5xl mb-6">What Are You Here For Today?</h2>
+          <h2 className="theme-title text-4xl md:text-5xl mb-6">Choose Your Primary Path</h2>
           <p className="text-zinc-300 max-w-2xl mb-12 text-lg">
-            Pick the path that matches your intent. Each route is optimized for clear next steps and fast booking.
+            This matrix removes guesswork: select one lane, complete the route, then return for the next objective.
           </p>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {intentLanes.map((lane) => (
               <article key={lane.title} className="theme-grid-card">
                 <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500 mb-4">
                   <lane.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-white uppercase italic">{lane.title}</h3>
+                <h3 className="text-lg font-bold text-white uppercase italic">{lane.title}</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">{lane.detail}</p>
                 <TrackedCtaLink
                   href={lane.href}
@@ -154,7 +199,7 @@ export default function Home() {
       {/* Quick Contact Rail */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-wrap items-center justify-center gap-6 p-8 glass-panel rounded-3xl border border-white/5">
-          <p className="text-zinc-300 font-mono text-xs uppercase tracking-widest">Direct_Access:</p>
+          <p className="text-zinc-300 font-mono text-xs uppercase tracking-widest">Direct Access</p>
           <TrackedCtaLink
             href={businessProfile.contactLinks.text}
             conversionId="contact_text"
@@ -163,11 +208,11 @@ export default function Home() {
             className="flex items-center gap-2 text-white hover:text-cyan-500 transition-colors font-bold"
           >
             <MessageSquare className="w-4 h-4" />
-            TEXT {businessProfile.contactPhoneDisplay}
+            Text {businessProfile.contactPhoneDisplay}
           </TrackedCtaLink>
           <div className="h-4 w-px bg-zinc-800 hidden md:block" />
           <Link href="/about" className="text-zinc-400 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">
-            About + Trust
+            About
           </Link>
           <Link href="/portfolio" className="text-zinc-400 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">
             Portfolio
