@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Compass, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { ArrowUp, Compass, Copy, Loader2, PanelLeft, Sparkles, Trash2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -166,6 +166,8 @@ export function HFChatComponent() {
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
   const [autoFallback, setAutoFallback] = useState(true);
   const [freedomMode, setFreedomMode] = useState<FreedomMode>("uncensored");
+  const [showControlPanel, setShowControlPanel] = useState(true);
+  const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -430,283 +432,326 @@ export function HFChatComponent() {
     setAutoAdvanceMessage("");
   };
 
+  const promptQualityScore = (() => {
+    const text = input.trim();
+    if (!text) return 0;
+    let score = 28;
+    if (text.length >= 45) score += 18;
+    if (text.length >= 120) score += 12;
+    if (/\b(goal|objective|risk|timeline|step|budget|constraint)\b/i.test(text)) score += 22;
+    if (/\?|\bhow\b|\bwhat\b|\bwhy\b/i.test(text)) score += 12;
+    if (objective.trim().length > 0) score += 10;
+    return clamp(score, 0, 100);
+  })();
+
+  const lastAssistantMessage = [...messages].reverse().find((msg) => msg.role === "assistant");
+
+  const copyLastAssistant = async () => {
+    if (!lastAssistantMessage?.content || typeof window === "undefined") return;
+    try {
+      await window.navigator.clipboard.writeText(lastAssistantMessage.content);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // no-op fallback
+    }
+  };
+
   return (
-    <div className="theme-panel w-full h-[78vh] min-h-[560px] max-h-[920px] flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-emerald-500/20 p-4">
-        <div>
-          <h3 className="font-bold text-emerald-300">AI Assistant (Guided)</h3>
-          <p className="text-xs text-emerald-200/70">Beginner-friendly guidance with clear next steps and safer defaults.</p>
-        </div>
-        <button
-          onClick={clearChat}
-          className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
-          title="Clear chat"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
+    <div className="theme-panel w-full h-[80vh] min-h-[620px] max-h-[980px] overflow-hidden">
+      <div className="grid h-full lg:grid-cols-[320px_1fr]">
+        {showControlPanel && (
+          <aside className="border-b lg:border-b-0 lg:border-r border-emerald-500/20 bg-black/35 p-4 overflow-y-auto">
+            <div className="mb-3 rounded border border-cyan-500/20 bg-cyan-600/10 px-3 py-2 text-xs text-cyan-100/90">
+              <p className="font-semibold">Start here if you&apos;re new</p>
+              <p className="mt-1 text-cyan-100/75">Pick a quick prompt, send it, then follow the 4-step flow.</p>
+            </div>
 
-      <div className="border-b border-emerald-500/20 p-4 space-y-3">
-        <div className="rounded border border-cyan-500/20 bg-cyan-600/10 px-3 py-2 text-xs text-cyan-100/90">
-          <p className="font-semibold">Start here if you&apos;re new:</p>
-          <p className="mt-1 text-cyan-100/75">Pick a quick prompt below, send it, then follow the 4-step flow from setup to action.</p>
-        </div>
+            <div className="mb-3">
+              <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
+                Objective memory
+              </label>
+              <input
+                value={objective}
+                onChange={(e) => setObjective(e.target.value.slice(0, 200))}
+                placeholder="e.g. Build a safe first trade plan"
+                className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 placeholder-emerald-200/40 outline-none"
+              />
+            </div>
 
-        <div>
-          <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
-            Conversation objective (memory)
-          </label>
-          <input
-            value={objective}
-            onChange={(e) => setObjective(e.target.value.slice(0, 200))}
-            placeholder="e.g. Get from onboarding to funded trading setup"
-            className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 placeholder-emerald-200/40 outline-none"
-          />
-        </div>
+            <div className="mb-3 space-y-2">
+              {(Object.keys(MODE_META) as ChatMode[]).map((modeKey) => {
+                const active = mode === modeKey;
+                return (
+                  <button
+                    key={modeKey}
+                    onClick={() => setMode(modeKey)}
+                    className={`w-full text-left rounded border px-3 py-2 transition ${
+                      active
+                        ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                        : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                    }`}
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-wide">{MODE_META[modeKey].label}</div>
+                    <div className="text-[11px] mt-1 opacity-80 leading-relaxed">{MODE_META[modeKey].description}</div>
+                  </button>
+                );
+              })}
+            </div>
 
-        <div>
-          <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
-            Quick-start prompts
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {QUICK_START_PROMPTS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => {
-                  setInput(item.prompt);
-                  if (!objective.trim()) {
-                    setObjective(item.label);
-                  }
-                }}
-                className="rounded border border-emerald-500/20 bg-black/30 px-2 py-2 text-left text-[11px] text-emerald-100/85 hover:border-emerald-400/40"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {PIPELINE_STEPS.map((step, index) => {
+                const active = selectedStep === index;
+                return (
+                  <button
+                    key={step.title}
+                    onClick={() => {
+                      setSelectedStep(index);
+                      setInput(step.starterPrompt);
+                      setAutoAdvanceMessage("");
+                    }}
+                    className={`rounded border px-2 py-2 text-xs transition ${
+                      active
+                        ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-100"
+                        : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                    }`}
+                  >
+                    <div className="font-semibold">{index + 1}. {step.title}</div>
+                  </button>
+                );
+              })}
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {(Object.keys(MODE_META) as ChatMode[]).map((modeKey) => {
-            const active = mode === modeKey;
-            return (
-              <button
-                key={modeKey}
-                onClick={() => setMode(modeKey)}
-                className={`text-left rounded border px-3 py-2 transition ${
-                  active
-                    ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
-                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
-                }`}
-              >
-                <div className="text-xs font-semibold uppercase tracking-wide">{MODE_META[modeKey].label}</div>
-                <div className="text-[11px] mt-1 opacity-80 leading-relaxed">{MODE_META[modeKey].description}</div>
-              </button>
-            );
-          })}
-        </div>
+            <div className="mb-3">
+              <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
+                Quick prompts
+              </label>
+              <div className="space-y-2">
+                {QUICK_START_PROMPTS.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setInput(item.prompt);
+                      if (!objective.trim()) {
+                        setObjective(item.label);
+                      }
+                    }}
+                    className="w-full rounded border border-emerald-500/20 bg-black/30 px-2 py-2 text-left text-[11px] text-emerald-100/85 hover:border-emerald-400/40"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {PIPELINE_STEPS.map((step, index) => {
-            const active = selectedStep === index;
-            return (
-              <button
-                key={step.title}
-                onClick={() => {
-                  setSelectedStep(index);
-                  setInput(step.starterPrompt);
-                  setAutoAdvanceMessage("");
-                }}
-                className={`rounded border px-2 py-2 text-xs transition ${
-                  active
-                    ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-100"
-                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
-                }`}
-              >
-                <div className="font-semibold">{index + 1}. {step.title}</div>
-              </button>
-            );
-          })}
-        </div>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
+                <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
+                  Response style
+                </label>
+                <select
+                  id="response-style"
+                  value={responseStyle}
+                  onChange={(e) => setResponseStyle((e.target.value as ResponseStyle) || "coach")}
+                  className="w-full rounded border border-emerald-500/30 bg-black/40 px-2 py-1 text-xs text-emerald-100 outline-none"
+                >
+                  <option value="concise">Concise</option>
+                  <option value="coach">Coach</option>
+                  <option value="operator">Operator</option>
+                </select>
+              </div>
 
-        <div className="grid sm:grid-cols-2 gap-2">
-          <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
-            <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
-              Response style
-            </label>
-            <select
-              id="response-style"
-              value={responseStyle}
-              onChange={(e) => setResponseStyle((e.target.value as ResponseStyle) || "coach")}
-              className="w-full rounded border border-emerald-500/30 bg-black/40 px-2 py-1 text-xs text-emerald-100 outline-none"
-            >
-              <option value="concise">Concise</option>
-              <option value="coach">Coach</option>
-              <option value="operator">Operator</option>
-            </select>
-          </div>
-          <label className="rounded border border-emerald-500/20 bg-black/30 p-2 flex items-center gap-2 text-xs text-emerald-100/85">
-            <input
-              type="checkbox"
-              checked={autoFallback}
-              onChange={(e) => setAutoFallback(e.target.checked)}
-              className="accent-emerald-400"
-            />
-            Auto-fallback to General Chat on endpoint failure
-          </label>
-        </div>
+              <label className="rounded border border-emerald-500/20 bg-black/30 p-2 flex items-center gap-2 text-xs text-emerald-100/85">
+                <input
+                  type="checkbox"
+                  checked={autoFallback}
+                  onChange={(e) => setAutoFallback(e.target.checked)}
+                  className="accent-emerald-400"
+                />
+                Auto-fallback to General Chat
+              </label>
 
-        <div className="rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
-          <label htmlFor="freedom-mode" className="block text-[11px] font-semibold text-fuchsia-100/90 mb-1">
-            Chat freedom mode
-          </label>
-          <select
-            id="freedom-mode"
-            value={freedomMode}
-            onChange={(e) => setFreedomMode((e.target.value as FreedomMode) || "uncensored")}
-            className="w-full rounded border border-fuchsia-500/30 bg-black/40 px-2 py-1 text-xs text-fuchsia-100 outline-none"
-          >
-            <option value="uncensored">Uncensored (prioritized)</option>
-            <option value="standard">Standard safety mode</option>
-          </select>
-          <p className="mt-1 text-[11px] text-fuchsia-100/70">
-            Uncensored mode uses the platform&apos;s open-response path for direct output.
-          </p>
-        </div>
-      </div>
+              <div className="rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
+                <label htmlFor="freedom-mode" className="block text-[11px] font-semibold text-fuchsia-100/90 mb-1">
+                  Freedom mode
+                </label>
+                <select
+                  id="freedom-mode"
+                  value={freedomMode}
+                  onChange={(e) => setFreedomMode((e.target.value as FreedomMode) || "uncensored")}
+                  className="w-full rounded border border-fuchsia-500/30 bg-black/40 px-2 py-1 text-xs text-fuchsia-100 outline-none"
+                >
+                  <option value="uncensored">Uncensored</option>
+                  <option value="standard">Standard</option>
+                </select>
+              </div>
+            </div>
+          </aside>
+        )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-emerald-200/50 text-center">
+        <section className="flex flex-col min-h-0">
+          <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3">
             <div>
-              <p className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
-                <Compass className="w-4 h-4" />
-                Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
-              </p>
-              <p className="text-sm">Tap a step above to auto-fill a high-signal prompt.</p>
+              <h3 className="font-bold text-emerald-300">AI Assistant Console</h3>
+              <p className="text-xs text-emerald-200/70">Mode: {MODE_META[mode].label} • Step {selectedStep + 1}/4</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowControlPanel((prev) => !prev)}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
+                title="Toggle controls"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={copyLastAssistant}
+                disabled={!lastAssistantMessage}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2 disabled:opacity-50"
+                title="Copy last assistant response"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+              <button
+                onClick={clearChat}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
+                title="Clear chat"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        )}
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[90%] sm:max-w-[82%] lg:max-w-md px-4 py-2 rounded-lg ${
-                msg.role === "user"
-                  ? "bg-emerald-600/40 text-emerald-100 border border-emerald-500/30"
-                  : "bg-cyan-600/20 text-cyan-100 border border-cyan-500/20"
-              }`}
-            >
-              {msg.content}
-              {msg.role === "assistant" && (
-                <div className="mt-3 rounded border border-cyan-400/25 bg-black/30 p-2 text-[11px]">
-                  {(() => {
-                    const signals = scoreAssistantResponse(
-                      msg.content,
-                      msg.meta?.step ?? selectedStep,
-                      msg.meta?.mode ?? mode,
-                    );
+          <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-x-4 gap-y-1">
+            <span className="inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
+            <span>Response style: {responseStyle}</span>
+            <span>{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
+            {copied && <span className="text-cyan-200">Copied last response.</span>}
+          </div>
 
-                    return (
-                      <>
-                        <div className="mb-2 font-semibold text-cyan-200">Decision Signals</div>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {msg.meta?.predictionDomain && msg.meta.predictionDomain !== "general" ? (
-                            <SignalPill
-                              label={`Domain ${msg.meta.predictionDomain.toUpperCase()}`}
-                              tone="mid"
-                            />
-                          ) : null}
-                          {typeof msg.meta?.predictionConfidence === "number" ? (
-                            <SignalPill
-                              label={`Domain conf ${msg.meta.predictionConfidence}%`}
-                              tone={msg.meta.predictionConfidence >= 70 ? "good" : "mid"}
-                            />
-                          ) : null}
-                          <SignalPill
-                            label={`Confidence ${signals.confidence}%`}
-                            tone={signals.confidence >= 75 ? "good" : signals.confidence >= 55 ? "mid" : "warn"}
-                          />
-                          <SignalPill
-                            label={`Risk ${signals.risk}%`}
-                            tone={signals.risk <= 30 ? "good" : signals.risk <= 55 ? "mid" : "warn"}
-                          />
-                          <SignalPill
-                            label={`Priority ${signals.priority}`}
-                            tone={signals.priority === "High" ? "good" : signals.priority === "Medium" ? "mid" : "warn"}
-                          />
-                        </div>
-                        <p className="text-cyan-100/75">
-                          <span className="font-semibold text-cyan-200">Next action:</span> {signals.nextAction}
-                        </p>
-                      </>
-                    );
-                  })()}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full text-emerald-200/50 text-center">
+                <div>
+                  <p className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                    <Compass className="w-4 h-4" />
+                    Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
+                  </p>
+                  <p className="text-sm">Use the control panel to seed a prompt, then iterate here.</p>
                 </div>
-              )}
+              </div>
+            )}
+
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[95%] sm:max-w-[88%] lg:max-w-2xl px-4 py-2 rounded-xl ${
+                    msg.role === "user"
+                      ? "bg-emerald-600/35 text-emerald-100 border border-emerald-500/30"
+                      : "bg-cyan-600/15 text-cyan-100 border border-cyan-500/20"
+                  }`}
+                >
+                  {msg.content}
+                  {msg.role === "assistant" && (
+                    <div className="mt-3 rounded border border-cyan-400/25 bg-black/30 p-2 text-[11px]">
+                      {(() => {
+                        const signals = scoreAssistantResponse(
+                          msg.content,
+                          msg.meta?.step ?? selectedStep,
+                          msg.meta?.mode ?? mode,
+                        );
+
+                        return (
+                          <>
+                            <div className="mb-2 font-semibold text-cyan-200">Decision Signals</div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {msg.meta?.predictionDomain && msg.meta.predictionDomain !== "general" ? (
+                                <SignalPill
+                                  label={`Domain ${msg.meta.predictionDomain.toUpperCase()}`}
+                                  tone="mid"
+                                />
+                              ) : null}
+                              {typeof msg.meta?.predictionConfidence === "number" ? (
+                                <SignalPill
+                                  label={`Domain conf ${msg.meta.predictionConfidence}%`}
+                                  tone={msg.meta.predictionConfidence >= 70 ? "good" : "mid"}
+                                />
+                              ) : null}
+                              <SignalPill
+                                label={`Confidence ${signals.confidence}%`}
+                                tone={signals.confidence >= 75 ? "good" : signals.confidence >= 55 ? "mid" : "warn"}
+                              />
+                              <SignalPill
+                                label={`Risk ${signals.risk}%`}
+                                tone={signals.risk <= 30 ? "good" : signals.risk <= 55 ? "mid" : "warn"}
+                              />
+                              <SignalPill
+                                label={`Priority ${signals.priority}`}
+                                tone={signals.priority === "High" ? "good" : signals.priority === "Medium" ? "mid" : "warn"}
+                              />
+                            </div>
+                            <p className="text-cyan-100/75">
+                              <span className="font-semibold text-cyan-200">Next action:</span> {signals.nextAction}
+                            </p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex gap-3 justify-start">
+                <div className="bg-cyan-600/20 border border-cyan-500/20 rounded-lg px-4 py-2 flex items-center gap-2 text-cyan-100">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Thinking...</span>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="flex gap-3 justify-start">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg px-4 py-2 text-red-200 text-sm">
+                  {error}
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black/35">
+            {objective && (
+              <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
+            )}
+            {autoAdvanceMessage && (
+              <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
+            )}
+            <div className="flex gap-2 items-end">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask naturally: goal, constraints, risk level, and desired next step."
+                rows={3}
+                disabled={loading}
+                className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || loading}
+                className="theme-cta theme-cta--loud px-4 py-2 h-14 disabled:opacity-50 flex items-center justify-center"
+                title="Send message"
+              >
+                <ArrowUp className="w-5 h-5" />
+              </button>
             </div>
           </div>
-        ))}
-
-        {loading && (
-          <div className="flex gap-3 justify-start">
-            <div className="bg-cyan-600/20 border border-cyan-500/20 rounded-lg px-4 py-2 flex items-center gap-2 text-cyan-100">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Thinking...</span>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex gap-3 justify-start">
-            <div className="bg-red-600/20 border border-red-500/30 rounded-lg px-4 py-2 text-red-200 text-sm">
-              {error}
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between mb-2 text-[11px] text-emerald-200/70">
-          <span className="inline-flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            Mode: {MODE_META[mode].label}
-          </span>
-          <span>Current step: {selectedStep + 1}/4 • {freedomMode === "uncensored" ? "Uncensored" : "Standard"}</span>
-        </div>
-        {objective && (
-          <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
-        )}
-        {autoAdvanceMessage && (
-          <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
-        )}
-        <div className="flex gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your question in plain language (example: 'I am new. What should I do first?')"
-            rows={3}
-            disabled={loading}
-            className="flex-1 rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-            className="theme-cta theme-cta--loud px-4 py-2 h-14 disabled:opacity-50 flex items-center justify-center"
-            title="Send message (Ctrl+Enter)"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </button>
-        </div>
+        </section>
       </div>
     </div>
   );
