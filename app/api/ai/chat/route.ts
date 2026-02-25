@@ -5,9 +5,10 @@ import { ingestBehavior } from "@/lib/ai/data-ingestion";
 import { getLLMClient } from "@/lib/ai/hf-server";
 import { NeuralQuery, processNeuralCommand } from "@/lib/ai/kernel";
 import {
-  inferPredictionDomain,
-  recordPredictionTelemetry,
-  resolvePredictionModel,
+    inferPredictionDomain,
+    recordPredictionTelemetry,
+    resolveLlmPreset,
+    resolvePredictionModel,
 } from "@/lib/ai/prediction-routing";
 import { formatRetrievalContext, retrieveRelevantContext } from "@/lib/ai/retriever";
 import { canConsumeFeature, consumeFeatureUsage, tierSupportsNeuralMode } from "@/lib/monetization/engine";
@@ -23,6 +24,7 @@ type ChatRequestBody = {
   message?: string;
   messages?: Array<{ role?: string; content?: string }>;
   model?: string;
+  preset?: string;
   tier?: string;
   context?: unknown;
   userId?: string;
@@ -268,10 +270,30 @@ export async function POST(req: NextRequest) {
     const mergedContext = mergeContext(body.context, retrievalContext);
     const consent = await resolveServerConsent(userId, body.consent);
     const domainSignal = inferPredictionDomain(inputMessage, mergedContext);
+    const preset = resolveLlmPreset({
+      inputMessage,
+      context: mergedContext,
+      requestedPreset: body.preset,
+      tier: neuralTier,
+    });
     const requestedModel =
       typeof body.model === "string" && body.model.trim().length > 0
         ? sanitizeModelId(body.model)
-        : sanitizeModelId(resolvePredictionModel(domainSignal.domain));
+        : sanitizeModelId(preset.modelId || resolvePredictionModel(domainSignal.domain));
+
+    const promptContext =
+      mergedContext && typeof mergedContext === "object" && !Array.isArray(mergedContext)
+        ? {
+            ...(mergedContext as Record<string, unknown>),
+            responseStyle:
+              (mergedContext as Record<string, unknown>).responseStyle || preset.responseStyle,
+            llmPreset: preset.id,
+          }
+        : {
+            provided_context: mergedContext,
+            responseStyle: preset.responseStyle,
+            llmPreset: preset.id,
+          };
 
     if (!tierSupportsNeuralMode(userId, neuralTier)) {
       return NextResponse.json(
@@ -341,7 +363,7 @@ export async function POST(req: NextRequest) {
         const prompt = buildPromptFromConversation({
           inputMessage,
           messages: normalizedMessages,
-          context: mergedContext,
+          context: promptContext,
           systemPrompt:
             typeof body.systemPrompt === "string" && body.systemPrompt.trim().length > 0
               ? body.systemPrompt
@@ -354,7 +376,12 @@ export async function POST(req: NextRequest) {
           predictionDomain: domainSignal.domain,
           predictionConfidence: domainSignal.confidence,
         });
-        const hfResponse = await client.generate(prompt, { modelId: requestedModel });
+        const hfResponse = await client.generate(prompt, {
+          modelId: requestedModel,
+          temperature: preset.temperature,
+          maxTokens: preset.maxTokens,
+          topP: preset.topP,
+        });
         if (hfResponse.text.trim().length > 0) {
           response = hfResponse.text.trim();
           provider = "huggingface";
@@ -395,6 +422,11 @@ export async function POST(req: NextRequest) {
           command_like: commandLike,
           used_hf: shouldTryHf,
           model: requestedModel,
+          llm_preset: preset.id,
+          llm_preset_source: preset.modeSource,
+          llm_preset_temp: preset.temperature,
+          llm_preset_max_tokens: preset.maxTokens,
+          llm_preset_top_p: preset.topP,
           provider,
           fallback_reason: fallbackReason,
           retrieved_chunks: retrievalChunks.length,
@@ -443,6 +475,11 @@ export async function POST(req: NextRequest) {
       status: "SUCCESS",
       provider,
       model: requestedModel,
+      preset: {
+        id: preset.id,
+        label: preset.label,
+        modeSource: preset.modeSource,
+      },
       prediction: {
         domain: domainSignal.domain,
         confidence: domainSignal.confidence,
