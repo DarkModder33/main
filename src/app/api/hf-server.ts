@@ -6,7 +6,7 @@ const hf = new HfInference(process.env.HF_API_TOKEN);
 
 export async function POST(req: NextRequest) {
   const { prompt, task = 'text-generation', parameters = {} } = await req.json();
-  
+
   try {
     let result;
     switch (task) {
@@ -15,10 +15,10 @@ export async function POST(req: NextRequest) {
           model: process.env.HF_MODEL_ID || 'mistralai/Mistral-7B-Instruct-v0.1',
           inputs: prompt,
           parameters: {
-            max_new_tokens: parameters.max_length || parseInt(process.env.LLM_MAX_LENGTH || '768'),
-            temperature: parameters.temperature || parseFloat(process.env.LLM_TEMPERATURE || '0.85'),
-            top_p: parameters.top_p || parseFloat(process.env.LLM_TOP_P || '0.95'),
-            ...parameters,
+            max_new_tokens: (parameters as any).max_length || parseInt(process.env.LLM_MAX_LENGTH || '768'),
+            temperature: (parameters as any).temperature || parseFloat(process.env.LLM_TEMPERATURE || '0.85'),
+            top_p: (parameters as any).top_p || parseFloat(process.env.LLM_TOP_P || '0.95'),
+            ...(parameters as object),
           },
         });
         break;
@@ -27,10 +27,10 @@ export async function POST(req: NextRequest) {
           model: process.env.HF_IMAGE_MODEL_ID || 'stabilityai/stable-diffusion-2-1',
           inputs: prompt,
           parameters: {
-            num_inference_steps: parameters.steps || parseInt(process.env.HF_IMAGE_STEPS || '30'),
-            guidance_scale: parameters.guidance_scale || parseFloat(process.env.HF_IMAGE_GUIDANCE_SCALE || '6.5'),
-            negative_prompt: parameters.negative_prompt || process.env.HF_IMAGE_NEGATIVE_PROMPT_DEFAULT,
-            ...parameters,
+            num_inference_steps: (parameters as any).steps || parseInt(process.env.HF_IMAGE_STEPS || '30'),
+            guidance_scale: (parameters as any).guidance_scale || parseFloat(process.env.HF_IMAGE_GUIDANCE_SCALE || '6.5'),
+            negative_prompt: (parameters as any).negative_prompt || process.env.HF_IMAGE_NEGATIVE_PROMPT_DEFAULT,
+            ...(parameters as object),
           },
         });
         break;
