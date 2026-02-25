@@ -3,6 +3,8 @@
 import {
     Archive,
     ArrowUp,
+  Bot,
+  Keyboard,
     Compass,
     Copy,
     FileJson,
@@ -15,6 +17,7 @@ import {
     Search,
     Sparkles,
     Trash2,
+    UserRound,
     X
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -1026,7 +1029,7 @@ export function HFChatComponent() {
   const filteredPinnedPrompts = pinnedPrompts.filter((item) => item.category === pinCategory);
 
   return (
-    <div className="theme-panel w-full h-[80vh] min-h-[620px] max-h-[980px] overflow-hidden">
+    <div className="theme-panel w-full h-[82vh] min-h-[640px] max-h-[980px] overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-b from-black/65 via-black/50 to-black/70 shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
       <div className="grid h-full lg:grid-cols-[320px_1fr]">
         {showControlPanel && (
           <aside className="border-b lg:border-b-0 lg:border-r border-emerald-500/20 bg-black/35 p-4 overflow-y-auto">
@@ -1378,9 +1381,9 @@ export function HFChatComponent() {
         )}
 
         <section className="flex flex-col min-h-0">
-          <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3 bg-black/35 backdrop-blur-sm">
             <div>
-              <h3 className="font-bold text-emerald-300">AI Assistant Console</h3>
+              <h3 className="font-bold text-emerald-200 tracking-tight">AI Assistant Console</h3>
               <p className="text-xs text-emerald-200/70">
                 {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Preset: {LLM_PRESET_META[llmPreset].label} • Step {selectedStep + 1}/4
               </p>
@@ -1411,13 +1414,14 @@ export function HFChatComponent() {
             </div>
           </div>
 
-          <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-x-4 gap-y-1">
-            <span className="inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
-            <span>Response style: {responseStyle}</span>
-            <span>Preset: {LLM_PRESET_META[llmPreset].label}</span>
-            <span>{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
-            {copied && <span className="text-cyan-200">Copied last response.</span>}
-            {storageWarning && <span className="text-amber-200">{storageWarning}</span>}
+          <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-2 bg-black/20">
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">Style: {responseStyle}</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">Preset: {LLM_PRESET_META[llmPreset].label}</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-1"><Keyboard className="w-3 h-3" />Enter send • Shift+Enter newline</span>
+            {copied && <span className="text-cyan-200 rounded-full border border-cyan-300/25 bg-cyan-500/10 px-2 py-1">Copied last response.</span>}
+            {storageWarning && <span className="text-amber-200 rounded-full border border-amber-300/25 bg-amber-500/10 px-2 py-1">{storageWarning}</span>}
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
@@ -1428,7 +1432,7 @@ export function HFChatComponent() {
                     <Compass className="w-4 h-4" />
                     Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
                   </p>
-                  <p className="text-sm">Use the control panel or quick actions below, then iterate like a modern AI workspace.</p>
+                  <p className="text-sm">Use quick actions below, then iterate with focused prompts like top-tier AI products.</p>
                   <p className="mt-2 text-[11px] text-emerald-200/60">Tip: slash shortcuts supported — <span className="font-mono">/plan</span>, <span className="font-mono">/risk</span>, <span className="font-mono">/content</span>, <span className="font-mono">/next</span></p>
                 </div>
               </div>
@@ -1442,11 +1446,20 @@ export function HFChatComponent() {
                 <div
                   className={`max-w-[95%] sm:max-w-[88%] lg:max-w-2xl px-4 py-2 rounded-xl ${
                     msg.role === "user"
-                      ? "bg-emerald-600/35 text-emerald-100 border border-emerald-500/30"
-                      : "bg-cyan-600/15 text-cyan-100 border border-cyan-500/20"
+                      ? "bg-emerald-600/35 text-emerald-100 border border-emerald-400/35 shadow-[0_8px_24px_rgba(16,185,129,0.12)]"
+                      : "bg-cyan-600/15 text-cyan-100 border border-cyan-400/25 shadow-[0_8px_24px_rgba(6,182,212,0.10)]"
                   }`}
                 >
-                  {msg.content}
+                  <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-wide opacity-75">
+                    <span className="inline-flex items-center gap-1 font-semibold">
+                      {msg.role === "user" ? <UserRound className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                      {msg.role === "user" ? "You" : "TradeHax AI"}
+                    </span>
+                    <span>
+                      {new Date(msg.meta?.timestamp || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                   {msg.role === "assistant" && (
                     <div className="mt-3 rounded border border-cyan-400/25 bg-black/30 p-2 text-[11px]">
                       {(() => {
@@ -1517,7 +1530,7 @@ export function HFChatComponent() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black/35">
+          <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black/40 backdrop-blur-sm">
             {objective && (
               <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
             )}
@@ -1529,7 +1542,7 @@ export function HFChatComponent() {
                 <button
                   key={action.label}
                   onClick={() => applyComposerQuickAction(action)}
-                  className="rounded-lg border border-white/15 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-200 hover:bg-white/[0.08]"
+                  className="rounded-lg border border-white/15 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-200 hover:bg-white/[0.08] hover:-translate-y-0.5 transition"
                   title={action.prompt}
                 >
                   {action.label}
@@ -1544,7 +1557,7 @@ export function HFChatComponent() {
                 placeholder="Ask naturally (or use /plan, /risk, /content, /next)…"
                 rows={3}
                 disabled={loading}
-                className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"
+                className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50 focus:border-emerald-300/60"
               />
               <button
                 onClick={sendMessage}
@@ -1554,6 +1567,10 @@ export function HFChatComponent() {
               >
                 <ArrowUp className="w-5 h-5" />
               </button>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
+              <span>Use concise prompts with constraints for best output quality.</span>
+              <span>{input.trim().length}/2000</span>
             </div>
           </div>
         </section>
