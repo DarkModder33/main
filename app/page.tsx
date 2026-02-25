@@ -105,7 +105,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black">
-      {/* Hero + Scaffold */}
+      {/* Hero + Guided Experience */}
       <section className="relative overflow-hidden px-6 pt-20 pb-14">
         <div className="absolute top-[-8rem] right-[-6rem] w-[460px] h-[460px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-9rem] left-[-4rem] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -147,7 +147,7 @@ export default function Home() {
 
           <div className="theme-panel p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Execution Scaffold</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Guided Experience</h2>
               <Sparkles className="w-4 h-4 text-cyan-300" />
             </div>
             <div className="space-y-3">
