@@ -42,10 +42,18 @@ type PipelineMemory = {
   responseStyle: ResponseStyle;
   autoFallback: boolean;
   freedomMode: FreedomMode;
+  llmPreset: LlmPresetId;
 };
 
 type ResponseStyle = "concise" | "coach" | "operator";
 type FreedomMode = "uncensored" | "standard";
+type LlmPresetId =
+  | "navigator_fast"
+  | "operator_exec"
+  | "analyst_risk"
+  | "creative_growth"
+  | "deep_research"
+  | "fallback_safe";
 type PromptCategory = "onboarding" | "trading" | "content" | "ops";
 
 type PinnedPrompt = {
@@ -67,6 +75,7 @@ type ChatSession = {
   responseStyle: ResponseStyle;
   autoFallback: boolean;
   freedomMode: FreedomMode;
+  llmPreset: LlmPresetId;
 };
 
 const PIPELINE_MEMORY_KEY = "tradehax-ai-pipeline-memory-v1";
@@ -97,6 +106,52 @@ const MODE_META: Record<
     endpoint: "/api/ai/chat",
   },
 };
+
+const LLM_PRESET_META: Record<
+  LlmPresetId,
+  {
+    label: string;
+    description: string;
+  }
+> = {
+  navigator_fast: {
+    label: "Navigator Fast",
+    description: "Low-latency route guidance and next-click decisions.",
+  },
+  operator_exec: {
+    label: "Operator / Execution",
+    description: "Checklist-heavy execution, SOPs, and implementation flow.",
+  },
+  analyst_risk: {
+    label: "Analyst / Risk",
+    description: "Conservative framing with explicit risk controls.",
+  },
+  creative_growth: {
+    label: "Creative / Growth",
+    description: "Content ideation, hooks, and campaign expansion.",
+  },
+  deep_research: {
+    label: "Deep Research",
+    description: "Long-form tradeoff analysis and comparative reasoning.",
+  },
+  fallback_safe: {
+    label: "Fallback Safe",
+    description: "Stable fallback lane when providers degrade.",
+  },
+};
+
+const LLM_PRESET_IDS: LlmPresetId[] = [
+  "navigator_fast",
+  "operator_exec",
+  "analyst_risk",
+  "creative_growth",
+  "deep_research",
+  "fallback_safe",
+];
+
+function isLlmPresetId(value: unknown): value is LlmPresetId {
+  return typeof value === "string" && LLM_PRESET_IDS.includes(value as LlmPresetId);
+}
 
 const PIPELINE_STEPS = [
   {
@@ -173,6 +228,7 @@ function createEmptySession(overrides?: Partial<ChatSession>): ChatSession {
     responseStyle: "coach",
     autoFallback: true,
     freedomMode: "uncensored",
+    llmPreset: "navigator_fast",
     ...overrides,
   };
 }
@@ -260,6 +316,7 @@ export function HFChatComponent() {
   const [objective, setObjective] = useState("");
   const [autoAdvanceMessage, setAutoAdvanceMessage] = useState("");
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
+    const [llmPreset, setLlmPreset] = useState<LlmPresetId>("navigator_fast");
   const [autoFallback, setAutoFallback] = useState(true);
   const [freedomMode, setFreedomMode] = useState<FreedomMode>("uncensored");
   const [showControlPanel, setShowControlPanel] = useState(true);
@@ -272,6 +329,7 @@ export function HFChatComponent() {
     setSelectedStep(session.selectedStep);
     setMode(session.mode);
     setResponseStyle(session.responseStyle);
+      setLlmPreset(session.llmPreset);
     setAutoFallback(session.autoFallback);
     setFreedomMode(session.freedomMode);
     setAutoAdvanceMessage("");
@@ -358,6 +416,9 @@ export function HFChatComponent() {
       if (parsed.freedomMode === "uncensored" || parsed.freedomMode === "standard") {
         setFreedomMode(parsed.freedomMode);
       }
+      if (isLlmPresetId(parsed.llmPreset)) {
+        setLlmPreset(parsed.llmPreset);
+      }
     } catch {
       // Ignore malformed memory payloads
     }
@@ -371,6 +432,7 @@ export function HFChatComponent() {
       responseStyle,
       autoFallback,
       freedomMode,
+      llmPreset,
       selectedStep,
       objective,
       messages,
@@ -379,7 +441,7 @@ export function HFChatComponent() {
 
     setSessions([initialSession]);
     setActiveSessionId(initialSession.id);
-  }, [sessions.length, activeSessionId, mode, responseStyle, autoFallback, freedomMode, selectedStep, objective, messages]);
+  }, [sessions.length, activeSessionId, mode, responseStyle, autoFallback, freedomMode, llmPreset, selectedStep, objective, messages]);
 
   useEffect(() => {
     const starter = searchParams.get("starter");
@@ -411,13 +473,15 @@ export function HFChatComponent() {
       responseStyle,
       autoFallback,
       freedomMode,
+      llmPreset,
     };
+
     try {
       window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
     } catch {
       setStorageWarning((prev) => prev || "Pipeline memory could not be saved locally.");
     }
-  }, [objective, selectedStep, mode, responseStyle, autoFallback, freedomMode]);
+  }, [objective, selectedStep, mode, responseStyle, autoFallback, freedomMode, llmPreset]);
 
   useEffect(() => {
     if (!activeSessionId) return;
@@ -437,12 +501,13 @@ export function HFChatComponent() {
                 responseStyle,
                 autoFallback,
                 freedomMode,
+                llmPreset,
               }
             : session,
         )
         .sort((a, b) => b.updatedAt - a.updatedAt),
     );
-  }, [activeSessionId, messages, objective, selectedStep, mode, responseStyle, autoFallback, freedomMode]);
+  }, [activeSessionId, messages, objective, selectedStep, mode, responseStyle, autoFallback, freedomMode, llmPreset]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -516,6 +581,7 @@ export function HFChatComponent() {
                 objective: objectiveForRequest,
                 responseStyle,
               },
+              preset: llmPreset,
               userId,
             }
           : mode === "custom"
@@ -579,6 +645,7 @@ export function HFChatComponent() {
             responseStyle,
             fallbackFromMode: mode,
           },
+          preset: llmPreset,
           userId,
         });
       }
@@ -629,6 +696,10 @@ export function HFChatComponent() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      if (isLlmPresetId(data?.preset?.id) && data.preset.id !== llmPreset) {
+        setLlmPreset(data.preset.id);
+      }
+
       if (selectedStep < PIPELINE_STEPS.length - 1) {
         const nextStep = selectedStep + 1;
         setSelectedStep(nextStep);
@@ -641,7 +712,7 @@ export function HFChatComponent() {
     } finally {
       setLoading(false);
     }
-  }, [input, messages, mode, objective, selectedStep, responseStyle, autoFallback, freedomMode, userId]);
+  }, [input, messages, mode, objective, selectedStep, responseStyle, autoFallback, freedomMode, llmPreset, userId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -662,6 +733,7 @@ export function HFChatComponent() {
       responseStyle,
       autoFallback,
       freedomMode,
+      llmPreset,
     });
     setSessions((prev) => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
@@ -692,6 +764,7 @@ export function HFChatComponent() {
       responseStyle,
       autoFallback,
       freedomMode,
+      llmPreset,
     });
     setSessions((prev) => [freshSession, ...prev]);
     setActiveSessionId(freshSession.id);
@@ -716,6 +789,7 @@ export function HFChatComponent() {
         responseStyle,
         autoFallback,
         freedomMode,
+        llmPreset,
       });
       setSessions([fresh]);
       setActiveSessionId(fresh.id);
@@ -1163,6 +1237,30 @@ export function HFChatComponent() {
             </div>
 
             <div className="grid grid-cols-1 gap-2">
+              <div className="rounded border border-cyan-500/20 bg-cyan-600/10 p-2">
+                <label htmlFor="llm-preset" className="block text-[11px] font-semibold text-cyan-100/90 mb-1">
+                  LLM preset
+                </label>
+                <select
+                  id="llm-preset"
+                  value={llmPreset}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (isLlmPresetId(value)) {
+                      setLlmPreset(value);
+                    }
+                  }}
+                  className="w-full rounded border border-cyan-500/30 bg-black/40 px-2 py-1 text-xs text-cyan-100 outline-none"
+                >
+                  {LLM_PRESET_IDS.map((presetId) => (
+                    <option key={presetId} value={presetId}>
+                      {LLM_PRESET_META[presetId].label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-cyan-100/70">{LLM_PRESET_META[llmPreset].description}</p>
+              </div>
+
               <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
                 <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
                   Response style
@@ -1213,6 +1311,7 @@ export function HFChatComponent() {
               <h3 className="font-bold text-emerald-300">AI Assistant Console</h3>
               <p className="text-xs text-emerald-200/70">
                 {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Step {selectedStep + 1}/4
+                {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Preset: {LLM_PRESET_META[llmPreset].label} • Step {selectedStep + 1}/4
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1244,6 +1343,7 @@ export function HFChatComponent() {
           <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-x-4 gap-y-1">
             <span className="inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
             <span>Response style: {responseStyle}</span>
+            <span>Preset: {LLM_PRESET_META[llmPreset].label}</span>
             <span>{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
             {copied && <span className="text-cyan-200">Copied last response.</span>}
             {storageWarning && <span className="text-amber-200">{storageWarning}</span>}
