@@ -9,6 +9,7 @@ export const MobileMenu = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const navLinks = [
+    { name: "AI Hub", href: "/ai-hub", icon: "🤖" },
     { name: "About", href: "/about", icon: "🛰️" },
     { name: "Music", href: "/music", icon: "🎸" },
     { name: "Tokenomics", href: "/tokenomics", icon: "🪙" },
