@@ -7,6 +7,7 @@ import { HubImageWorkspace } from "@/components/landing/hub/HubImageWorkspace";
 import { HubMarketWorkspace } from "@/components/landing/hub/HubMarketWorkspace";
 import { HubMetricsRail } from "@/components/landing/hub/HubMetricsRail";
 import { HubPostTradeForensics } from "@/components/landing/hub/HubPostTradeForensics";
+import { HubRegimeShiftSentinel } from "@/components/landing/hub/HubRegimeShiftSentinel";
 import { HubSitewideNeuralSmartness } from "@/components/landing/hub/HubSitewideNeuralSmartness";
 import { HubVideoAiInfusion } from "@/components/landing/hub/HubVideoAiInfusion";
 import { HubWebsiteSocialAutopilot } from "@/components/landing/hub/HubWebsiteSocialAutopilot";
@@ -2247,6 +2248,27 @@ export const AINeuralHub = () => {
     setChatStatus("Post-trade recovery brief saved to long-term memory.");
   }
 
+  function insertRegimeShiftSentinelBrief(brief: string) {
+    const safeBrief = brief.trim();
+    if (!safeBrief) {
+      setChatStatus("Regime sentinel brief is empty. Fill metrics first.");
+      return;
+    }
+    setActiveTab("CHAT");
+    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
+    setChatStatus("Regime shift sentinel brief inserted into chat input.");
+  }
+
+  function rememberRegimeShiftSentinelBrief(brief: string) {
+    const safeBrief = brief.trim();
+    if (!safeBrief) {
+      setChatStatus("No regime brief to store yet.");
+      return;
+    }
+    addMemoryCard("long", `Regime Sentinel ${focusSymbol}`, safeBrief.slice(0, 160));
+    setChatStatus("Regime sentinel brief saved to long-term memory.");
+  }
+
   async function generateWebsiteAutopilotDraft() {
     const normalizedSource = normalizeVideoUrl(websiteSourceUrl);
     if (!normalizedSource) {
@@ -3442,6 +3464,14 @@ export const AINeuralHub = () => {
                           marketRegime={detectedMarketRegime}
                           onInjectBrief={insertPostTradeForensicsBrief}
                           onStoreBrief={rememberPostTradeForensicsBrief}
+                        />
+
+                        <HubRegimeShiftSentinel
+                          focusSymbol={focusSymbol}
+                          riskStance={riskStance}
+                          marketRegime={detectedMarketRegime}
+                          onInjectBrief={insertRegimeShiftSentinelBrief}
+                          onStoreBrief={rememberRegimeShiftSentinelBrief}
                         />
 
                         <div className="rounded-xl border border-white/10 bg-[rgba(10,14,20,0.72)] px-3 py-3">
