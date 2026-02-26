@@ -151,6 +151,12 @@ export default function RootLayout({
                     <GlitchText text="TRADEHAX" />
                   </div>
                   <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
+                    <a
+                      href="/ai-hub"
+                      className="rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 py-1 text-cyan-200 hover:bg-cyan-500/25 hover:text-white transition-colors uppercase"
+                    >
+                      AI Hub
+                    </a>
                     <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
                     <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
                     <a href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</a>
