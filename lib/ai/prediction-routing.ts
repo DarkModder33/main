@@ -1,5 +1,35 @@
 type PredictionDomain = "stock" | "crypto" | "kalshi" | "general";
 
+type LlmPresetId =
+  | "navigator_fast"
+  | "operator_exec"
+  | "analyst_risk"
+  | "creative_growth"
+  | "deep_research"
+  | "fallback_safe";
+
+type LlmPresetConfig = {
+  id: LlmPresetId;
+  label: string;
+  description: string;
+  modelId: string;
+  temperature: number;
+  maxTokens: number;
+  topP: number;
+  responseStyle: "concise" | "coach" | "operator";
+};
+
+type LlmPresetResolution = {
+  id: LlmPresetId;
+  modeSource: "manual" | "auto";
+  modelId: string;
+  temperature: number;
+  maxTokens: number;
+  topP: number;
+  responseStyle: "concise" | "coach" | "operator";
+  label: string;
+};
+
 type DomainSignal = {
   domain: PredictionDomain;
   confidence: number;
@@ -135,6 +165,105 @@ const STOCK_TERMS = [
   "fomc",
   "10y yield",
 ];
+
+const PRESET_IDS: LlmPresetId[] = [
+  "navigator_fast",
+  "operator_exec",
+  "analyst_risk",
+  "creative_growth",
+  "deep_research",
+  "fallback_safe",
+];
+
+function isPresetId(value: unknown): value is LlmPresetId {
+  return typeof value === "string" && PRESET_IDS.includes(value as LlmPresetId);
+}
+
+function buildPresetCatalog(): Record<LlmPresetId, LlmPresetConfig> {
+  const fallbackModel = process.env.HF_MODEL_ID || "Qwen/Qwen2.5-7B-Instruct";
+
+  return {
+    navigator_fast: {
+      id: "navigator_fast",
+      label: "Navigator Fast",
+      description: "Low-latency route guidance and next clicks.",
+      modelId: process.env.TRADEHAX_PRESET_NAVIGATOR_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_NAVIGATOR_TEMP", 0.35, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_NAVIGATOR_MAXTOKENS", 320, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_NAVIGATOR_TOPP", 0.9, { min: 0.1, max: 1 }),
+      responseStyle: "concise",
+    },
+    operator_exec: {
+      id: "operator_exec",
+      label: "Operator / Execution",
+      description: "Checklist-driven execution plans and SOP outputs.",
+      modelId: process.env.TRADEHAX_PRESET_OPERATOR_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_OPERATOR_TEMP", 0.5, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_OPERATOR_MAXTOKENS", 700, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_OPERATOR_TOPP", 0.92, { min: 0.1, max: 1 }),
+      responseStyle: "operator",
+    },
+    analyst_risk: {
+      id: "analyst_risk",
+      label: "Analyst / Risk",
+      description: "Conservative market framing with explicit invalidations.",
+      modelId: process.env.TRADEHAX_PRESET_ANALYST_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_ANALYST_TEMP", 0.25, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_ANALYST_MAXTOKENS", 820, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_ANALYST_TOPP", 0.86, { min: 0.1, max: 1 }),
+      responseStyle: "operator",
+    },
+    creative_growth: {
+      id: "creative_growth",
+      label: "Creative / Growth",
+      description: "Ideation and marketing/content expansion workflows.",
+      modelId: process.env.TRADEHAX_PRESET_CREATIVE_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_CREATIVE_TEMP", 0.85, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_CREATIVE_MAXTOKENS", 900, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_CREATIVE_TOPP", 0.97, { min: 0.1, max: 1 }),
+      responseStyle: "coach",
+    },
+    deep_research: {
+      id: "deep_research",
+      label: "Deep Research",
+      description: "Long-form comparative reasoning and tradeoff analysis.",
+      modelId: process.env.TRADEHAX_PRESET_RESEARCH_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_RESEARCH_TEMP", 0.45, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_RESEARCH_MAXTOKENS", 1300, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_RESEARCH_TOPP", 0.9, { min: 0.1, max: 1 }),
+      responseStyle: "coach",
+    },
+    fallback_safe: {
+      id: "fallback_safe",
+      label: "Fallback Safe",
+      description: "Reliable low-cost fallback behavior when providers degrade.",
+      modelId: process.env.TRADEHAX_PRESET_FALLBACK_MODEL || fallbackModel,
+      temperature: parseNumericEnv("TRADEHAX_PRESET_FALLBACK_TEMP", 0.2, { min: 0, max: 2 }),
+      maxTokens: Math.round(parseNumericEnv("TRADEHAX_PRESET_FALLBACK_MAXTOKENS", 260, { min: 64, max: 4096 })),
+      topP: parseNumericEnv("TRADEHAX_PRESET_FALLBACK_TOPP", 0.8, { min: 0.1, max: 1 }),
+      responseStyle: "concise",
+    },
+  };
+}
+
+function inferPresetFromMessage(inputMessage: string, context?: unknown): LlmPresetId {
+  const text = `${inputMessage} ${normalizeContext(context)}`.toLowerCase();
+
+  if (/\b(content|copy|post|thread|marketing|campaign|hook|headline|creative|brand)\b/.test(text)) {
+    return "creative_growth";
+  }
+  if (/\b(sop|checklist|execute|implementation|deploy|rollout|operator|runbook)\b/.test(text)) {
+    return "operator_exec";
+  }
+  if (/\b(risk|portfolio|trade|prediction|signal|volatility|invalidation|position size)\b/.test(text)) {
+    return "analyst_risk";
+  }
+  if (/\b(compare|comprehensive|research|deep dive|long-form|tradeoffs?)\b/.test(text)) {
+    return "deep_research";
+  }
+
+  return "navigator_fast";
+}
 
 function keywordScore(text: string, terms: string[]) {
   let score = 0;
@@ -529,7 +658,7 @@ function resolveDomainGovernance(domain: PredictionDomain): DomainRoutingGoverna
 }
 
 function resolveStablePredictionModel(domain: PredictionDomain): string {
-  const fallback = process.env.HF_MODEL_ID || "mistralai/Mistral-7B-Instruct-v0.1";
+  const fallback = process.env.HF_MODEL_ID || "Qwen/Qwen2.5-7B-Instruct";
 
   if (domain === "stock") {
     return process.env.TRADEHAX_MODEL_STOCK || fallback;
@@ -598,6 +727,48 @@ export function resolvePredictionModel(domain: PredictionDomain): string {
   }
 
   return governance.stableModel;
+}
+
+export function getLlmPresetCatalog(): Record<LlmPresetId, LlmPresetConfig> {
+  return buildPresetCatalog();
+}
+
+export function resolveLlmPreset(input: {
+  inputMessage: string;
+  context?: unknown;
+  requestedPreset?: unknown;
+  tier?: string;
+}): LlmPresetResolution {
+  const catalog = buildPresetCatalog();
+  const requested = isPresetId(input.requestedPreset) ? input.requestedPreset : null;
+  const tier = typeof input.tier === "string" ? input.tier.toUpperCase().trim() : "STANDARD";
+
+  let resolvedId: LlmPresetId;
+  let modeSource: "manual" | "auto" = "auto";
+
+  if (requested) {
+    resolvedId = requested;
+    modeSource = "manual";
+  } else {
+    resolvedId = inferPresetFromMessage(input.inputMessage, input.context);
+  }
+
+  if (tier === "STANDARD" && resolvedId === "deep_research") {
+    resolvedId = "operator_exec";
+  }
+
+  const preset = catalog[resolvedId] || catalog.navigator_fast;
+
+  return {
+    id: preset.id,
+    modeSource,
+    modelId: preset.modelId,
+    temperature: preset.temperature,
+    maxTokens: preset.maxTokens,
+    topP: preset.topP,
+    responseStyle: preset.responseStyle,
+    label: preset.label,
+  };
 }
 
 export function recordPredictionTelemetry(input: {
@@ -701,8 +872,11 @@ export function getPredictionRoutingOverrides() {
 }
 
 export type {
-  DomainRoutingGovernance, DomainRoutingOverrideMode, DomainSignal,
-  PredictionDomain,
-  PredictionTelemetrySummary
+    DomainRoutingGovernance, DomainRoutingOverrideMode, DomainSignal,
+    LlmPresetConfig,
+    LlmPresetId,
+    LlmPresetResolution,
+    PredictionDomain,
+    PredictionTelemetrySummary
 };
 

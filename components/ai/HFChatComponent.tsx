@@ -1,6 +1,25 @@
 "use client";
 
-import { ArrowUp, Compass, Loader2, Sparkles, Trash2 } from "lucide-react";
+import {
+    Archive,
+    ArrowUp,
+    Bot,
+    Compass,
+    Copy,
+    FileJson,
+    FileText,
+    Keyboard,
+    Loader2,
+    PanelLeft,
+    Pencil,
+    Pin,
+    Plus,
+    Search,
+    Sparkles,
+    Trash2,
+    UserRound,
+    X
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -26,12 +45,49 @@ type PipelineMemory = {
   responseStyle: ResponseStyle;
   autoFallback: boolean;
   freedomMode: FreedomMode;
+  llmPreset: LlmPresetId;
 };
 
 type ResponseStyle = "concise" | "coach" | "operator";
 type FreedomMode = "uncensored" | "standard";
+type AssistantProfileId = "beginner" | "trader" | "creator" | "developer";
+type LlmPresetId =
+  | "navigator_fast"
+  | "operator_exec"
+  | "analyst_risk"
+  | "creative_growth"
+  | "deep_research"
+  | "fallback_safe";
+type PromptCategory = "onboarding" | "trading" | "content" | "ops";
+
+type PinnedPrompt = {
+  id: string;
+  label: string;
+  prompt: string;
+  category: PromptCategory;
+};
+
+type ChatSession = {
+  id: string;
+  title: string;
+  updatedAt: number;
+  archived: boolean;
+  messages: Message[];
+  objective: string;
+  selectedStep: number;
+  mode: ChatMode;
+  responseStyle: ResponseStyle;
+  autoFallback: boolean;
+  freedomMode: FreedomMode;
+  llmPreset: LlmPresetId;
+};
 
 const PIPELINE_MEMORY_KEY = "tradehax-ai-pipeline-memory-v1";
+const CHAT_SESSIONS_KEY = "tradehax-ai-chat-sessions-v1";
+const PINNED_PROMPTS_KEY = "tradehax-ai-pinned-prompts-v1";
+const OPEN_MODE_NOTICE_KEY = "tradehax-ai-open-mode-notice-v1";
+const ASSISTANT_PROFILE_KEY = "tradehax-ai-assistant-profile-v1";
+const FIRST_RUN_NUDGE_KEY = "tradehax-ai-first-run-nudge-v1";
 
 const MODE_META: Record<
   ChatMode,
@@ -57,6 +113,112 @@ const MODE_META: Record<
     endpoint: "/api/ai/chat",
   },
 };
+
+const LLM_PRESET_META: Record<
+  LlmPresetId,
+  {
+    label: string;
+    description: string;
+  }
+> = {
+  navigator_fast: {
+    label: "Quick Thinker",
+    description: "Best for fast route guidance and practical next clicks.",
+  },
+  operator_exec: {
+    label: "Execution Coach",
+    description: "Best for step-by-step checklists and workflow execution.",
+  },
+  analyst_risk: {
+    label: "Risk Analyst",
+    description: "Best for conservative analysis with explicit risk controls.",
+  },
+  creative_growth: {
+    label: "Growth Writer",
+    description: "Best for content ideas, hooks, and campaign expansion.",
+  },
+  deep_research: {
+    label: "Deep Researcher",
+    description: "Best for long-form analysis, tradeoffs, and comparisons.",
+  },
+  fallback_safe: {
+    label: "Safe Backup",
+    description: "Stable fallback lane when external providers are degraded.",
+  },
+};
+
+const LLM_PRESET_IDS: LlmPresetId[] = [
+  "navigator_fast",
+  "operator_exec",
+  "analyst_risk",
+  "creative_growth",
+  "deep_research",
+  "fallback_safe",
+];
+
+const ASSISTANT_PROFILE_META: Record<
+  AssistantProfileId,
+  {
+    label: string;
+    description: string;
+    mode: ChatMode;
+    responseStyle: ResponseStyle;
+    preset: LlmPresetId;
+    selectedStep: number;
+    freedomMode: FreedomMode;
+    objective: string;
+    prompt: string;
+  }
+> = {
+  beginner: {
+    label: "Beginner",
+    description: "Simple, guided setup and clear next actions.",
+    mode: "navigator",
+    responseStyle: "coach",
+    preset: "navigator_fast",
+    selectedStep: 0,
+    freedomMode: "standard",
+    objective: "Get a beginner-safe crypto + stocks plan with clear next steps",
+    prompt: "I am new. Give me a simple 10-minute setup checklist and the first page I should open.",
+  },
+  trader: {
+    label: "Trader",
+    description: "Risk-aware planning and execution support.",
+    mode: "custom",
+    responseStyle: "operator",
+    preset: "analyst_risk",
+    selectedStep: 1,
+    freedomMode: "standard",
+    objective: "Build a risk-aware crypto + stocks execution plan",
+    prompt: "Build a risk-aware trading plan with position sizing, invalidation, and exact next steps.",
+  },
+  creator: {
+    label: "Creator",
+    description: "Content and campaign outputs from one objective.",
+    mode: "chat",
+    responseStyle: "coach",
+    preset: "creative_growth",
+    selectedStep: 2,
+    freedomMode: "standard",
+    objective: "Create a weekly content engine for crypto and stocks",
+    prompt: "Create a one-week content plan with 3 hooks, post drafts, and CTA variants for crypto + stocks.",
+  },
+  developer: {
+    label: "Developer",
+    description: "Deep analysis, integrations, and implementation flow.",
+    mode: "chat",
+    responseStyle: "operator",
+    preset: "deep_research",
+    selectedStep: 2,
+    freedomMode: "uncensored",
+    objective: "Implement an API/integration workflow with clear build steps",
+    prompt: "Design an implementation plan for integrating TradeHax AI endpoints with retries, fallbacks, and monitoring.",
+  },
+};
+
+function isLlmPresetId(value: unknown): value is LlmPresetId {
+  return typeof value === "string" && LLM_PRESET_IDS.includes(value as LlmPresetId);
+}
 
 const PIPELINE_STEPS = [
   {
@@ -100,6 +262,63 @@ const QUICK_START_PROMPTS = [
   },
 ] as const;
 
+const COMPOSER_QUICK_ACTIONS: Array<{
+  label: string;
+  prompt: string;
+  mode?: ChatMode;
+  preset?: LlmPresetId;
+}> = [
+  {
+    label: "7-day plan",
+    prompt: "Build me a 7-day execution plan with one high-impact task per day, estimated effort, and measurable outcome.",
+    mode: "chat",
+    preset: "operator_exec",
+  },
+  {
+    label: "Risk check",
+    prompt: "Audit my current strategy for downside risk. Give invalidation points, risk limits, and one safer alternative.",
+    mode: "chat",
+    preset: "analyst_risk",
+  },
+  {
+    label: "Growth content",
+    prompt: "Create 3 high-conviction content ideas with hooks, CTA, and platform-specific formatting.",
+    mode: "chat",
+    preset: "creative_growth",
+  },
+  {
+    label: "Deep brief",
+    prompt: "Give me a deep comparative brief: assumptions, tradeoffs, key risks, and recommended decision path.",
+    mode: "chat",
+    preset: "deep_research",
+  },
+];
+
+function resolveSlashShortcut(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  const [command, ...rest] = trimmed.split(" ");
+  const tail = rest.join(" ").trim();
+
+  if (command === "/plan") {
+    return `Create a step-by-step execution plan with milestones, owners, and due windows.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/risk") {
+    return `Run a risk analysis with probability, impact, mitigation, and invalidation criteria.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/content") {
+    return `Generate content assets: headline, hook, body draft, CTA, and 3 variants.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/next") {
+    return `Given current context, tell me the single highest-leverage next action and why.`;
+  }
+
+  return trimmed;
+}
+
 type DecisionSignals = {
   confidence: number;
   risk: number;
@@ -109,6 +328,73 @@ type DecisionSignals = {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function buildSessionTitle(messages: Message[], fallback = "New session") {
+  const firstUserMessage = messages.find((message) => message.role === "user")?.content?.trim();
+  if (!firstUserMessage) return fallback;
+  return firstUserMessage.length > 48
+    ? `${firstUserMessage.slice(0, 48).trim()}…`
+    : firstUserMessage;
+}
+
+function createEmptySession(overrides?: Partial<ChatSession>): ChatSession {
+  const now = Date.now();
+  const generateSessionId = (timestamp: number): string => {
+    // Prefer built-in crypto.randomUUID when available
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return `session-${timestamp}-${crypto.randomUUID()}`;
+    }
+
+    // Fallback: use crypto.getRandomValues to generate a random hex string
+    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+      const bytes = new Uint8Array(8);
+      crypto.getRandomValues(bytes);
+      const randomHex = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      return `session-${timestamp}-${randomHex}`;
+    }
+
+    // Last-resort fallback (should rarely be hit, kept to avoid runtime errors)
+    const fallbackRand = Math.random().toString(36).slice(2, 10);
+    return `session-${timestamp}-${fallbackRand}`;
+  };
+
+  return {
+    id: generateSessionId(now),
+    title: "New session",
+    updatedAt: now,
+    archived: false,
+    messages: [],
+    objective: "",
+    selectedStep: 0,
+    mode: "navigator",
+    responseStyle: "coach",
+    autoFallback: true,
+    freedomMode: "uncensored",
+    llmPreset: "navigator_fast",
+    ...overrides,
+  };
+}
+
+function sanitizePinnedPrompt(raw: unknown): PinnedPrompt | null {
+  if (!raw || typeof raw !== "object") return null;
+  const item = raw as Partial<PinnedPrompt>;
+  if (typeof item.id !== "string" || typeof item.label !== "string" || typeof item.prompt !== "string") {
+    return null;
+  }
+  const category = item.category;
+  if (category !== "onboarding" && category !== "trading" && category !== "content" && category !== "ops") {
+    return null;
+  }
+
+  return {
+    id: item.id,
+    label: item.label.trim().slice(0, 40),
+    prompt: item.prompt.trim().slice(0, 220),
+    category,
+  };
 }
 
 function scoreAssistantResponse(content: string, step: number, mode: ChatMode): DecisionSignals {
@@ -155,6 +441,17 @@ function scoreAssistantResponse(content: string, step: number, mode: ChatMode): 
 export function HFChatComponent() {
   const searchParams = useSearchParams();
   const [userId, setUserId] = useState("");
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState("");
+  const [showArchivedSessions, setShowArchivedSessions] = useState(false);
+  const [sessionSearch, setSessionSearch] = useState("");
+  const [isRenamingSession, setIsRenamingSession] = useState(false);
+  const [sessionDraftName, setSessionDraftName] = useState("");
+  const [pinnedPrompts, setPinnedPrompts] = useState<PinnedPrompt[]>([]);
+  const [pinLabel, setPinLabel] = useState("");
+  const [pinInput, setPinInput] = useState("");
+  const [pinCategory, setPinCategory] = useState<PromptCategory>("onboarding");
+  const [storageWarning, setStorageWarning] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -164,9 +461,38 @@ export function HFChatComponent() {
   const [objective, setObjective] = useState("");
   const [autoAdvanceMessage, setAutoAdvanceMessage] = useState("");
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
+  const [llmPreset, setLlmPreset] = useState<LlmPresetId>("navigator_fast");
   const [autoFallback, setAutoFallback] = useState(true);
   const [freedomMode, setFreedomMode] = useState<FreedomMode>("uncensored");
+  const [showControlPanel, setShowControlPanel] = useState(true);
+  const [activeProfile, setActiveProfile] = useState<AssistantProfileId>("beginner");
+  const [showFirstRunNudge, setShowFirstRunNudge] = useState(false);
+  const [showAdvancedControls, setShowAdvancedControls] = useState(false);
+  const [showOpenModeNotice, setShowOpenModeNotice] = useState(false);
+  const [responseLoadProgress, setResponseLoadProgress] = useState(0);
+  const [responseLoadSeconds, setResponseLoadSeconds] = useState(0);
+  const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setShowControlPanel(false);
+    }
+  }, []);
+
+  const applySession = useCallback((session: ChatSession) => {
+    setMessages(session.messages);
+    setObjective(session.objective);
+    setSelectedStep(session.selectedStep);
+    setMode(session.mode);
+    setResponseStyle(session.responseStyle);
+    setLlmPreset(session.llmPreset);
+    setAutoFallback(session.autoFallback);
+    setFreedomMode(session.freedomMode);
+    setAutoAdvanceMessage("");
+    setError("");
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -174,6 +500,55 @@ export function HFChatComponent() {
     const storedUserId = window.localStorage.getItem("tradehax_user_id") || "";
     if (storedUserId.trim().length > 0) {
       setUserId(storedUserId.trim());
+    }
+
+    try {
+      const rawSessions = window.localStorage.getItem(CHAT_SESSIONS_KEY);
+      if (rawSessions) {
+        const parsedSessions = JSON.parse(rawSessions) as ChatSession[];
+        if (Array.isArray(parsedSessions) && parsedSessions.length > 0) {
+          const sortedSessions = [...parsedSessions]
+            .filter((session) => typeof session?.id === "string" && session.id.length > 0)
+            .sort((a, b) => b.updatedAt - a.updatedAt);
+
+          if (sortedSessions.length > 0) {
+            setSessions(sortedSessions);
+            setActiveSessionId(sortedSessions[0].id);
+            applySession(sortedSessions[0]);
+          }
+        }
+      }
+    } catch {
+      setStorageWarning("Session history could not be loaded. Starting with a clean workspace.");
+    }
+
+    try {
+      const rawPinned = window.localStorage.getItem(PINNED_PROMPTS_KEY);
+      if (rawPinned) {
+        const parsedPinned = JSON.parse(rawPinned) as unknown[];
+        if (Array.isArray(parsedPinned)) {
+          // Backward compatibility with previous string-only format
+          const normalized = parsedPinned
+            .map((item, index) => {
+              if (typeof item === "string" && item.trim().length > 0) {
+                return {
+                  id: `legacy-${index}-${item.slice(0, 8)}`,
+                  label: item.trim().slice(0, 40),
+                  prompt: item.trim().slice(0, 220),
+                  category: "onboarding" as PromptCategory,
+                };
+              }
+              return sanitizePinnedPrompt(item);
+            })
+            .filter((item): item is PinnedPrompt => Boolean(item));
+
+          if (normalized.length > 0) {
+            setPinnedPrompts(normalized.slice(0, 24));
+          }
+        }
+      }
+    } catch {
+      setStorageWarning((prev) => prev || "Pinned prompts could not be loaded from local storage.");
     }
 
     try {
@@ -199,28 +574,154 @@ export function HFChatComponent() {
       if (parsed.freedomMode === "uncensored" || parsed.freedomMode === "standard") {
         setFreedomMode(parsed.freedomMode);
       }
+      if (isLlmPresetId(parsed.llmPreset)) {
+        setLlmPreset(parsed.llmPreset);
+      }
     } catch {
       // Ignore malformed memory payloads
     }
-  }, []);
+
+    try {
+      const savedProfile = window.localStorage.getItem(ASSISTANT_PROFILE_KEY);
+      if (
+        savedProfile === "beginner" ||
+        savedProfile === "trader" ||
+        savedProfile === "creator" ||
+        savedProfile === "developer"
+      ) {
+        setActiveProfile(savedProfile);
+      }
+    } catch {
+      // ignore malformed profile state
+    }
+
+    try {
+      const firstRunSeen = window.localStorage.getItem(FIRST_RUN_NUDGE_KEY) === "1";
+      setShowFirstRunNudge(!firstRunSeen);
+    } catch {
+      setShowFirstRunNudge(true);
+    }
+
+  }, [applySession]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(ASSISTANT_PROFILE_KEY, activeProfile);
+    } catch {
+      // ignore profile persistence failure
+    }
+  }, [activeProfile]);
+
+  useEffect(() => {
+    if (!loading) {
+      setResponseLoadProgress(0);
+      setResponseLoadSeconds(0);
+      return;
+    }
+
+    const start = Date.now();
+    const timer = window.setInterval(() => {
+      const elapsedSeconds = Math.floor((Date.now() - start) / 1000);
+      setResponseLoadSeconds(elapsedSeconds);
+      setResponseLoadProgress((prev) => {
+        const next = prev + 9;
+        return next >= 92 ? 92 : next;
+      });
+    }, 350);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    if (freedomMode !== "uncensored") {
+      setShowOpenModeNotice(false);
+      return;
+    }
+    if (typeof window === "undefined") {
+      setShowOpenModeNotice(true);
+      return;
+    }
+    try {
+      const acknowledged = window.localStorage.getItem(OPEN_MODE_NOTICE_KEY) === "1";
+      setShowOpenModeNotice(!acknowledged);
+    } catch {
+      setShowOpenModeNotice(true);
+    }
+  }, [freedomMode]);
+
+  useEffect(() => {
+    if (sessions.length > 0 || activeSessionId) return;
+
+    const initialSession = createEmptySession({
+      mode,
+      responseStyle,
+      autoFallback,
+      freedomMode,
+      llmPreset,
+      selectedStep,
+      objective,
+      messages,
+      title: buildSessionTitle(messages),
+    });
+
+    setSessions([initialSession]);
+    setActiveSessionId(initialSession.id);
+  }, [sessions.length, activeSessionId, mode, responseStyle, autoFallback, freedomMode, llmPreset, selectedStep, objective, messages]);
 
   useEffect(() => {
     const starter = searchParams.get("starter");
+    const profileParam = searchParams.get("profile");
+
+    const applyProfile = (profileId: AssistantProfileId, seedInput = true) => {
+      const profile = ASSISTANT_PROFILE_META[profileId];
+      setActiveProfile(profileId);
+      setMode(profile.mode);
+      setResponseStyle(profile.responseStyle);
+      setLlmPreset(profile.preset);
+      setSelectedStep(profile.selectedStep);
+      setFreedomMode(profile.freedomMode);
+      setObjective(profile.objective);
+      if (seedInput) {
+        setInput(profile.prompt);
+      }
+      setShowAdvancedControls(profileId === "developer");
+      setShowFirstRunNudge(false);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(FIRST_RUN_NUDGE_KEY, "1");
+        } catch {
+          // no-op
+        }
+      }
+    };
+
+    if (
+      profileParam === "beginner" ||
+      profileParam === "trader" ||
+      profileParam === "creator" ||
+      profileParam === "developer"
+    ) {
+      applyProfile(profileParam, true);
+      return;
+    }
+
     if (!starter) return;
 
     if (starter === "new-user-setup") {
-      setMode("navigator");
-      setSelectedStep(0);
-      setObjective("Get fully onboarded as a new user with clear first actions");
-      setInput("I am brand new. Give me a 10-minute setup checklist and the first page I should open.");
+      applyProfile("beginner", true);
       return;
     }
 
     if (starter === "first-trade-plan") {
-      setMode("custom");
-      setSelectedStep(1);
-      setObjective("Build a beginner-safe first trade plan with risk limits");
-      setInput("Create my first beginner trade plan with risk controls and exact step-by-step actions.");
+      applyProfile("trader", true);
+      return;
+    }
+
+    if (starter === "content-engine") {
+      applyProfile("creator", true);
     }
   }, [searchParams]);
 
@@ -234,9 +735,61 @@ export function HFChatComponent() {
       responseStyle,
       autoFallback,
       freedomMode,
+      llmPreset,
     };
-    window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
-  }, [objective, selectedStep, mode, responseStyle, autoFallback, freedomMode]);
+
+    try {
+      window.localStorage.setItem(PIPELINE_MEMORY_KEY, JSON.stringify(memory));
+    } catch {
+      setStorageWarning((prev) => prev || "Pipeline memory could not be saved locally.");
+    }
+  }, [objective, selectedStep, mode, responseStyle, autoFallback, freedomMode, llmPreset]);
+
+  useEffect(() => {
+    if (!activeSessionId) return;
+
+    setSessions((prev) =>
+      prev
+        .map((session) =>
+          session.id === activeSessionId
+            ? {
+                ...session,
+                title: buildSessionTitle(messages, session.title),
+                updatedAt: Date.now(),
+                messages,
+                objective: objective.trim().slice(0, 200),
+                selectedStep,
+                mode,
+                responseStyle,
+                autoFallback,
+                freedomMode,
+                llmPreset,
+              }
+            : session,
+        )
+        .sort((a, b) => b.updatedAt - a.updatedAt),
+    );
+  }, [activeSessionId, messages, objective, selectedStep, mode, responseStyle, autoFallback, freedomMode, llmPreset]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (sessions.length === 0) return;
+
+    try {
+      window.localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions));
+    } catch {
+      setStorageWarning((prev) => prev || "Session history could not be saved due to local storage limits.");
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(PINNED_PROMPTS_KEY, JSON.stringify(pinnedPrompts));
+    } catch {
+      setStorageWarning((prev) => prev || "Pinned prompts could not be saved.");
+    }
+  }, [pinnedPrompts]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -247,7 +800,7 @@ export function HFChatComponent() {
   }, [messages, loading]);
 
   const sendMessage = useCallback(async () => {
-    const trimmedInput = input.trim();
+    const trimmedInput = resolveSlashShortcut(input.trim());
     if (!trimmedInput) return;
 
     const objectiveForRequest = (objective.trim() || trimmedInput).slice(0, 200);
@@ -290,6 +843,7 @@ export function HFChatComponent() {
                 objective: objectiveForRequest,
                 responseStyle,
               },
+              preset: llmPreset,
               userId,
             }
           : mode === "custom"
@@ -302,6 +856,7 @@ export function HFChatComponent() {
                   objective: objectiveForRequest,
                   responseStyle,
                 },
+                preset: llmPreset,
                 userId,
               }
             : {
@@ -310,6 +865,7 @@ export function HFChatComponent() {
                 sessionId: `session-${Date.now()}`,
                 objective: objectiveForRequest,
                 responseStyle,
+                preset: llmPreset,
                 userId,
               };
 
@@ -353,6 +909,7 @@ export function HFChatComponent() {
             responseStyle,
             fallbackFromMode: mode,
           },
+          preset: llmPreset,
           userId,
         });
       }
@@ -403,6 +960,10 @@ export function HFChatComponent() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      if (isLlmPresetId(data?.preset?.id) && data.preset.id !== llmPreset) {
+        setLlmPreset(data.preset.id);
+      }
+
       if (selectedStep < PIPELINE_STEPS.length - 1) {
         const nextStep = selectedStep + 1;
         setSelectedStep(nextStep);
@@ -415,7 +976,7 @@ export function HFChatComponent() {
     } finally {
       setLoading(false);
     }
-  }, [input, messages, mode, objective, selectedStep, responseStyle, autoFallback, freedomMode, userId]);
+  }, [input, messages, mode, objective, selectedStep, responseStyle, autoFallback, freedomMode, llmPreset, userId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -430,283 +991,941 @@ export function HFChatComponent() {
     setAutoAdvanceMessage("");
   };
 
+  const applyComposerQuickAction = (action: (typeof COMPOSER_QUICK_ACTIONS)[number]) => {
+    setInput(action.prompt);
+    if (action.mode) {
+      setMode(action.mode);
+    }
+    if (action.preset) {
+      setLlmPreset(action.preset);
+    }
+    if (!objective.trim()) {
+      setObjective(action.label);
+    }
+  };
+
+  const createSession = () => {
+    const newSession = createEmptySession({
+      mode,
+      responseStyle,
+      autoFallback,
+      freedomMode,
+      llmPreset,
+    });
+    setSessions((prev) => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+    applySession(newSession);
+  };
+
+  const archiveActiveSession = () => {
+    if (!activeSessionId) return;
+
+    const archivedSession = sessions.find((session) => session.id === activeSessionId);
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === activeSessionId
+          ? { ...session, archived: true, updatedAt: Date.now() }
+          : session,
+      ),
+    );
+
+    const fallbackSession = sessions.find((session) => session.id !== activeSessionId && !session.archived);
+    if (fallbackSession) {
+      setActiveSessionId(fallbackSession.id);
+      applySession(fallbackSession);
+      return;
+    }
+
+    const freshSession = createEmptySession({
+      mode,
+      responseStyle,
+      autoFallback,
+      freedomMode,
+      llmPreset,
+    });
+    setSessions((prev) => [freshSession, ...prev]);
+    setActiveSessionId(freshSession.id);
+    applySession(freshSession);
+    if (archivedSession) {
+      setStorageWarning(`Archived session: ${archivedSession.title}`);
+    }
+  };
+
+  const deleteActiveSession = () => {
+    if (!activeSessionId) return;
+    const remaining = sessions.filter((session) => session.id !== activeSessionId);
+    setSessions(remaining);
+
+    const fallback = remaining.find((session) => !session.archived) ?? remaining[0];
+    if (fallback) {
+      setActiveSessionId(fallback.id);
+      applySession(fallback);
+    } else {
+      const fresh = createEmptySession({
+        mode,
+        responseStyle,
+        autoFallback,
+        freedomMode,
+        llmPreset,
+      });
+      setSessions([fresh]);
+      setActiveSessionId(fresh.id);
+      applySession(fresh);
+    }
+  };
+
+  const toggleArchivedSession = (sessionId: string) => {
+    const target = sessions.find((session) => session.id === sessionId);
+    if (!target) return;
+
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === sessionId
+          ? { ...session, archived: !session.archived, updatedAt: Date.now() }
+          : session,
+      ),
+    );
+  };
+
+  const switchSession = (sessionId: string) => {
+    const targetSession = sessions.find((session) => session.id === sessionId);
+    if (!targetSession) return;
+    setActiveSessionId(targetSession.id);
+    setIsRenamingSession(false);
+    setSessionDraftName("");
+    applySession(targetSession);
+  };
+
+  const startRenameSession = () => {
+    const activeSession = sessions.find((session) => session.id === activeSessionId);
+    if (!activeSession) return;
+    setSessionDraftName(activeSession.title);
+    setIsRenamingSession(true);
+  };
+
+  const saveRenameSession = () => {
+    const trimmed = sessionDraftName.trim().slice(0, 60);
+    if (!trimmed) {
+      setIsRenamingSession(false);
+      setSessionDraftName("");
+      return;
+    }
+
+    setSessions((prev) =>
+      prev.map((session) =>
+        session.id === activeSessionId
+          ? {
+              ...session,
+              title: trimmed,
+              updatedAt: Date.now(),
+            }
+          : session,
+      ),
+    );
+
+    setIsRenamingSession(false);
+    setSessionDraftName("");
+  };
+
+  const addPinnedPrompt = () => {
+    const trimmed = pinInput.trim().replace(/\s+/g, " ");
+    const trimmedLabel = (pinLabel.trim() || trimmed).replace(/\s+/g, " ").slice(0, 40);
+    if (!trimmed) return;
+    if (trimmed.length > 220) {
+      setStorageWarning("Pinned prompt is too long. Keep it under 220 characters.");
+      return;
+    }
+
+    setPinnedPrompts((prev) => {
+      if (prev.some((item) => item.prompt.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      const entry: PinnedPrompt = {
+        id: `pin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        label: trimmedLabel,
+        prompt: trimmed,
+        category: pinCategory,
+      };
+      return [entry, ...prev].slice(0, 24);
+    });
+
+    setStorageWarning("");
+    setPinLabel("");
+    setPinInput("");
+  };
+
+  const removePinnedPrompt = (promptId: string) => {
+    setPinnedPrompts((prev) => prev.filter((item) => item.id !== promptId));
+  };
+
+  const exportActiveSession = (format: "json" | "md") => {
+    const active = sessions.find((session) => session.id === activeSessionId);
+    if (!active || typeof window === "undefined") return;
+
+    try {
+      const timestamp = new Date(active.updatedAt).toISOString().replace(/[:.]/g, "-");
+      const filenameBase = `tradehax-session-${active.id}-${timestamp}`;
+
+      const payload =
+        format === "json"
+          ? JSON.stringify(active, null, 2)
+          : [
+              `# ${active.title}`,
+              "",
+              `- Updated: ${new Date(active.updatedAt).toLocaleString()}`,
+              `- Mode: ${active.mode}`,
+              `- Objective: ${active.objective || "(none)"}`,
+              "",
+              ...active.messages.map((message) => `## ${message.role === "assistant" ? "Assistant" : "User"}\n\n${message.content}\n`),
+            ].join("\n");
+
+      const blob = new Blob([payload], { type: format === "json" ? "application/json" : "text/markdown" });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = window.document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${filenameBase}.${format === "json" ? "json" : "md"}`;
+      window.document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setStorageWarning("Export failed. Please try again.");
+    }
+  };
+
+  const promptQualityScore = (() => {
+    const text = input.trim();
+    if (!text) return 0;
+    let score = 28;
+    if (text.length >= 45) score += 18;
+    if (text.length >= 120) score += 12;
+    if (/\b(goal|objective|risk|timeline|step|budget|constraint)\b/i.test(text)) score += 22;
+    if (/\?|\bhow\b|\bwhat\b|\bwhy\b/i.test(text)) score += 12;
+    if (objective.trim().length > 0) score += 10;
+    return clamp(score, 0, 100);
+  })();
+
+  const lastAssistantMessage = [...messages].reverse().find((msg) => msg.role === "assistant");
+  const nextActionSignals = lastAssistantMessage
+    ? scoreAssistantResponse(lastAssistantMessage.content, selectedStep, mode)
+    : null;
+
+  const dismissOpenModeNotice = () => {
+    setShowOpenModeNotice(false);
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(OPEN_MODE_NOTICE_KEY, "1");
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  const copyLastAssistant = async () => {
+    if (!lastAssistantMessage?.content || typeof window === "undefined") return;
+    try {
+      await window.navigator.clipboard.writeText(lastAssistantMessage.content);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // no-op fallback
+    }
+  };
+
+  const filteredSessions = sessions.filter((session) => {
+    if (session.archived !== showArchivedSessions) return false;
+    if (!sessionSearch.trim()) return true;
+    const query = sessionSearch.trim().toLowerCase();
+    return (
+      session.title.toLowerCase().includes(query) ||
+      session.messages.some((message) => message.content.toLowerCase().includes(query))
+    );
+  });
+
+  const filteredPinnedPrompts = pinnedPrompts.filter((item) => item.category === pinCategory);
+
   return (
-    <div className="theme-panel w-full h-[78vh] min-h-[560px] max-h-[920px] flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-emerald-500/20 p-4">
-        <div>
-          <h3 className="font-bold text-emerald-300">AI Assistant (Guided)</h3>
-          <p className="text-xs text-emerald-200/70">Beginner-friendly guidance with clear next steps and safer defaults.</p>
-        </div>
-        <button
-          onClick={clearChat}
-          className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
-          title="Clear chat"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="border-b border-emerald-500/20 p-4 space-y-3">
-        <div className="rounded border border-cyan-500/20 bg-cyan-600/10 px-3 py-2 text-xs text-cyan-100/90">
-          <p className="font-semibold">Start here if you&apos;re new:</p>
-          <p className="mt-1 text-cyan-100/75">Pick a quick prompt below, send it, then follow the 4-step flow from setup to action.</p>
-        </div>
-
-        <div>
-          <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
-            Conversation objective (memory)
-          </label>
-          <input
-            value={objective}
-            onChange={(e) => setObjective(e.target.value.slice(0, 200))}
-            placeholder="e.g. Get from onboarding to funded trading setup"
-            className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 placeholder-emerald-200/40 outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
-            Quick-start prompts
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {QUICK_START_PROMPTS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => {
-                  setInput(item.prompt);
-                  if (!objective.trim()) {
-                    setObjective(item.label);
-                  }
-                }}
-                className="rounded border border-emerald-500/20 bg-black/30 px-2 py-2 text-left text-[11px] text-emerald-100/85 hover:border-emerald-400/40"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {(Object.keys(MODE_META) as ChatMode[]).map((modeKey) => {
-            const active = mode === modeKey;
-            return (
-              <button
-                key={modeKey}
-                onClick={() => setMode(modeKey)}
-                className={`text-left rounded border px-3 py-2 transition ${
-                  active
-                    ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
-                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
-                }`}
-              >
-                <div className="text-xs font-semibold uppercase tracking-wide">{MODE_META[modeKey].label}</div>
-                <div className="text-[11px] mt-1 opacity-80 leading-relaxed">{MODE_META[modeKey].description}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {PIPELINE_STEPS.map((step, index) => {
-            const active = selectedStep === index;
-            return (
-              <button
-                key={step.title}
-                onClick={() => {
-                  setSelectedStep(index);
-                  setInput(step.starterPrompt);
-                  setAutoAdvanceMessage("");
-                }}
-                className={`rounded border px-2 py-2 text-xs transition ${
-                  active
-                    ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-100"
-                    : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
-                }`}
-              >
-                <div className="font-semibold">{index + 1}. {step.title}</div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-2">
-          <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
-            <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
-              Response style
-            </label>
-            <select
-              id="response-style"
-              value={responseStyle}
-              onChange={(e) => setResponseStyle((e.target.value as ResponseStyle) || "coach")}
-              className="w-full rounded border border-emerald-500/30 bg-black/40 px-2 py-1 text-xs text-emerald-100 outline-none"
-            >
-              <option value="concise">Concise</option>
-              <option value="coach">Coach</option>
-              <option value="operator">Operator</option>
-            </select>
-          </div>
-          <label className="rounded border border-emerald-500/20 bg-black/30 p-2 flex items-center gap-2 text-xs text-emerald-100/85">
-            <input
-              type="checkbox"
-              checked={autoFallback}
-              onChange={(e) => setAutoFallback(e.target.checked)}
-              className="accent-emerald-400"
-            />
-            Auto-fallback to General Chat on endpoint failure
-          </label>
-        </div>
-
-        <div className="rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
-          <label htmlFor="freedom-mode" className="block text-[11px] font-semibold text-fuchsia-100/90 mb-1">
-            Chat freedom mode
-          </label>
-          <select
-            id="freedom-mode"
-            value={freedomMode}
-            onChange={(e) => setFreedomMode((e.target.value as FreedomMode) || "uncensored")}
-            className="w-full rounded border border-fuchsia-500/30 bg-black/40 px-2 py-1 text-xs text-fuchsia-100 outline-none"
-          >
-            <option value="uncensored">Uncensored (prioritized)</option>
-            <option value="standard">Standard safety mode</option>
-          </select>
-          <p className="mt-1 text-[11px] text-fuchsia-100/70">
-            Uncensored mode uses the platform&apos;s open-response path for direct output.
-          </p>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-emerald-200/50 text-center">
-            <div>
-              <p className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
-                <Compass className="w-4 h-4" />
-                Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
-              </p>
-              <p className="text-sm">Tap a step above to auto-fill a high-signal prompt.</p>
-            </div>
-          </div>
-        )}
-
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[90%] sm:max-w-[82%] lg:max-w-md px-4 py-2 rounded-lg ${
-                msg.role === "user"
-                  ? "bg-emerald-600/40 text-emerald-100 border border-emerald-500/30"
-                  : "bg-cyan-600/20 text-cyan-100 border border-cyan-500/20"
-              }`}
-            >
-              {msg.content}
-              {msg.role === "assistant" && (
-                <div className="mt-3 rounded border border-cyan-400/25 bg-black/30 p-2 text-[11px]">
-                  {(() => {
-                    const signals = scoreAssistantResponse(
-                      msg.content,
-                      msg.meta?.step ?? selectedStep,
-                      msg.meta?.mode ?? mode,
-                    );
-
-                    return (
-                      <>
-                        <div className="mb-2 font-semibold text-cyan-200">Decision Signals</div>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {msg.meta?.predictionDomain && msg.meta.predictionDomain !== "general" ? (
-                            <SignalPill
-                              label={`Domain ${msg.meta.predictionDomain.toUpperCase()}`}
-                              tone="mid"
-                            />
-                          ) : null}
-                          {typeof msg.meta?.predictionConfidence === "number" ? (
-                            <SignalPill
-                              label={`Domain conf ${msg.meta.predictionConfidence}%`}
-                              tone={msg.meta.predictionConfidence >= 70 ? "good" : "mid"}
-                            />
-                          ) : null}
-                          <SignalPill
-                            label={`Confidence ${signals.confidence}%`}
-                            tone={signals.confidence >= 75 ? "good" : signals.confidence >= 55 ? "mid" : "warn"}
-                          />
-                          <SignalPill
-                            label={`Risk ${signals.risk}%`}
-                            tone={signals.risk <= 30 ? "good" : signals.risk <= 55 ? "mid" : "warn"}
-                          />
-                          <SignalPill
-                            label={`Priority ${signals.priority}`}
-                            tone={signals.priority === "High" ? "good" : signals.priority === "Medium" ? "mid" : "warn"}
-                          />
-                        </div>
-                        <p className="text-cyan-100/75">
-                          <span className="font-semibold text-cyan-200">Next action:</span> {signals.nextAction}
-                        </p>
-                      </>
-                    );
-                  })()}
+    <div className="theme-panel w-full h-[78dvh] sm:h-[82dvh] min-h-[560px] sm:min-h-[640px] [@media(max-height:820px)]:min-h-[520px] [@media(max-height:700px)]:min-h-[460px] max-h-[980px] overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-b from-black/65 via-black/50 to-black/70 shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
+      <div className="grid h-full lg:grid-cols-[320px_1fr]">
+        {showControlPanel && (
+          <aside className="border-b lg:border-b-0 lg:border-r border-emerald-500/20 bg-black/35 p-4 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+            <div className="mb-3 rounded border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] uppercase tracking-wide text-emerald-200/80">Sessions</p>
+                <button
+                  onClick={createSession}
+                  className="rounded border border-emerald-500/30 bg-emerald-600/10 px-2 py-1 text-[11px] text-emerald-100 hover:border-emerald-300/50"
+                  title="Create session"
+                >
+                  <Plus className="w-3 h-3 inline mr-1" />New
+                </button>
+              </div>
+              <div className="mb-2 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-3 h-3 absolute left-2 top-1.5 text-emerald-200/60" />
+                  <input
+                    value={sessionSearch}
+                    onChange={(e) => setSessionSearch(e.target.value)}
+                    placeholder="Search sessions"
+                    className="w-full rounded border border-white/15 bg-black/30 py-1 pl-6 pr-2 text-[11px] text-emerald-100 outline-none"
+                  />
                 </div>
-              )}
+                <button
+                  onClick={() => setShowArchivedSessions((prev) => !prev)}
+                  className="rounded border border-white/15 bg-black/25 px-2 py-1 text-[11px] text-emerald-100/80"
+                >
+                  {showArchivedSessions ? "Active" : "Archived"}
+                </button>
+              </div>
+              <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
+                {filteredSessions.map((session) => {
+                  const active = session.id === activeSessionId;
+                  return (
+                    <div
+                      key={session.id}
+                      className={`rounded px-2 py-1.5 text-[11px] border transition ${
+                        active
+                          ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                          : "border-white/10 bg-black/25 text-emerald-100/80"
+                      }`}
+                    >
+                      <button
+                        onClick={() => switchSession(session.id)}
+                        className="w-full text-left"
+                      >
+                        <div className="font-semibold truncate">{session.title}</div>
+                        <div className="opacity-70">{new Date(session.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                      </button>
+                      <div className="mt-1 flex gap-1">
+                        <button
+                          onClick={() => toggleArchivedSession(session.id)}
+                          className="rounded border border-white/15 px-1.5 py-0.5 text-[10px]"
+                          title={session.archived ? "Restore session" : "Archive session"}
+                        >
+                          <Archive className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex items-center gap-1">
+                <button
+                  onClick={() => exportActiveSession("json")}
+                  className="rounded border border-white/15 bg-black/20 px-2 py-1 text-[11px] text-emerald-100/85"
+                  title="Export active session as JSON"
+                >
+                  <FileJson className="w-3 h-3 inline mr-1" />JSON
+                </button>
+                <button
+                  onClick={() => exportActiveSession("md")}
+                  className="rounded border border-white/15 bg-black/20 px-2 py-1 text-[11px] text-emerald-100/85"
+                  title="Export active session as Markdown"
+                >
+                  <FileText className="w-3 h-3 inline mr-1" />MD
+                </button>
+                <button
+                  onClick={archiveActiveSession}
+                  className="rounded border border-white/15 bg-black/20 px-2 py-1 text-[11px] text-emerald-100/85"
+                  title="Archive active session"
+                >
+                  <Archive className="w-3 h-3 inline mr-1" />Archive
+                </button>
+                <button
+                  onClick={deleteActiveSession}
+                  className="rounded border border-rose-400/25 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-100"
+                  title="Delete active session"
+                >
+                  <Trash2 className="w-3 h-3 inline mr-1" />Delete
+                </button>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                {isRenamingSession ? (
+                  <>
+                    <input
+                      value={sessionDraftName}
+                      onChange={(e) => setSessionDraftName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveRenameSession();
+                        if (e.key === "Escape") {
+                          setIsRenamingSession(false);
+                          setSessionDraftName("");
+                        }
+                      }}
+                      className="flex-1 rounded border border-cyan-500/30 bg-black/40 px-2 py-1 text-[11px] text-cyan-100 outline-none"
+                      placeholder="Rename session"
+                    />
+                    <button
+                      onClick={saveRenameSession}
+                      className="rounded border border-cyan-400/40 bg-cyan-500/15 px-2 py-1 text-[11px] text-cyan-100"
+                    >
+                      Save
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={startRenameSession}
+                    disabled={!activeSessionId}
+                    className="rounded border border-white/15 bg-black/20 px-2 py-1 text-[11px] text-emerald-100/85 disabled:opacity-50"
+                  >
+                    <Pencil className="w-3 h-3 inline mr-1" />Rename active
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-3 rounded border border-cyan-500/20 bg-cyan-600/10 px-3 py-2 text-xs text-cyan-100/90">
+              <p className="font-semibold">Start here if you&apos;re new</p>
+              <p className="mt-1 text-cyan-100/75">Pick a quick prompt, send it, then follow the 4-step flow.</p>
+            </div>
+
+            <div className="mb-3 rounded border border-emerald-500/20 bg-emerald-600/10 px-3 py-2">
+              <p className="text-[11px] uppercase tracking-wide text-emerald-200/80">Assistant profile</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {(Object.keys(ASSISTANT_PROFILE_META) as AssistantProfileId[]).map((profileId) => {
+                  const active = activeProfile === profileId;
+                  const profile = ASSISTANT_PROFILE_META[profileId];
+                  return (
+                    <button
+                      key={profileId}
+                      onClick={() => {
+                        setActiveProfile(profileId);
+                        setMode(profile.mode);
+                        setResponseStyle(profile.responseStyle);
+                        setLlmPreset(profile.preset);
+                        setSelectedStep(profile.selectedStep);
+                        setFreedomMode(profile.freedomMode);
+                        setObjective(profile.objective);
+                        setInput(profile.prompt);
+                        setShowAdvancedControls(profileId === "developer");
+                        setShowFirstRunNudge(false);
+                        if (typeof window !== "undefined") {
+                          try {
+                            window.localStorage.setItem(FIRST_RUN_NUDGE_KEY, "1");
+                          } catch {
+                            // no-op
+                          }
+                        }
+                      }}
+                      title={profile.description}
+                      className={`rounded border px-2 py-2 text-left text-[11px] transition ${
+                        active
+                          ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-50"
+                          : "border-emerald-500/20 bg-black/30 text-emerald-100/85 hover:border-emerald-300/40"
+                      }`}
+                    >
+                      <p className="font-semibold">{profile.label}</p>
+                      <p className="mt-0.5 opacity-80 line-clamp-2">{profile.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
+                Objective memory
+              </label>
+              <input
+                value={objective}
+                onChange={(e) => setObjective(e.target.value.slice(0, 200))}
+                placeholder="e.g. Build a safe first trade plan"
+                className="w-full rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-sm text-emerald-100 placeholder-emerald-200/40 outline-none"
+              />
+            </div>
+
+            <div className="mb-3 space-y-2">
+              {(Object.keys(MODE_META) as ChatMode[]).map((modeKey) => {
+                const active = mode === modeKey;
+                return (
+                  <button
+                    key={modeKey}
+                    onClick={() => setMode(modeKey)}
+                    className={`w-full text-left rounded border px-3 py-2 transition ${
+                      active
+                        ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
+                        : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                    }`}
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-wide">{MODE_META[modeKey].label}</div>
+                    <div className="text-[11px] mt-1 opacity-80 leading-relaxed">{MODE_META[modeKey].description}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {PIPELINE_STEPS.map((step, index) => {
+                const active = selectedStep === index;
+                return (
+                  <button
+                    key={step.title}
+                    onClick={() => {
+                      setSelectedStep(index);
+                      setInput(step.starterPrompt);
+                      setAutoAdvanceMessage("");
+                    }}
+                    className={`rounded border px-2 py-2 text-xs transition ${
+                      active
+                        ? "border-emerald-300/50 bg-emerald-500/20 text-emerald-100"
+                        : "border-emerald-500/20 bg-black/30 text-emerald-200/70 hover:border-emerald-400/40"
+                    }`}
+                  >
+                    <div className="font-semibold">{index + 1}. {step.title}</div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-[11px] uppercase tracking-wide text-emerald-200/70 mb-1">
+                Quick prompts
+              </label>
+              <div className="space-y-2">
+                {QUICK_START_PROMPTS.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setInput(item.prompt);
+                      if (!objective.trim()) {
+                        setObjective(item.label);
+                      }
+                    }}
+                    className="w-full rounded border border-emerald-500/20 bg-black/30 px-2 py-2 text-left text-[11px] text-emerald-100/85 hover:border-emerald-400/40"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <details
+              className="rounded border border-white/10 bg-white/[0.03] p-2"
+              open={showAdvancedControls}
+              onToggle={(e) => setShowAdvancedControls((e.currentTarget as HTMLDetailsElement).open)}
+            >
+              <summary className="cursor-pointer list-none text-[11px] uppercase tracking-wide text-emerald-200/80">
+                Customize assistant (advanced)
+              </summary>
+
+              <div className="mt-2 mb-3 rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
+                <label className="block text-[11px] uppercase tracking-wide text-fuchsia-100/80 mb-1">
+                  Pinned prompts
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input
+                    value={pinLabel}
+                    onChange={(e) => setPinLabel(e.target.value)}
+                    placeholder="Label (optional)"
+                    className="rounded border border-fuchsia-500/30 bg-black/35 px-2 py-1 text-[11px] text-fuchsia-100 outline-none"
+                  />
+                  <select
+                    title="Pinned prompt category"
+                    aria-label="Pinned prompt category"
+                    value={pinCategory}
+                    onChange={(e) => setPinCategory(e.target.value as PromptCategory)}
+                    className="rounded border border-fuchsia-500/30 bg-black/35 px-2 py-1 text-[11px] text-fuchsia-100 outline-none"
+                  >
+                    <option value="onboarding">Onboarding</option>
+                    <option value="trading">Trading</option>
+                    <option value="content">Content</option>
+                    <option value="ops">Ops</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addPinnedPrompt();
+                      }
+                    }}
+                    placeholder="Add reusable prompt"
+                    className="flex-1 rounded border border-fuchsia-500/30 bg-black/35 px-2 py-1 text-[11px] text-fuchsia-100 outline-none"
+                  />
+                  <button
+                    onClick={addPinnedPrompt}
+                    title="Pin prompt"
+                    aria-label="Pin prompt"
+                    className="rounded border border-fuchsia-400/40 bg-fuchsia-500/20 px-2 py-1 text-[11px] text-fuchsia-100"
+                  >
+                    <Pin className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {filteredPinnedPrompts.length === 0 && (
+                    <p className="text-[11px] text-fuchsia-100/60">No pinned prompts yet.</p>
+                  )}
+                  {filteredPinnedPrompts.map((prompt) => (
+                    <div key={prompt.id} className="flex items-start gap-1 rounded border border-fuchsia-500/20 bg-black/25 px-2 py-1">
+                      <button
+                        onClick={() => setInput(prompt.prompt)}
+                        className="flex-1 text-left text-[11px] text-fuchsia-100/90 hover:text-fuchsia-50"
+                      >
+                        <span className="font-semibold">{prompt.label}</span>
+                        <span className="block opacity-80">{prompt.prompt}</span>
+                      </button>
+                      <button
+                        onClick={() => removePinnedPrompt(prompt.id)}
+                        className="text-fuchsia-100/70 hover:text-fuchsia-50"
+                        title="Remove pinned prompt"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                <div className="rounded border border-cyan-500/20 bg-cyan-600/10 p-2">
+                  <label htmlFor="llm-preset" className="block text-[11px] font-semibold text-cyan-100/90 mb-1">
+                    Assistant preset
+                  </label>
+                  <select
+                    id="llm-preset"
+                    value={llmPreset}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (isLlmPresetId(value)) {
+                        setLlmPreset(value);
+                      }
+                    }}
+                    className="w-full rounded border border-cyan-500/30 bg-black/40 px-2 py-1 text-xs text-cyan-100 outline-none"
+                  >
+                    {LLM_PRESET_IDS.map((presetId) => (
+                      <option key={presetId} value={presetId}>
+                        {LLM_PRESET_META[presetId].label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-cyan-100/70">{LLM_PRESET_META[llmPreset].description}</p>
+                </div>
+
+                <div className="rounded border border-emerald-500/20 bg-black/30 p-2">
+                  <label htmlFor="response-style" className="block text-[11px] font-semibold text-emerald-100/80 mb-1">
+                    Response style
+                  </label>
+                  <select
+                    id="response-style"
+                    value={responseStyle}
+                    onChange={(e) => setResponseStyle((e.target.value as ResponseStyle) || "coach")}
+                    className="w-full rounded border border-emerald-500/30 bg-black/40 px-2 py-1 text-xs text-emerald-100 outline-none"
+                  >
+                    <option value="concise">Concise</option>
+                    <option value="coach">Coach</option>
+                    <option value="operator">Operator</option>
+                  </select>
+                </div>
+
+                <label className="rounded border border-emerald-500/20 bg-black/30 p-2 flex items-center gap-2 text-xs text-emerald-100/85">
+                  <input
+                    type="checkbox"
+                    checked={autoFallback}
+                    onChange={(e) => setAutoFallback(e.target.checked)}
+                    className="accent-emerald-400"
+                  />
+                  Auto-fallback to General Chat
+                </label>
+
+                <div className="rounded border border-fuchsia-500/20 bg-fuchsia-600/10 p-2">
+                  <label htmlFor="freedom-mode" className="block text-[11px] font-semibold text-fuchsia-100/90 mb-1">
+                    Freedom mode
+                  </label>
+                  <select
+                    id="freedom-mode"
+                    value={freedomMode}
+                    onChange={(e) => setFreedomMode((e.target.value as FreedomMode) || "uncensored")}
+                    className="w-full rounded border border-fuchsia-500/30 bg-black/40 px-2 py-1 text-xs text-fuchsia-100 outline-none"
+                  >
+                    <option value="uncensored">Uncensored</option>
+                    <option value="standard">Standard</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+          </aside>
+        )}
+
+        <section className="flex flex-col min-h-0">
+          <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3 bg-black/35 backdrop-blur-sm">
+            <div>
+              <h3 className="font-bold text-emerald-200 tracking-tight">AI Assistant Console</h3>
+              <p className="text-xs text-emerald-200/70">
+                {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Preset: {LLM_PRESET_META[llmPreset].label} • Step {selectedStep + 1}/4
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowControlPanel((prev) => !prev)}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
+                title="Toggle controls"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={copyLastAssistant}
+                disabled={!lastAssistantMessage}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2 disabled:opacity-50"
+                title="Copy last assistant response"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+              <button
+                onClick={clearChat}
+                className="theme-cta theme-cta--muted theme-cta--compact px-2 py-2"
+                title="Clear chat"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
-        ))}
 
-        {loading && (
-          <div className="flex gap-3 justify-start">
-            <div className="bg-cyan-600/20 border border-cyan-500/20 rounded-lg px-4 py-2 flex items-center gap-2 text-cyan-100">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Thinking...</span>
+          <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-2 bg-black/20">
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">Style: {responseStyle}</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">Preset: {LLM_PRESET_META[llmPreset].label}</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">{freedomMode === "uncensored" ? "Uncensored lane" : "Standard lane"}</span>
+            <button
+              onClick={() => setFreedomMode((prev) => (prev === "uncensored" ? "standard" : "uncensored"))}
+              className="rounded-full border border-fuchsia-300/30 bg-fuchsia-500/10 px-2 py-1 text-fuchsia-100 hover:border-fuchsia-200/50"
+              title="Toggle assistant lane"
+            >
+              Switch lane
+            </button>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-1"><Keyboard className="w-3 h-3" />Enter send • Shift+Enter newline</span>
+            {copied && <span className="text-cyan-200 rounded-full border border-cyan-300/25 bg-cyan-500/10 px-2 py-1">Copied last response.</span>}
+            {storageWarning && <span className="text-amber-200 rounded-full border border-amber-300/25 bg-amber-500/10 px-2 py-1">{storageWarning}</span>}
+          </div>
+
+          {showOpenModeNotice && (
+            <div className="mx-4 mt-2 rounded border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100 flex items-center justify-between gap-3">
+              <p>
+                Open lane is active. Responses are less filtered — verify facts and risk-sensitive details before action.
+              </p>
+              <button
+                onClick={dismissOpenModeNotice}
+                className="rounded border border-amber-200/40 bg-amber-500/10 px-2 py-1 text-[10px] uppercase tracking-wide"
+              >
+                Got it
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+            {showFirstRunNudge && messages.length === 0 && (
+              <div className="rounded-lg border border-emerald-300/30 bg-emerald-500/10 p-3 text-sm text-emerald-100">
+                <p className="font-semibold">Welcome — choose your lane in one click</p>
+                <p className="mt-1 text-emerald-100/80 text-xs">
+                  Pick a profile in the left panel to auto-configure chat mode, style, and prompt starter.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowFirstRunNudge(false);
+                    if (typeof window !== "undefined") {
+                      try {
+                        window.localStorage.setItem(FIRST_RUN_NUDGE_KEY, "1");
+                      } catch {
+                        // no-op
+                      }
+                    }
+                  }}
+                  className="mt-2 rounded border border-emerald-300/40 bg-black/25 px-2 py-1 text-[11px] font-semibold text-emerald-100"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full text-emerald-200/50 text-center">
+                <div>
+                  <p className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                    <Compass className="w-4 h-4" />
+                    Start with Step {selectedStep + 1}: {PIPELINE_STEPS[selectedStep]?.title}
+                  </p>
+                  <p className="text-sm">Use quick actions below, then iterate with focused prompts like top-tier AI products.</p>
+                  <p className="mt-2 text-[11px] text-emerald-200/60">Tip: slash shortcuts supported — <span className="font-mono">/plan</span>, <span className="font-mono">/risk</span>, <span className="font-mono">/content</span>, <span className="font-mono">/next</span></p>
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[95%] sm:max-w-[88%] lg:max-w-2xl px-4 py-2 rounded-xl ${
+                    msg.role === "user"
+                      ? "bg-emerald-600/35 text-emerald-100 border border-emerald-400/35 shadow-[0_8px_24px_rgba(16,185,129,0.12)]"
+                      : "bg-cyan-600/15 text-cyan-100 border border-cyan-400/25 shadow-[0_8px_24px_rgba(6,182,212,0.10)]"
+                  }`}
+                >
+                  <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-wide opacity-75">
+                    <span className="inline-flex items-center gap-1 font-semibold">
+                      {msg.role === "user" ? <UserRound className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                      {msg.role === "user" ? "You" : "TradeHax AI"}
+                    </span>
+                    <span>
+                      {new Date(msg.meta?.timestamp || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{msg.content}</p>
+                  {msg.role === "assistant" && (
+                    <div className="mt-3 rounded border border-cyan-400/25 bg-black/30 p-2 text-[11px]">
+                      {(() => {
+                        const signals = scoreAssistantResponse(
+                          msg.content,
+                          msg.meta?.step ?? selectedStep,
+                          msg.meta?.mode ?? mode,
+                        );
+
+                        return (
+                          <>
+                            <div className="mb-2 font-semibold text-cyan-200">Decision Signals</div>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {msg.meta?.predictionDomain && msg.meta.predictionDomain !== "general" ? (
+                                <SignalPill
+                                  label={`Domain ${msg.meta.predictionDomain.toUpperCase()}`}
+                                  tone="mid"
+                                />
+                              ) : null}
+                              {typeof msg.meta?.predictionConfidence === "number" ? (
+                                <SignalPill
+                                  label={`Domain conf ${msg.meta.predictionConfidence}%`}
+                                  tone={msg.meta.predictionConfidence >= 70 ? "good" : "mid"}
+                                />
+                              ) : null}
+                              <SignalPill
+                                label={`Confidence ${signals.confidence}%`}
+                                tone={signals.confidence >= 75 ? "good" : signals.confidence >= 55 ? "mid" : "warn"}
+                              />
+                              <SignalPill
+                                label={`Risk ${signals.risk}%`}
+                                tone={signals.risk <= 30 ? "good" : signals.risk <= 55 ? "mid" : "warn"}
+                              />
+                              <SignalPill
+                                label={`Priority ${signals.priority}`}
+                                tone={signals.priority === "High" ? "good" : signals.priority === "Medium" ? "mid" : "warn"}
+                              />
+                            </div>
+                            <p className="text-cyan-100/75">
+                              <span className="font-semibold text-cyan-200">Next action:</span> {signals.nextAction}
+                            </p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-full max-w-xl bg-cyan-600/20 border border-cyan-500/20 rounded-lg px-4 py-3 text-cyan-100">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="font-medium">Generating response</span>
+                    <span className="inline-flex items-center gap-1 ml-1 text-cyan-100/80">
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 animate-pulse [animation-delay:120ms]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-200 animate-pulse [animation-delay:240ms]" />
+                    </span>
+                  </div>
+                  <progress
+                    className="mt-2 h-1.5 w-full overflow-hidden rounded bg-cyan-950/50 [&::-webkit-progress-bar]:bg-cyan-950/50 [&::-webkit-progress-value]:bg-cyan-300/80 [&::-moz-progress-bar]:bg-cyan-300/80"
+                    value={loading ? responseLoadProgress : 100}
+                    max={100}
+                  />
+                  <p className="mt-1 text-[11px] text-cyan-100/80">{Math.min(responseLoadProgress, 99)}% • {responseLoadSeconds}s elapsed</p>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="flex gap-3 justify-start">
+                <div className="bg-red-600/20 border border-red-500/30 rounded-lg px-4 py-2 text-red-200 text-sm">
+                  {error}
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black/40 backdrop-blur-sm">
+            {objective && (
+              <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
+            )}
+            {autoAdvanceMessage && (
+              <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
+            )}
+            {nextActionSignals && (
+              <div className="mb-2 rounded-lg border border-cyan-400/25 bg-cyan-600/10 p-2.5">
+                <p className="text-[11px] text-cyan-100/75 uppercase tracking-wide">Next best action</p>
+                <p className="mt-1 text-sm text-cyan-50">{nextActionSignals.nextAction}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setInput(`Expand this into a 3-step execution plan:\n\n${nextActionSignals.nextAction}`)}
+                    className="rounded border border-cyan-300/30 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-100"
+                  >
+                    Build plan
+                  </button>
+                  <button
+                    onClick={() => setInput(`Risk-check this recommendation before I execute:\n\n${nextActionSignals.nextAction}`)}
+                    className="rounded border border-cyan-300/30 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-100"
+                  >
+                    Risk-check
+                  </button>
+                  <button
+                    onClick={() => setInput(`Give me a concise message template based on this action:\n\n${nextActionSignals.nextAction}`)}
+                    className="rounded border border-cyan-300/30 bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-100"
+                  >
+                    Draft message
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="mb-2 flex flex-wrap gap-2">
+              {COMPOSER_QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => applyComposerQuickAction(action)}
+                  className="rounded-lg border border-white/15 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-200 hover:bg-white/[0.08] motion-safe:hover:-translate-y-0.5 transition"
+                  title={action.prompt}
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 items-end">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask naturally (or use /plan, /risk, /content, /next)…"
+                rows={3}
+                disabled={loading}
+                className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50 focus:border-emerald-300/60"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || loading}
+                className="theme-cta theme-cta--loud px-4 py-2 h-14 disabled:opacity-50 flex items-center justify-center"
+                title="Send message"
+              >
+                <ArrowUp className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
+              <span>Use concise prompts with constraints for best output quality.</span>
+              <span>{input.trim().length}/2000</span>
             </div>
           </div>
-        )}
-
-        {error && (
-          <div className="flex gap-3 justify-start">
-            <div className="bg-red-600/20 border border-red-500/30 rounded-lg px-4 py-2 text-red-200 text-sm">
-              {error}
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between mb-2 text-[11px] text-emerald-200/70">
-          <span className="inline-flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            Mode: {MODE_META[mode].label}
-          </span>
-          <span>Current step: {selectedStep + 1}/4 • {freedomMode === "uncensored" ? "Uncensored" : "Standard"}</span>
-        </div>
-        {objective && (
-          <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
-        )}
-        {autoAdvanceMessage && (
-          <div className="mb-2 text-[11px] text-emerald-200/80">{autoAdvanceMessage}</div>
-        )}
-        <div className="flex gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your question in plain language (example: 'I am new. What should I do first?')"
-            rows={3}
-            disabled={loading}
-            className="flex-1 rounded border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50"
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-            className="theme-cta theme-cta--loud px-4 py-2 h-14 disabled:opacity-50 flex items-center justify-center"
-            title="Send message (Ctrl+Enter)"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </button>
-        </div>
+        </section>
       </div>
     </div>
   );
