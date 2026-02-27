@@ -4,32 +4,34 @@ import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
-import { bookingLinks } from "@/lib/booking";
+import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
-import { createPageMetadata } from "@/lib/seo";
+import { absoluteUrl, createPageMetadata } from "@/lib/seo";
 import type { ServiceConversionId } from "@/lib/service-conversions";
 import {
-  ArrowRight,
-  CheckCircle2,
-  Code,
-  Database,
-  LineChart,
-  Megaphone,
-  Server,
-  ShoppingCart,
-  Smartphone,
-  Users,
-  Wrench,
-  Zap,
+    ArrowRight,
+    CheckCircle2,
+    Code,
+    Database,
+    LineChart,
+    Megaphone,
+    Server,
+    ShoppingCart,
+    Smartphone,
+    Users,
+    Wrench,
+    Zap,
 } from "lucide-react";
+import Link from "next/link";
+import Script from "next/script";
 
 export const metadata = createPageMetadata({
-  title: "Services | Web Development, Tech Repair, and Digital Support | TradeHax AI",
+  title: "Philadelphia & South Jersey Tech Services | Web, App, Repair, and Web3",
   description:
-    "Book web development, app builds, tech repair, marketing, and Web3 consulting for Greater Philadelphia, South Jersey, and remote clients.",
+    "TradeHax AI provides web development, app builds, tech support, marketing, and Web3 consulting for Greater Philadelphia, South Jersey, and remote clients.",
   path: "/services",
   imagePath: "/og-services.svg",
-  imageAlt: "TradeHax AI professional services",
+  imageAlt: "TradeHax AI services across Philadelphia and South Jersey",
   keywords: [
     "web development philadelphia",
     "app development philadelphia",
@@ -43,15 +45,104 @@ export const metadata = createPageMetadata({
     "smart contracts",
     "dapp development",
     "local tech support",
-    "snow removal south jersey",
-    "snow plowing atlantic county",
-    "driveway snow removal new jersey",
+    "atlantic county tech support",
+    "philadelphia web3 consulting",
+    "south jersey app development",
+    "local business website development",
+    "remote technical support services",
   ],
 });
+
+const servicesFaqs = [
+  {
+    question: "Which local areas does TradeHax AI serve?",
+    answer:
+      "We primarily serve Greater Philadelphia and South Jersey, including Atlantic County, while also supporting remote clients nationwide.",
+  },
+  {
+    question: "Do you offer both local and remote support?",
+    answer:
+      "Yes. Most services are remote-first for fast turnaround, with local support options available for qualifying projects and requests.",
+  },
+  {
+    question: "How do I book the right service quickly?",
+    answer:
+      "Use our centralized schedule hub to select your service type, then continue through the matching booking option in minutes.",
+  },
+] as const;
+
+const servicesPageJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: absoluteUrl("/"),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Services",
+          item: absoluteUrl("/services"),
+        },
+      ],
+    },
+    {
+      "@type": "Service",
+      "@id": `${absoluteUrl("/services")}#services-catalog`,
+      name: "TradeHax AI Professional Services",
+      provider: {
+        "@type": "LocalBusiness",
+        name: "TradeHax AI",
+        telephone: businessProfile.contactPhoneE164,
+        email: businessProfile.contactEmail,
+      },
+      areaServed: [
+        "Greater Philadelphia",
+        "South Jersey",
+        "Atlantic County",
+        "United States",
+      ],
+      serviceType: [
+        "Web Development",
+        "Application Development",
+        "Tech Support",
+        "Social Media Marketing",
+        "Web3 Consulting",
+      ],
+      availableChannel: [
+        {
+          "@type": "ServiceChannel",
+          serviceUrl: absoluteUrl("/schedule"),
+          availableLanguage: ["English"],
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${absoluteUrl("/services")}#faq`,
+      mainEntity: servicesFaqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer,
+        },
+      })),
+    },
+  ],
+};
 
 export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
+      <Script id="services-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
+        {JSON.stringify(servicesPageJsonLd)}
+      </Script>
       <ShamrockHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -70,25 +161,6 @@ export default function ServicesPage() {
         <div className="mb-12">
           <ActionRail surface="services" />
         </div>
-
-        <section className="mb-12 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-6 sm:p-8">
-          <h2 className="text-2xl font-bold text-white mb-3">
-            Looking for Snow Removal in South Jersey?
-          </h2>
-          <p className="text-gray-300 max-w-3xl mb-5">
-            We also offer dedicated local snow removal and snow plowing services across Atlantic County, NJ,
-            including Atlantic City, Egg Harbor Township, Hammonton, Pleasantville, and nearby areas.
-          </p>
-          <TrackedCtaLink
-            href="/snow-removal"
-            conversionId="open_services"
-            surface="services:snow_module"
-            className="theme-cta theme-cta--loud px-5 py-3"
-          >
-            Open Snow Removal Page
-            <ArrowRight className="w-5 h-5" />
-          </TrackedCtaLink>
-        </section>
 
         {/* Ad Placement */}
         <div className="mb-16">
@@ -110,7 +182,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $5,000"
             ctaLabel="Book Web3 Discovery Call"
-            ctaHref={bookingLinks.webDevConsult}
+            ctaHref={scheduleLinks.webDevConsult}
             ctaConversionId="book_web3_consult"
           />
 
@@ -128,7 +200,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $3,000"
             ctaLabel="Book Trading Strategy Session"
-            ctaHref={bookingLinks.tradingConsult}
+            ctaHref={scheduleLinks.tradingConsult}
             ctaConversionId="book_trading_consult"
           />
 
@@ -145,7 +217,7 @@ export default function ServicesPage() {
             ]}
             pricing="$200/hour"
             ctaLabel="Book Web3 Strategy Consult"
-            ctaHref={bookingLinks.webDevConsult}
+            ctaHref={scheduleLinks.webDevConsult}
             ctaConversionId="book_web3_consult"
           />
 
@@ -162,7 +234,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $4,000"
             ctaLabel="Start Build Consultation"
-            ctaHref={bookingLinks.webDevConsult}
+            ctaHref={scheduleLinks.webDevConsult}
             ctaConversionId="book_web3_consult"
           />
 
@@ -180,7 +252,7 @@ export default function ServicesPage() {
             ]}
             pricing="$50-100/hour"
             ctaLabel="Book Repair / Support Intake"
-            ctaHref={bookingLinks.techSupport}
+            ctaHref={scheduleLinks.techSupport}
             ctaConversionId="book_repair_quote"
           />
 
@@ -198,7 +270,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $1,000/month"
             ctaLabel="Book Marketing Strategy Call"
-            ctaHref={bookingLinks.socialMediaConsult}
+            ctaHref={scheduleLinks.socialMediaConsult}
             ctaConversionId="book_social_media_consult"
           />
 
@@ -216,7 +288,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $500/month"
             ctaLabel="Book IT Management Consult"
-            ctaHref={bookingLinks.itManagement}
+            ctaHref={scheduleLinks.itManagement}
             ctaConversionId="book_it_management_consult"
           />
 
@@ -234,7 +306,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $8,000"
             ctaLabel="Book App Development Consult"
-            ctaHref={bookingLinks.appDevelopment}
+            ctaHref={scheduleLinks.appDevelopment}
             ctaConversionId="book_app_development_consult"
           />
 
@@ -252,7 +324,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $3,500"
             ctaLabel="Book Database Architecture Call"
-            ctaHref={bookingLinks.databaseConsult}
+            ctaHref={scheduleLinks.databaseConsult}
             ctaConversionId="book_database_consult"
           />
 
@@ -270,7 +342,7 @@ export default function ServicesPage() {
             ]}
             pricing="Starting at $6,000"
             ctaLabel="Book E-Commerce Build Session"
-            ctaHref={bookingLinks.ecommerceConsult}
+            ctaHref={scheduleLinks.ecommerceConsult}
             ctaConversionId="book_ecommerce_consult"
           />
         </div>
@@ -374,6 +446,37 @@ export default function ServicesPage() {
         <div className="mb-8">
           <AdSenseBlock adSlot="services-bottom" adFormat="horizontal" />
         </div>
+
+        <section className="theme-panel p-6 sm:p-8 mt-8 mb-10">
+          <h2 className="theme-title text-2xl font-bold mb-4">Local Service Coverage</h2>
+          <p className="text-[#cdd8ee] mb-3">
+            We support clients across <strong>Greater Philadelphia</strong> and <strong>South Jersey</strong>,
+            including Atlantic County, with remote-first delivery for faster turnaround.
+          </p>
+          <p className="text-sm text-[#9ca9c5]">
+            Ready to book? Continue to our
+            <Link href={scheduleLinks.root} className="ml-1 underline underline-offset-2 hover:text-white">
+              service scheduling hub
+            </Link>
+            .
+          </p>
+        </section>
+
+        <section className="theme-panel p-6 sm:p-8 mb-8" aria-labelledby="services-faq-heading">
+          <h2 id="services-faq-heading" className="theme-title text-2xl font-bold mb-4">
+            Services FAQ
+          </h2>
+          <div className="space-y-3">
+            {servicesFaqs.map((faq) => (
+              <details key={faq.question} className="rounded-lg border border-[#5f769f]/35 bg-[#0a1422] px-4 py-3">
+                <summary className="cursor-pointer font-semibold text-[#e7ecfb]">
+                  {faq.question}
+                </summary>
+                <p className="mt-2 text-sm text-[#b6c3de]">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
       </main>
 
       <ShamrockFooter />
@@ -424,7 +527,7 @@ function ServiceCard({
           href={ctaHref}
           conversionId={ctaConversionId}
           surface={`services:card:${title.toLowerCase().replace(/\s+/g, "_")}`}
-          external
+          external={ctaHref.startsWith("http")}
           className="theme-cta theme-cta--compact mt-4"
         >
           {ctaLabel}

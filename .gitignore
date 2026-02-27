@@ -49,3 +49,14 @@ next-env.d.ts
 
 # local IDE topology files
 *.local.code-workspace
+
+# local automation scratch artifacts
+temp_black_format.py
+tradehax-fresh/temp_black_format.py
+tradehax-fresh/START_HERE.txt
+tradehax-fresh/
+
+# local AI/code assistant workspaces
+.codex/
+.opencode/
+opencode.json
