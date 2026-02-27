@@ -1,9 +1,24 @@
 "use client";
 
 import { WalletButton } from "@/components/counter/WalletButton";
+import { useArtifactPreferences } from "@/components/landing/hub/hooks/useArtifactPreferences";
+import { useBranchReplayControls } from "@/components/landing/hub/hooks/useBranchReplayControls";
+import { useChatCommandControls } from "@/components/landing/hub/hooks/useChatCommandControls";
+import { useChatUtilityActions } from "@/components/landing/hub/hooks/useChatUtilityActions";
+import { useBriefComposerActions } from "@/components/landing/hub/hooks/useBriefComposerActions";
+import { useCommandPaletteControls } from "@/components/landing/hub/hooks/useCommandPaletteControls";
+import { useCorePreferences } from "@/components/landing/hub/hooks/useCorePreferences";
 import { useKidsModeLock } from "@/components/landing/hub/hooks/useKidsModeLock";
 import { useMarketFeed } from "@/components/landing/hub/hooks/useMarketFeed";
+import { useMemoryCardControls } from "@/components/landing/hub/hooks/useMemoryCardControls";
+import { useMessageBranchControls } from "@/components/landing/hub/hooks/useMessageBranchControls";
+import { useNeuralArtifactWorkflows } from "@/components/landing/hub/hooks/useNeuralArtifactWorkflows";
+import { useNeuralSessionPersistence } from "@/components/landing/hub/hooks/useNeuralSessionPersistence";
+import { useNeuralVaultCount } from "@/components/landing/hub/hooks/useNeuralVaultCount";
+import { useSessionContinuityControls } from "@/components/landing/hub/hooks/useSessionContinuityControls";
 import { useUsageLimit } from "@/components/landing/hub/hooks/useUsageLimit";
+import { useWebsiteAutopilotWorkflows } from "@/components/landing/hub/hooks/useWebsiteAutopilotWorkflows";
+import { useWorkspaceTimelinePersistence } from "@/components/landing/hub/hooks/useWorkspaceTimelinePersistence";
 import { HubCapitalPreservationCircuit } from "@/components/landing/hub/HubCapitalPreservationCircuit";
 import { HubCommandPalette } from "@/components/landing/hub/HubCommandPalette";
 import { HubCompetitiveEdgeLab } from "@/components/landing/hub/HubCompetitiveEdgeLab";
@@ -20,18 +35,14 @@ import { HubShell } from "@/components/landing/hub/HubShell";
 import { HubSitewideNeuralSmartness } from "@/components/landing/hub/HubSitewideNeuralSmartness";
 import { HubVideoAiInfusion } from "@/components/landing/hub/HubVideoAiInfusion";
 import { HubWebsiteSocialAutopilot } from "@/components/landing/hub/HubWebsiteSocialAutopilot";
+import { parseImportedSessionSnapshot } from "@/components/landing/hub/utils/sessionSnapshotParser";
 import { HubAutomationWorkspace } from "@/components/landing/hub/workspaces/HubAutomationWorkspace";
 import { HubChatWorkspace } from "@/components/landing/hub/workspaces/HubChatWorkspace";
 import { HubCreateWorkspace } from "@/components/landing/hub/workspaces/HubCreateWorkspace";
 import { HubLibraryWorkspace } from "@/components/landing/hub/workspaces/HubLibraryWorkspace";
 import { HubMarketWorkspaceView } from "@/components/landing/hub/workspaces/HubMarketWorkspaceView";
 import {
-    exportLocalNeuralVault,
     getLocalNeuralVault,
-    saveDatasetArtifact,
-    saveLearningEnvironmentArtifact,
-    saveTickerBehaviorArtifact,
-    saveUserBehaviorArtifact,
 } from "@/lib/ai/site-neural-memory";
 import { HAX_TOKEN_CONFIG } from "@/lib/trading/hax-token";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -59,7 +70,7 @@ import {
     TrendingUp,
     Zap
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type HubTab = "CHAT" | "IMAGE_GEN" | "MARKET";
 type ResponseStyle = "concise" | "coach" | "operator";
@@ -138,13 +149,6 @@ type PromptLibraryItem = {
   title: string;
   category: PromptLibraryCategory;
   value: string;
-};
-
-type SlashCommand = {
-  id: string;
-  label: string;
-  description: string;
-  execute: () => void;
 };
 
 interface Message {
@@ -233,6 +237,8 @@ const CHAT_MODELS = [
     hint: "Fast low-latency copilot-style responses",
   },
 ] as const;
+
+const CHAT_MODEL_IDS = CHAT_MODELS.map((model) => model.id);
 
 const QUICK_RITUAL_PROMPTS = [
   {
@@ -426,6 +432,8 @@ const SOCIAL_AUTOPILOT_CHANNELS: Array<{ id: SocialChannel; label: string }> = [
   { id: "tiktok", label: "TikTok" },
 ];
 
+const SOCIAL_AUTOPILOT_CHANNEL_IDS = SOCIAL_AUTOPILOT_CHANNELS.map((channel) => channel.id);
+
 const NeuralBackground = () => (
   <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -507,14 +515,34 @@ export const AINeuralHub = () => {
   const [autopilotClicks, setAutopilotClicks] = useState("0");
   const [autopilotOpsLoading, setAutopilotOpsLoading] = useState(false);
   const [autopilotOpsSnapshot, setAutopilotOpsSnapshot] = useState<SocialOpsSnapshot | null>(null);
-  const [memoryCards, setMemoryCards] = useState<MemoryCard[]>([]);
-  const [branchTrail, setBranchTrail] = useState<BranchTrailEntry[]>([]);
-  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
-  const [editingMemoryTitle, setEditingMemoryTitle] = useState("");
-  const [editingMemoryContent, setEditingMemoryContent] = useState("");
-  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
-  const [editingMessageDraft, setEditingMessageDraft] = useState("");
-  const [replayCursor, setReplayCursor] = useState(0);
+  const {
+    memoryCards,
+    setMemoryCards,
+    editingMemoryId,
+    editingMemoryTitle,
+    setEditingMemoryTitle,
+    editingMemoryContent,
+    setEditingMemoryContent,
+    addMemoryCard,
+    beginEditMemory,
+    cancelEditMemory,
+    saveEditMemory,
+    deleteMemoryCard,
+    toggleMemoryScope,
+    boostMemoryCard,
+  } = useMemoryCardControls();
+  const {
+    branchTrail,
+    setBranchTrail,
+    clearBranchTrail,
+    editingMessageIndex,
+    editingMessageDraft,
+    setEditingMessageDraft,
+    beginEditMessage,
+    cancelEditMessage,
+    pruneConversationAtUser,
+    logBranch,
+  } = useMessageBranchControls();
   const [timeTick, setTimeTick] = useState(Date.now());
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
@@ -539,475 +567,166 @@ export const AINeuralHub = () => {
   const [tickerBehaviorPattern, setTickerBehaviorPattern] = useState("");
   const [learningEnvironmentName, setLearningEnvironmentName] = useState("macro event drill");
   const [learningEnvironmentHypothesis, setLearningEnvironmentHypothesis] = useState("");
-  const [neuralVaultCount, setNeuralVaultCount] = useState(0);
   const { connected, publicKey, sendTransaction } = useWallet();
+  const { neuralVaultCount, refreshNeuralVaultCount } = useNeuralVaultCount(getLocalNeuralVault);
 
-  // Usage Tracking
-  useEffect(() => {
-    const storedModel = localStorage.getItem("tradehax_ai_chat_model");
-    if (storedModel && CHAT_MODELS.some((model) => model.id === storedModel)) {
-      setSelectedChatModel(storedModel);
-    }
+  useCorePreferences({
+    validModelIds: CHAT_MODEL_IDS,
+    values: {
+      selectedChatModel,
+      guideName,
+      responseStyle,
+      riskStance,
+      focusSymbol,
+      sessionIntent,
+      personaPreset,
+      isPromptLibraryOpen,
+      beginnerFocusMode,
+      showOperatorDock,
+    },
+    setters: {
+      setSelectedChatModel,
+      setGuideName,
+      setResponseStyle,
+      setRiskStance,
+      setFocusSymbol,
+      setSessionIntent,
+      setPersonaPreset,
+      setIsPromptLibraryOpen,
+      setBeginnerFocusMode,
+      setShowOperatorDock,
+    },
+  });
 
-    const storedGuideName = localStorage.getItem("tradehax_ai_guide_name");
-    if (storedGuideName && storedGuideName.trim()) {
-      setGuideName(storedGuideName.trim().slice(0, 24));
-    }
+  useCommandPaletteControls({
+    commandQuery,
+    isCommandPaletteOpen,
+    setCommandSelectionIndex,
+    onOpenPalette: () => {
+      setActiveTab("CHAT");
+      setCommandQuery("");
+      setIsCommandPaletteOpen(true);
+    },
+    onClosePalette: () => {
+      setIsCommandPaletteOpen(false);
+    },
+  });
 
-    const storedStyle = localStorage.getItem("tradehax_ai_response_style");
-    if (storedStyle === "concise" || storedStyle === "coach" || storedStyle === "operator") {
-      setResponseStyle(storedStyle);
-    }
+  useArtifactPreferences({
+    values: {
+      datasetName,
+      datasetRows,
+      datasetNotes,
+      behaviorLabel,
+      behaviorObservation,
+      tickerBehaviorSymbol,
+      tickerBehaviorPattern,
+      learningEnvironmentName,
+      learningEnvironmentHypothesis,
+    },
+    setters: {
+      setDatasetName,
+      setDatasetRows,
+      setDatasetNotes,
+      setBehaviorLabel,
+      setBehaviorObservation,
+      setTickerBehaviorSymbol,
+      setTickerBehaviorPattern,
+      setLearningEnvironmentName,
+      setLearningEnvironmentHypothesis,
+    },
+  });
 
-    const storedRisk = localStorage.getItem("tradehax_ai_risk_stance");
-    if (storedRisk === "guarded" || storedRisk === "balanced" || storedRisk === "aggressive") {
-      setRiskStance(storedRisk);
-    }
-
-    const storedFocusSymbol = localStorage.getItem("tradehax_ai_focus_symbol");
-    if (storedFocusSymbol && storedFocusSymbol.trim()) {
-      setFocusSymbol(storedFocusSymbol.trim().slice(0, 12).toUpperCase());
-    }
-
-    const storedIntent = localStorage.getItem("tradehax_ai_session_intent");
-    if (storedIntent && storedIntent.trim()) {
-      setSessionIntent(storedIntent.trim().slice(0, 72));
-    }
-
-    const storedPersona = localStorage.getItem("tradehax_ai_persona_preset");
-    if (storedPersona === "mystic" || storedPersona === "analyst" || storedPersona === "mentor") {
-      setPersonaPreset(storedPersona);
-    }
-
-    const storedPromptLibrary = localStorage.getItem("tradehax_ai_prompt_library_open");
-    if (storedPromptLibrary === "true") {
-      setIsPromptLibraryOpen(true);
-    }
-
-    const storedBeginnerFocus = localStorage.getItem("tradehax_ai_beginner_focus_mode");
-    if (storedBeginnerFocus === "false") {
-      setBeginnerFocusMode(false);
-      setShowOperatorDock(true);
-    }
-
-    const storedOperatorDock = localStorage.getItem("tradehax_ai_operator_dock_open");
-    if (storedOperatorDock === "true") {
-      setShowOperatorDock(true);
-    }
-
-    const storedCustomPrompts = localStorage.getItem("tradehax_ai_custom_prompt_packs");
-    if (storedCustomPrompts) {
-      try {
-        const parsed = JSON.parse(storedCustomPrompts) as Array<Partial<PromptLibraryItem>>;
-        if (Array.isArray(parsed)) {
-          setCustomPromptPacks(
-            parsed
-              .slice(0, 24)
-              .map((item) => ({
-                id: typeof item.id === "string" ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                title: String(item.title ?? "Custom Prompt").slice(0, 40),
-                category: item.category === "trading" || item.category === "content" || item.category === "ops" ? item.category : "ops",
-                value: String(item.value ?? "").slice(0, 500),
-              }))
-              .filter((item) => item.value.trim().length > 0),
-          );
-        }
-      } catch {
-        // ignore malformed prompt pack payload
+  const hydrateMemoryCardsFromStorage = useCallback((storedCards: string) => {
+    try {
+      const parsed = JSON.parse(storedCards) as Array<Partial<MemoryCard>>;
+      if (Array.isArray(parsed)) {
+        setMemoryCards(
+          parsed
+            .slice(0, 12)
+            .map<MemoryCard>((card) => ({
+              id: typeof card.id === "string" ? card.id : `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+              scope: card.scope === "long" ? "long" : "short",
+              title: String(card.title ?? "Memory").slice(0, 40),
+              content: String(card.content ?? "").slice(0, 160),
+              updatedAt: typeof card.updatedAt === "number" ? card.updatedAt : Date.now(),
+              confidence: typeof card.confidence === "number" ? Math.min(100, Math.max(1, card.confidence)) : 70,
+            }))
+            .filter((card) => card.content.trim().length > 0),
+        );
       }
-    }
-
-    const storedSessionPresets = localStorage.getItem("tradehax_ai_session_presets");
-    if (storedSessionPresets) {
-      try {
-        const parsed = JSON.parse(storedSessionPresets) as Array<Partial<SessionPreset>>;
-        if (Array.isArray(parsed)) {
-          setSessionPresets(
-            parsed
-              .slice(0, 20)
-              .map((preset) => ({
-                id: typeof preset.id === "string" ? preset.id : `preset_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                name: String(preset.name ?? "Session Preset").slice(0, 42),
-                createdAt: typeof preset.createdAt === "number" ? preset.createdAt : Date.now(),
-                updatedAt: typeof preset.updatedAt === "number" ? preset.updatedAt : Date.now(),
-                guideName: String(preset.guideName ?? "Trader").slice(0, 24),
-                responseStyle: preset.responseStyle === "concise" || preset.responseStyle === "coach" || preset.responseStyle === "operator"
-                  ? preset.responseStyle
-                  : "coach",
-                riskStance: preset.riskStance === "guarded" || preset.riskStance === "balanced" || preset.riskStance === "aggressive"
-                  ? preset.riskStance
-                  : "balanced",
-                focusSymbol: String(preset.focusSymbol ?? "SOL").slice(0, 12),
-                sessionIntent: String(preset.sessionIntent ?? "Build disciplined consistency").slice(0, 72),
-                personaPreset: preset.personaPreset === "mystic" || preset.personaPreset === "analyst" || preset.personaPreset === "mentor"
-                  ? preset.personaPreset
-                  : "mystic",
-                workflowTask: preset.workflowTask === "chat" || preset.workflowTask === "generate" || preset.workflowTask === "summarize" || preset.workflowTask === "qa"
-                  ? preset.workflowTask
-                  : "chat",
-                workflowDepth: preset.workflowDepth === "quick" || preset.workflowDepth === "balanced" || preset.workflowDepth === "deep"
-                  ? preset.workflowDepth
-                  : "balanced",
-                workflowCreativity:
-                  typeof preset.workflowCreativity === "number"
-                    ? Math.max(20, Math.min(100, Math.round(preset.workflowCreativity)))
-                    : 65,
-              }))
-              .sort((a, b) => b.updatedAt - a.updatedAt),
-          );
-        }
-      } catch {
-        // ignore malformed preset payload
-      }
-    }
-
-    const storedWorkspaceSnapshots = localStorage.getItem("tradehax_ai_workspace_timeline");
-    if (storedWorkspaceSnapshots) {
-      try {
-        const parsed = JSON.parse(storedWorkspaceSnapshots) as Array<Partial<WorkspaceSnapshot>>;
-        if (Array.isArray(parsed)) {
-          const hydrated = parsed
-            .slice(0, 16)
-            .filter((item) =>
-              Boolean(item)
-              && typeof item.id === "string"
-              && typeof item.name === "string"
-              && typeof item.version === "number"
-              && typeof item.createdAt === "number"
-              && typeof item.payload === "object"
-              && item.payload !== null,
-            )
-            .map((item) => item as WorkspaceSnapshot)
-            .sort((a, b) => b.createdAt - a.createdAt);
-          setWorkspaceSnapshots(hydrated);
-          if (hydrated[0]?.id) {
-            setSelectedWorkspaceSnapshotId(hydrated[0].id);
-          }
-        }
-      } catch {
-        // ignore malformed timeline payload
-      }
-    }
-
-    const storedDatasetName = localStorage.getItem("tradehax_ai_dataset_name");
-    if (storedDatasetName && storedDatasetName.trim()) {
-      setDatasetName(storedDatasetName.trim().slice(0, 80));
-    }
-
-    const storedDatasetRows = localStorage.getItem("tradehax_ai_dataset_rows");
-    if (storedDatasetRows && /^\d{1,6}$/.test(storedDatasetRows)) {
-      setDatasetRows(storedDatasetRows);
-    }
-
-    const storedDatasetNotes = localStorage.getItem("tradehax_ai_dataset_notes");
-    if (storedDatasetNotes && storedDatasetNotes.trim()) {
-      setDatasetNotes(storedDatasetNotes.trim().slice(0, 220));
-    }
-
-    const storedBehaviorLabel = localStorage.getItem("tradehax_ai_behavior_label");
-    if (storedBehaviorLabel && storedBehaviorLabel.trim()) {
-      setBehaviorLabel(storedBehaviorLabel.trim().slice(0, 100));
-    }
-
-    const storedBehaviorObservation = localStorage.getItem("tradehax_ai_behavior_observation");
-    if (storedBehaviorObservation && storedBehaviorObservation.trim()) {
-      setBehaviorObservation(storedBehaviorObservation.trim().slice(0, 240));
-    }
-
-    const storedTickerBehaviorSymbol = localStorage.getItem("tradehax_ai_ticker_behavior_symbol");
-    if (storedTickerBehaviorSymbol && storedTickerBehaviorSymbol.trim()) {
-      setTickerBehaviorSymbol(storedTickerBehaviorSymbol.trim().slice(0, 20).toUpperCase());
-    }
-
-    const storedTickerBehaviorPattern = localStorage.getItem("tradehax_ai_ticker_behavior_pattern");
-    if (storedTickerBehaviorPattern && storedTickerBehaviorPattern.trim()) {
-      setTickerBehaviorPattern(storedTickerBehaviorPattern.trim().slice(0, 240));
-    }
-
-    const storedLearningEnvironmentName = localStorage.getItem("tradehax_ai_learning_environment_name");
-    if (storedLearningEnvironmentName && storedLearningEnvironmentName.trim()) {
-      setLearningEnvironmentName(storedLearningEnvironmentName.trim().slice(0, 120));
-    }
-
-    const storedLearningEnvironmentHypothesis = localStorage.getItem("tradehax_ai_learning_environment_hypothesis");
-    if (storedLearningEnvironmentHypothesis && storedLearningEnvironmentHypothesis.trim()) {
-      setLearningEnvironmentHypothesis(storedLearningEnvironmentHypothesis.trim().slice(0, 260));
-    }
-
-    setNeuralVaultCount(getLocalNeuralVault().length);
-
-    const storedVideoUrl = localStorage.getItem("tradehax_ai_video_source_url");
-    if (storedVideoUrl && storedVideoUrl.trim()) {
-      setVideoSourceUrl(storedVideoUrl.trim().slice(0, 300));
-    }
-
-    const storedVideoGoal = localStorage.getItem("tradehax_ai_video_instruction_goal");
-    if (storedVideoGoal && storedVideoGoal.trim()) {
-      setVideoInstructionGoal(storedVideoGoal.trim().slice(0, 140));
-    }
-
-    const storedVideoCue = localStorage.getItem("tradehax_ai_video_cue");
-    if (storedVideoCue && storedVideoCue.trim()) {
-      setVideoCue(storedVideoCue.trim().slice(0, 140));
-    }
-
-    const storedWebsiteSourceUrl = localStorage.getItem("tradehax_ai_website_source_url");
-    if (storedWebsiteSourceUrl && storedWebsiteSourceUrl.trim()) {
-      setWebsiteSourceUrl(storedWebsiteSourceUrl.trim().slice(0, 300));
-    }
-
-    const storedAutopilotFocus = localStorage.getItem("tradehax_ai_autopilot_focus");
-    if (storedAutopilotFocus && storedAutopilotFocus.trim()) {
-      setAutopilotFocus(storedAutopilotFocus.trim().slice(0, 80));
-    }
-
-    const storedChannels = localStorage.getItem("tradehax_ai_autopilot_channels");
-    if (storedChannels) {
-      try {
-        const parsed = JSON.parse(storedChannels) as string[];
-        const valid = Array.isArray(parsed)
-          ? parsed
-              .map((item) => String(item).toLowerCase())
-              .filter((item): item is SocialChannel =>
-                SOCIAL_AUTOPILOT_CHANNELS.some((channel) => channel.id === item),
-              )
-          : [];
-        if (valid.length > 0) {
-          setAutopilotChannels(Array.from(new Set(valid)).slice(0, 8));
-        }
-      } catch {
-        // ignore malformed storage payload
-      }
-    }
-
-    const storedOpsDraftId = localStorage.getItem("tradehax_ai_autopilot_ops_draft_id");
-    if (storedOpsDraftId && storedOpsDraftId.trim()) {
-      setAutopilotOpsDraftId(storedOpsDraftId.trim().slice(0, 80));
-    }
-
-    const storedScheduleAt = localStorage.getItem("tradehax_ai_autopilot_schedule_at");
-    if (storedScheduleAt && storedScheduleAt.trim()) {
-      setAutopilotScheduleAt(storedScheduleAt.trim().slice(0, 40));
-    }
-
-    const storedImpressions = localStorage.getItem("tradehax_ai_autopilot_impressions");
-    if (storedImpressions && /^\d{1,9}$/.test(storedImpressions)) {
-      setAutopilotImpressions(storedImpressions);
-    }
-
-    const storedEngagements = localStorage.getItem("tradehax_ai_autopilot_engagements");
-    if (storedEngagements && /^\d{1,9}$/.test(storedEngagements)) {
-      setAutopilotEngagements(storedEngagements);
-    }
-
-    const storedClicks = localStorage.getItem("tradehax_ai_autopilot_clicks");
-    if (storedClicks && /^\d{1,9}$/.test(storedClicks)) {
-      setAutopilotClicks(storedClicks);
-    }
-
-    const storedCards = localStorage.getItem("tradehax_ai_memory_cards");
-    if (storedCards) {
-      try {
-        const parsed = JSON.parse(storedCards) as Array<Partial<MemoryCard>>;
-        if (Array.isArray(parsed)) {
-          setMemoryCards(
-            parsed
-              .slice(0, 12)
-              .map<MemoryCard>((card) => ({
-                id: typeof card.id === "string" ? card.id : `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                scope: card.scope === "long" ? "long" : "short",
-                title: String(card.title ?? "Memory").slice(0, 40),
-                content: String(card.content ?? "").slice(0, 160),
-                updatedAt: typeof card.updatedAt === "number" ? card.updatedAt : Date.now(),
-                confidence: typeof card.confidence === "number" ? Math.min(100, Math.max(1, card.confidence)) : 70,
-              }))
-              .filter((card) => card.content.trim().length > 0),
-          );
-        }
-      } catch {
-        // ignore malformed local storage payload
-      }
-    }
-
-    const storedBranches = localStorage.getItem("tradehax_ai_branch_trail");
-    if (storedBranches) {
-      try {
-        const parsed = JSON.parse(storedBranches) as BranchTrailEntry[];
-        if (Array.isArray(parsed)) {
-          setBranchTrail(parsed.slice(0, 18));
-        }
-      } catch {
-        // ignore malformed local storage payload
-      }
+    } catch {
+      // ignore malformed local storage payload
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_chat_model", selectedChatModel);
-  }, [selectedChatModel]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_guide_name", guideName.trim() || "Trader");
-  }, [guideName]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_response_style", responseStyle);
-  }, [responseStyle]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_risk_stance", riskStance);
-  }, [riskStance]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_focus_symbol", focusSymbol);
-  }, [focusSymbol]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_session_intent", sessionIntent);
-  }, [sessionIntent]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_persona_preset", personaPreset);
-  }, [personaPreset]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_prompt_library_open", String(isPromptLibraryOpen));
-  }, [isPromptLibraryOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_beginner_focus_mode", String(beginnerFocusMode));
-  }, [beginnerFocusMode]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_operator_dock_open", String(showOperatorDock));
-  }, [showOperatorDock]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_custom_prompt_packs", JSON.stringify(customPromptPacks.slice(0, 24)));
-  }, [customPromptPacks]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_session_presets", JSON.stringify(sessionPresets.slice(0, 20)));
-  }, [sessionPresets]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_workspace_timeline", JSON.stringify(workspaceSnapshots.slice(0, 16)));
-  }, [workspaceSnapshots]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_dataset_name", datasetName.slice(0, 80));
-  }, [datasetName]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_dataset_rows", datasetRows.replace(/\D/g, "").slice(0, 6) || "0");
-  }, [datasetRows]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_dataset_notes", datasetNotes.slice(0, 220));
-  }, [datasetNotes]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_behavior_label", behaviorLabel.slice(0, 100));
-  }, [behaviorLabel]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_behavior_observation", behaviorObservation.slice(0, 240));
-  }, [behaviorObservation]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_ticker_behavior_symbol", tickerBehaviorSymbol.slice(0, 20).toUpperCase());
-  }, [tickerBehaviorSymbol]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_ticker_behavior_pattern", tickerBehaviorPattern.slice(0, 240));
-  }, [tickerBehaviorPattern]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_learning_environment_name", learningEnvironmentName.slice(0, 120));
-  }, [learningEnvironmentName]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_learning_environment_hypothesis", learningEnvironmentHypothesis.slice(0, 260));
-  }, [learningEnvironmentHypothesis]);
-
-  useEffect(() => {
-    setCommandSelectionIndex(0);
-  }, [commandQuery, isCommandPaletteOpen]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const isMetaCommand = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k";
-      if (isMetaCommand) {
-        event.preventDefault();
-        setActiveTab("CHAT");
-        setIsCommandPaletteOpen(true);
-        return;
+  const hydrateBranchTrailFromStorage = useCallback((storedBranches: string) => {
+    try {
+      const parsed = JSON.parse(storedBranches) as BranchTrailEntry[];
+      if (Array.isArray(parsed)) {
+        setBranchTrail(parsed.slice(0, 18));
       }
-
-      if (event.key === "Escape") {
-        setIsCommandPaletteOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    } catch {
+      // ignore malformed local storage payload
+    }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_video_source_url", videoSourceUrl);
-  }, [videoSourceUrl]);
+  useNeuralSessionPersistence({
+    values: {
+      videoSourceUrl,
+      videoInstructionGoal,
+      videoCue,
+      websiteSourceUrl,
+      autopilotFocus,
+      autopilotChannels,
+      autopilotOpsDraftId,
+      autopilotScheduleAt,
+      autopilotImpressions,
+      autopilotEngagements,
+      autopilotClicks,
+      memoryCards,
+      branchTrail,
+    },
+    setters: {
+      setVideoSourceUrl,
+      setVideoInstructionGoal,
+      setVideoCue,
+      setWebsiteSourceUrl,
+      setAutopilotFocus,
+      setAutopilotChannels,
+      setAutopilotOpsDraftId,
+      setAutopilotScheduleAt,
+      setAutopilotImpressions,
+      setAutopilotEngagements,
+      setAutopilotClicks,
+    },
+    socialChannelIds: SOCIAL_AUTOPILOT_CHANNEL_IDS,
+    onHydrateMemoryCards: hydrateMemoryCardsFromStorage,
+    onHydrateBranchTrail: hydrateBranchTrailFromStorage,
+  });
 
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_video_instruction_goal", videoInstructionGoal);
-  }, [videoInstructionGoal]);
+  useWorkspaceTimelinePersistence({
+    values: {
+      customPromptPacks,
+      sessionPresets,
+      workspaceSnapshots,
+    },
+    setters: {
+      setCustomPromptPacks,
+      setSessionPresets,
+      setWorkspaceSnapshots,
+      setSelectedWorkspaceSnapshotId,
+    },
+  });
 
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_video_cue", videoCue);
-  }, [videoCue]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_website_source_url", websiteSourceUrl);
-  }, [websiteSourceUrl]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_focus", autopilotFocus);
-  }, [autopilotFocus]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_channels", JSON.stringify(autopilotChannels));
-  }, [autopilotChannels]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_ops_draft_id", autopilotOpsDraftId);
-  }, [autopilotOpsDraftId]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_schedule_at", autopilotScheduleAt);
-  }, [autopilotScheduleAt]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_impressions", autopilotImpressions.replace(/\D/g, "").slice(0, 9) || "0");
-  }, [autopilotImpressions]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_engagements", autopilotEngagements.replace(/\D/g, "").slice(0, 9) || "0");
-  }, [autopilotEngagements]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_autopilot_clicks", autopilotClicks.replace(/\D/g, "").slice(0, 9) || "0");
-  }, [autopilotClicks]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_memory_cards", JSON.stringify(memoryCards.slice(0, 12)));
-  }, [memoryCards]);
-
-  useEffect(() => {
-    localStorage.setItem("tradehax_ai_branch_trail", JSON.stringify(branchTrail.slice(0, 18)));
-  }, [branchTrail]);
-
-  useEffect(() => {
-    setReplayCursor((prev) => Math.min(prev, Math.max(0, branchTrail.length - 1)));
-  }, [branchTrail]);
+  const { replayCursor, replayEntries, activeReplayEntry, stepReplay, restoreReplayEntry } = useBranchReplayControls({
+    branchTrail,
+    onRestoreEntry: (entry) => {
+      setActiveTab("CHAT");
+      setChatInput(entry.preview);
+      setChatStatus(`Loaded ${entry.kind === "edit-retry" ? "edited" : "retry"} branch #${entry.fromIndex + 1} into input.`);
+    },
+  });
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -1308,13 +1027,18 @@ export const AINeuralHub = () => {
     setCustomPromptPacks((prev) => prev.filter((item) => item.id !== id));
   }
 
-  function createSessionPreset() {
-    const cleanedName = sessionPresetName.trim().slice(0, 42) || `${personaPreset.toUpperCase()} • ${focusSymbol}`;
-    const preset: SessionPreset = {
-      id: `preset_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      name: cleanedName,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+  const {
+    createSessionPreset,
+    applySessionPreset,
+    deleteSessionPreset,
+    createWorkspaceSnapshot,
+    restoreWorkspaceSnapshot,
+    restorePreviousWorkspaceSnapshot,
+    deleteWorkspaceSnapshot,
+    selectedWorkspaceSnapshot,
+    selectedWorkspaceSnapshotDiff,
+  } = useSessionContinuityControls({
+    settings: {
       guideName,
       responseStyle,
       riskStance,
@@ -1324,126 +1048,36 @@ export const AINeuralHub = () => {
       workflowTask,
       workflowDepth,
       workflowCreativity,
-    };
-
-    setSessionPresets((prev) => [preset, ...prev].slice(0, 20));
-    setSessionPresetName("");
-    setChatStatus(`Saved session preset: ${cleanedName}`);
-  }
-
-  function applySessionPreset(preset: SessionPreset) {
-    setGuideName(preset.guideName);
-    setResponseStyle(preset.responseStyle);
-    setRiskStance(preset.riskStance);
-    setFocusSymbol(normalizeSymbol(preset.focusSymbol) || "SOL");
-    setSessionIntent(preset.sessionIntent);
-    setPersonaPreset(preset.personaPreset);
-    setWorkflowTask(preset.workflowTask);
-    setWorkflowDepth(preset.workflowDepth);
-    setWorkflowCreativity(Math.max(20, Math.min(100, Math.round(preset.workflowCreativity))));
-    setSessionPresets((prev) =>
-      prev.map((item) =>
-        item.id === preset.id
-          ? {
-              ...item,
-              updatedAt: Date.now(),
-            }
-          : item,
-      ).sort((a, b) => b.updatedAt - a.updatedAt),
-    );
-    setActiveTab("CHAT");
-    setChatStatus(`Applied preset: ${preset.name}`);
-  }
-
-  function deleteSessionPreset(id: string) {
-    setSessionPresets((prev) => prev.filter((item) => item.id !== id));
-    setChatStatus("Session preset removed.");
-  }
-
-  function buildWorkspaceSettingsSnapshot(): WorkspaceSettingsSnapshot {
-    return {
-      guideName,
-      responseStyle,
-      riskStance,
-      focusSymbol,
-      sessionIntent,
-      personaPreset,
-      workflowTask,
-      workflowDepth,
-      workflowCreativity,
-    };
-  }
-
-  function createWorkspaceSnapshot(customName?: string) {
-    const nextVersion = (workspaceSnapshots[0]?.version ?? 0) + 1;
-    const snapshotName = (customName ?? workspaceSnapshotName).trim().slice(0, 56) || `Workspace v${nextVersion}`;
-    const snapshot: WorkspaceSnapshot = {
-      id: `ws_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      name: snapshotName,
-      version: nextVersion,
-      createdAt: Date.now(),
-      payload: {
-        settings: buildWorkspaceSettingsSnapshot(),
-        customPromptPacks: customPromptPacks.slice(0, 24),
-        memoryCards: memoryCards.slice(0, 12),
-        sessionPresets: sessionPresets.slice(0, 20),
-      },
-    };
-
-    setWorkspaceSnapshots((prev) => [snapshot, ...prev].slice(0, 16));
-    setSelectedWorkspaceSnapshotId(snapshot.id);
-    setWorkspaceSnapshotName("");
-    setChatStatus(`Workspace snapshot saved: ${snapshot.name}`);
-  }
-
-  function restoreWorkspaceSnapshot(snapshot: WorkspaceSnapshot) {
-    const settings = snapshot.payload.settings;
-    setGuideName(settings.guideName);
-    setResponseStyle(settings.responseStyle);
-    setRiskStance(settings.riskStance);
-    setFocusSymbol(normalizeSymbol(settings.focusSymbol) || "SOL");
-    setSessionIntent(settings.sessionIntent.slice(0, 72));
-    setPersonaPreset(settings.personaPreset);
-    setWorkflowTask(settings.workflowTask);
-    setWorkflowDepth(settings.workflowDepth);
-    setWorkflowCreativity(Math.max(20, Math.min(100, Math.round(settings.workflowCreativity))));
-    setCustomPromptPacks(snapshot.payload.customPromptPacks.slice(0, 24));
-    setMemoryCards(snapshot.payload.memoryCards.slice(0, 12));
-    setSessionPresets(snapshot.payload.sessionPresets.slice(0, 20));
-    setSelectedWorkspaceSnapshotId(snapshot.id);
-    setActiveTab("CHAT");
-    setChatStatus(`Restored workspace snapshot: ${snapshot.name}`);
-  }
-
-  function restorePreviousWorkspaceSnapshot() {
-    if (workspaceSnapshots.length < 2) {
-      setChatStatus("No previous workspace snapshot available.");
-      return;
-    }
-    restoreWorkspaceSnapshot(workspaceSnapshots[1]);
-  }
-
-  function deleteWorkspaceSnapshot(id: string) {
-    setWorkspaceSnapshots((prev) => prev.filter((item) => item.id !== id));
-    if (selectedWorkspaceSnapshotId === id) {
-      setSelectedWorkspaceSnapshotId(null);
-    }
-    setChatStatus("Workspace snapshot deleted.");
-  }
-
-  function getWorkspaceSnapshotDiff(snapshot: WorkspaceSnapshot) {
-    const currentSettings = buildWorkspaceSettingsSnapshot();
-    const incomingSettings = snapshot.payload.settings;
-    const changedSettings = (Object.keys(currentSettings) as Array<keyof WorkspaceSettingsSnapshot>)
-      .filter((key) => currentSettings[key] !== incomingSettings[key]);
-
-    return {
-      changedSettings,
-      customPromptDelta: snapshot.payload.customPromptPacks.length - customPromptPacks.length,
-      memoryDelta: snapshot.payload.memoryCards.length - memoryCards.length,
-      presetsDelta: snapshot.payload.sessionPresets.length - sessionPresets.length,
-    };
-  }
+    },
+    customPromptPacks,
+    memoryCards,
+    sessionPresets,
+    sessionPresetName,
+    workspaceSnapshots,
+    workspaceSnapshotName,
+    selectedWorkspaceSnapshotId,
+    setSessionPresets,
+    setSessionPresetName,
+    setWorkspaceSnapshots,
+    setWorkspaceSnapshotName,
+    setSelectedWorkspaceSnapshotId,
+    setCustomPromptPacks,
+    setMemoryCards,
+    sessionSetters: {
+      setGuideName,
+      setResponseStyle,
+      setRiskStance,
+      setFocusSymbol,
+      setSessionIntent,
+      setPersonaPreset,
+      setWorkflowTask,
+      setWorkflowDepth,
+      setWorkflowCreativity,
+    },
+    normalizeSymbol,
+    onActivateChat: () => setActiveTab("CHAT"),
+    setChatStatus,
+  });
 
   function exportSessionSnapshot() {
     const snapshot = {
@@ -1477,384 +1111,120 @@ export const AINeuralHub = () => {
     setChatStatus("Session snapshot exported.");
   }
 
-  async function saveDatasetNeuralArtifact() {
-    const rows = Number(datasetRows.replace(/\D/g, "") || "0");
-    if (!datasetName.trim()) {
-      setChatStatus("Dataset name is required.");
-      return;
-    }
-
-    const result = await saveDatasetArtifact({
-      name: datasetName,
-      rows,
-      notes: datasetNotes,
-      userId: buildHubUserId(),
-      source: "system",
-      route: "/",
-      consent: {
-        analytics: true,
-        training: true,
-      },
-    });
-
-    setNeuralVaultCount(getLocalNeuralVault().length);
-    setChatStatus(result.ok ? "Dataset artifact saved to neural memory." : "Dataset saved locally. Network sync pending.");
-  }
-
-  async function saveUserBehaviorNeuralArtifact() {
-    if (!behaviorLabel.trim() || !behaviorObservation.trim()) {
-      setChatStatus("Behavior and observation are required.");
-      return;
-    }
-
-    const result = await saveUserBehaviorArtifact({
-      behavior: behaviorLabel,
-      observation: behaviorObservation,
-      userId: buildHubUserId(),
-      source: "system",
-      route: "/",
-      consent: {
-        analytics: true,
-        training: true,
-      },
-    });
-
-    setNeuralVaultCount(getLocalNeuralVault().length);
-    setChatStatus(result.ok ? "User behavior pattern saved." : "Behavior saved locally. Network sync pending.");
-  }
-
-  async function saveTickerBehaviorNeuralArtifact() {
-    if (!tickerBehaviorSymbol.trim() || !tickerBehaviorPattern.trim()) {
-      setChatStatus("Ticker symbol and pattern are required.");
-      return;
-    }
-
-    const result = await saveTickerBehaviorArtifact({
-      ticker: tickerBehaviorSymbol,
-      pattern: tickerBehaviorPattern,
-      userId: buildHubUserId(),
-      source: "system",
-      route: "/",
-      consent: {
-        analytics: true,
-        training: true,
-      },
-    });
-
-    setNeuralVaultCount(getLocalNeuralVault().length);
-    setChatStatus(result.ok ? "Ticker behavior pattern saved." : "Ticker behavior saved locally. Network sync pending.");
-  }
-
-  async function saveLearningEnvironmentNeuralArtifact() {
-    if (!learningEnvironmentName.trim() || !learningEnvironmentHypothesis.trim()) {
-      setChatStatus("Environment and hypothesis are required.");
-      return;
-    }
-
-    const result = await saveLearningEnvironmentArtifact({
-      environment: learningEnvironmentName,
-      hypothesis: learningEnvironmentHypothesis,
-      userId: buildHubUserId(),
-      source: "system",
-      route: "/",
-      consent: {
-        analytics: true,
-        training: true,
-      },
-    });
-
-    setNeuralVaultCount(getLocalNeuralVault().length);
-    setChatStatus(result.ok ? "Learning environment saved." : "Learning environment saved locally. Network sync pending.");
-  }
-
-  function exportNeuralVaultDataset() {
-    const result = exportLocalNeuralVault();
-    if (!result.ok) {
-      setChatStatus("Unable to export neural vault in this environment.");
-      return;
-    }
-    setChatStatus(`Exported neural vault with ${result.count} records.`);
-  }
+  const {
+    saveDatasetNeuralArtifact,
+    saveUserBehaviorNeuralArtifact,
+    saveTickerBehaviorNeuralArtifact,
+    saveLearningEnvironmentNeuralArtifact,
+    exportNeuralVaultDataset,
+  } = useNeuralArtifactWorkflows({
+    datasetName,
+    datasetRows,
+    datasetNotes,
+    behaviorLabel,
+    behaviorObservation,
+    tickerBehaviorSymbol,
+    tickerBehaviorPattern,
+    learningEnvironmentName,
+    learningEnvironmentHypothesis,
+    buildHubUserId,
+    refreshNeuralVaultCount,
+    setChatStatus,
+  });
 
   function importSessionSnapshotFromPrompt() {
     const raw = window.prompt("Paste exported session snapshot JSON:");
     if (!raw || !raw.trim()) return;
 
-    try {
-      const parsed = JSON.parse(raw) as {
-        settings?: Partial<SessionPreset>;
-        customPromptPacks?: Array<Partial<PromptLibraryItem>>;
-        memoryCards?: Array<Partial<MemoryCard>>;
-        sessionPresets?: Array<Partial<SessionPreset>>;
-      };
-
-      if (parsed.settings) {
-        const settings = parsed.settings;
-        if (typeof settings.guideName === "string" && settings.guideName.trim()) {
-          setGuideName(settings.guideName.trim().slice(0, 24));
-        }
-        if (settings.responseStyle === "concise" || settings.responseStyle === "coach" || settings.responseStyle === "operator") {
-          setResponseStyle(settings.responseStyle);
-        }
-        if (settings.riskStance === "guarded" || settings.riskStance === "balanced" || settings.riskStance === "aggressive") {
-          setRiskStance(settings.riskStance);
-        }
-        if (typeof settings.focusSymbol === "string") {
-          setFocusSymbol(normalizeSymbol(settings.focusSymbol) || "SOL");
-        }
-        if (typeof settings.sessionIntent === "string") {
-          setSessionIntent(settings.sessionIntent.slice(0, 72));
-        }
-        if (settings.personaPreset === "mystic" || settings.personaPreset === "analyst" || settings.personaPreset === "mentor") {
-          setPersonaPreset(settings.personaPreset);
-        }
-        if (settings.workflowTask === "chat" || settings.workflowTask === "generate" || settings.workflowTask === "summarize" || settings.workflowTask === "qa") {
-          setWorkflowTask(settings.workflowTask);
-        }
-        if (settings.workflowDepth === "quick" || settings.workflowDepth === "balanced" || settings.workflowDepth === "deep") {
-          setWorkflowDepth(settings.workflowDepth);
-        }
-        if (typeof settings.workflowCreativity === "number") {
-          setWorkflowCreativity(Math.max(20, Math.min(100, Math.round(settings.workflowCreativity))));
-        }
-      }
-
-      if (Array.isArray(parsed.customPromptPacks)) {
-        setCustomPromptPacks(
-          parsed.customPromptPacks
-            .slice(0, 24)
-            .map((item) => ({
-              id: typeof item.id === "string" ? item.id : `custom_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-              title: String(item.title ?? "Custom Prompt").slice(0, 40),
-              category: item.category === "trading" || item.category === "content" || item.category === "ops" ? item.category : "ops",
-              value: String(item.value ?? "").slice(0, 500),
-            }))
-            .filter((item) => item.value.trim().length > 0),
-        );
-      }
-
-      if (Array.isArray(parsed.memoryCards)) {
-        setMemoryCards(
-          parsed.memoryCards
-            .slice(0, 12)
-            .map<MemoryCard>((card) => ({
-              id: typeof card.id === "string" ? card.id : `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-              scope: card.scope === "long" ? "long" : "short",
-              title: String(card.title ?? "Memory").slice(0, 40),
-              content: String(card.content ?? "").slice(0, 160),
-              updatedAt: typeof card.updatedAt === "number" ? card.updatedAt : Date.now(),
-              confidence: typeof card.confidence === "number" ? Math.min(100, Math.max(1, card.confidence)) : 70,
-            }))
-            .filter((card) => card.content.trim().length > 0),
-        );
-      }
-
-      if (Array.isArray(parsed.sessionPresets)) {
-        setSessionPresets(
-          parsed.sessionPresets
-            .slice(0, 20)
-            .map((preset) => ({
-              id: typeof preset.id === "string" ? preset.id : `preset_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-              name: String(preset.name ?? "Session Preset").slice(0, 42),
-              createdAt: typeof preset.createdAt === "number" ? preset.createdAt : Date.now(),
-              updatedAt: typeof preset.updatedAt === "number" ? preset.updatedAt : Date.now(),
-              guideName: String(preset.guideName ?? "Trader").slice(0, 24),
-              responseStyle: preset.responseStyle === "concise" || preset.responseStyle === "coach" || preset.responseStyle === "operator"
-                ? preset.responseStyle
-                : "coach",
-              riskStance: preset.riskStance === "guarded" || preset.riskStance === "balanced" || preset.riskStance === "aggressive"
-                ? preset.riskStance
-                : "balanced",
-              focusSymbol: String(preset.focusSymbol ?? "SOL").slice(0, 12),
-              sessionIntent: String(preset.sessionIntent ?? "Build disciplined consistency").slice(0, 72),
-              personaPreset: preset.personaPreset === "mystic" || preset.personaPreset === "analyst" || preset.personaPreset === "mentor"
-                ? preset.personaPreset
-                : "mystic",
-              workflowTask: preset.workflowTask === "chat" || preset.workflowTask === "generate" || preset.workflowTask === "summarize" || preset.workflowTask === "qa"
-                ? preset.workflowTask
-                : "chat",
-              workflowDepth: preset.workflowDepth === "quick" || preset.workflowDepth === "balanced" || preset.workflowDepth === "deep"
-                ? preset.workflowDepth
-                : "balanced",
-              workflowCreativity:
-                typeof preset.workflowCreativity === "number"
-                  ? Math.max(20, Math.min(100, Math.round(preset.workflowCreativity)))
-                  : 65,
-            }))
-            .sort((a, b) => b.updatedAt - a.updatedAt),
-        );
-      }
-
-      setChatStatus("Session snapshot imported.");
-    } catch {
+    const parsed = parseImportedSessionSnapshot(raw);
+    if (!parsed) {
       setChatStatus("Invalid snapshot JSON. Import aborted.");
+      return;
     }
+
+    if (parsed.settings) {
+      const settings = parsed.settings;
+      if (settings.guideName) {
+        setGuideName(settings.guideName);
+      }
+      if (settings.responseStyle) {
+        setResponseStyle(settings.responseStyle);
+      }
+      if (settings.riskStance) {
+        setRiskStance(settings.riskStance);
+      }
+      if (settings.focusSymbol) {
+        setFocusSymbol(normalizeSymbol(settings.focusSymbol) || "SOL");
+      }
+      if (settings.sessionIntent) {
+        setSessionIntent(settings.sessionIntent);
+      }
+      if (settings.personaPreset) {
+        setPersonaPreset(settings.personaPreset);
+      }
+      if (settings.workflowTask) {
+        setWorkflowTask(settings.workflowTask);
+      }
+      if (settings.workflowDepth) {
+        setWorkflowDepth(settings.workflowDepth);
+      }
+      if (typeof settings.workflowCreativity === "number") {
+        setWorkflowCreativity(settings.workflowCreativity);
+      }
+    }
+
+    if (parsed.customPromptPacks) {
+      setCustomPromptPacks(parsed.customPromptPacks);
+    }
+
+    if (parsed.memoryCards) {
+      setMemoryCards(parsed.memoryCards);
+    }
+
+    if (parsed.sessionPresets) {
+      setSessionPresets(parsed.sessionPresets);
+    }
+
+    setChatStatus("Session snapshot imported.");
   }
 
-  const promptLibraryEntries = [...PROMPT_LIBRARY, ...customPromptPacks];
-
-  const slashCommands: SlashCommand[] = [
-    {
-      id: "new",
-      label: "/new",
-      description: "Start a new secure chat session",
-      execute: () => startNewChat(),
-    },
-    {
-      id: "palette",
-      label: "/palette",
-      description: "Open command palette",
-      execute: () => setIsCommandPaletteOpen(true),
-    },
-    {
-      id: "library",
-      label: "/library",
-      description: "Toggle prompt library drawer",
-      execute: () => setIsPromptLibraryOpen((prev) => !prev),
-    },
-    {
-      id: "task-chat",
-      label: "/chat",
-      description: "Switch to Neural Chat task",
-      execute: () => setWorkflowTask("chat"),
-    },
-    {
-      id: "task-generate",
-      label: "/generate",
-      description: "Switch to Generate task",
-      execute: () => setWorkflowTask("generate"),
-    },
-    {
-      id: "task-summarize",
-      label: "/summarize",
-      description: "Switch to Summarize task",
-      execute: () => setWorkflowTask("summarize"),
-    },
-    {
-      id: "task-qa",
-      label: "/qa",
-      description: "Switch to QA task",
-      execute: () => setWorkflowTask("qa"),
-    },
-    {
-      id: "save-preset",
-      label: "/savepreset",
-      description: "Save current settings as a session preset",
-      execute: () => createSessionPreset(),
-    },
-    {
-      id: "export-session",
-      label: "/exportsession",
-      description: "Export full session snapshot",
-      execute: () => exportSessionSnapshot(),
-    },
-    {
-      id: "import-session",
-      label: "/importsession",
-      description: "Import a session snapshot JSON",
-      execute: () => importSessionSnapshotFromPrompt(),
-    },
-    {
-      id: "snapshot",
-      label: "/snapshot",
-      description: "Capture workspace timeline snapshot",
-      execute: () => createWorkspaceSnapshot(),
-    },
-    {
-      id: "undo-snapshot",
-      label: "/undo",
-      description: "Restore previous workspace snapshot",
-      execute: () => restorePreviousWorkspaceSnapshot(),
-    },
-  ];
-
-  const commandPaletteEntries: Array<{ id: string; label: string; hint: string; action: () => void }> = [
-    { id: "new-chat", label: "New Chat", hint: "Start a fresh secure session", action: () => startNewChat() },
-    { id: "toggle-library", label: "Toggle Prompt Library", hint: "Open/close curated prompt drawer", action: () => setIsPromptLibraryOpen((prev) => !prev) },
-    { id: "task-chat", label: "Mode: Neural Chat", hint: "Relationship-aware assistant mode", action: () => setWorkflowTask("chat") },
-    { id: "task-generate", label: "Mode: Generate", hint: "Draft long-form or short-form output", action: () => setWorkflowTask("generate") },
-    { id: "task-summarize", label: "Mode: Summarize", hint: "Compress dense source into action summary", action: () => setWorkflowTask("summarize") },
-    { id: "task-qa", label: "Mode: Q&A", hint: "Ground answers in explicit context", action: () => setWorkflowTask("qa") },
-    { id: "save-preset", label: "Save Session Preset", hint: "Store current operator setup", action: () => createSessionPreset() },
-    { id: "export-session", label: "Export Session Snapshot", hint: "Download settings, memory, and presets JSON", action: () => exportSessionSnapshot() },
-    { id: "import-session", label: "Import Session Snapshot", hint: "Paste JSON to restore a saved workspace", action: () => importSessionSnapshotFromPrompt() },
-    { id: "capture-workspace", label: "Capture Workspace Snapshot", hint: "Save full timeline snapshot of current state", action: () => createWorkspaceSnapshot() },
-    { id: "undo-workspace", label: "Undo to Previous Snapshot", hint: "Rewind workspace to prior saved state", action: () => restorePreviousWorkspaceSnapshot() },
-    { id: "copy-last", label: "Copy Last Reply", hint: "Copy latest assistant output", action: () => { void copyLastReply(); } },
-    { id: "export", label: "Export Transcript", hint: "Download current session transcript", action: () => exportTranscript() },
-  ];
-
-  const slashQuery = chatInput.startsWith("/") ? chatInput.slice(1).trim().toLowerCase() : "";
-  const filteredSlashCommands = chatInput.startsWith("/")
-    ? slashCommands.filter((command) =>
-        command.label.replace(/^\//, "").includes(slashQuery) || command.description.toLowerCase().includes(slashQuery),
-      )
-    : [];
-  const filteredCommandPaletteEntries = commandPaletteEntries.filter((entry) => {
-    const query = commandQuery.trim().toLowerCase();
-    if (!query) return true;
-    return entry.label.toLowerCase().includes(query) || entry.hint.toLowerCase().includes(query);
+  const { startNewChat, copyLastReply, rememberLastPrompt, pinCurrentFocus } = useChatUtilityActions({
+    guideName,
+    sessionIntent,
+    focusSymbol,
+    messages,
+    setMessages,
+    setChatInput,
+    setChatStatus,
+    clearBranchTrail,
+    cancelEditMessage,
+    addMemoryCard,
   });
 
-  useEffect(() => {
-    if (!isCommandPaletteOpen) return;
-
-    const onPaletteKeyDown = (event: KeyboardEvent) => {
-      if (filteredCommandPaletteEntries.length === 0) return;
-
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setCommandSelectionIndex((prev) => (prev + 1) % filteredCommandPaletteEntries.length);
-        return;
-      }
-
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setCommandSelectionIndex((prev) =>
-          prev <= 0 ? filteredCommandPaletteEntries.length - 1 : prev - 1,
-        );
-        return;
-      }
-
-      if (event.key === "Enter") {
-        event.preventDefault();
-        const selected = filteredCommandPaletteEntries[Math.min(commandSelectionIndex, filteredCommandPaletteEntries.length - 1)];
-        if (selected) {
-          runPaletteCommand(selected.id);
-        }
-      }
-    };
-
-    window.addEventListener("keydown", onPaletteKeyDown);
-    return () => window.removeEventListener("keydown", onPaletteKeyDown);
-  }, [isCommandPaletteOpen, filteredCommandPaletteEntries, commandSelectionIndex]);
-
-  function applySlashCommand(command: SlashCommand) {
-    command.execute();
-    setChatInput("");
-    setChatStatus(`Executed ${command.label}`);
-  }
-
-  function tryExecuteSlashInput(input: string) {
-    if (!input.startsWith("/")) return false;
-    const slashToken = input.split(/\s+/)[0].trim().toLowerCase();
-    const command = slashCommands.find((item) => item.label === slashToken);
-    if (!command) {
-      setChatStatus("Unknown slash command. Try /palette, /library, /chat, /generate, /summarize, /qa, /savepreset, /exportsession, /importsession, /snapshot, /undo.");
-      return true;
-    }
-
-    applySlashCommand(command);
-    return true;
-  }
-
-  function runPaletteCommand(id: string) {
-    const match = commandPaletteEntries.find((entry) => entry.id === id);
-    if (!match) return;
-    match.action();
-    setIsCommandPaletteOpen(false);
-    setCommandQuery("");
-  }
+  const promptLibraryEntries = [...PROMPT_LIBRARY, ...customPromptPacks];
+  const { filteredSlashCommands, filteredCommandPaletteEntries, applySlashCommand, runPaletteCommand, tryExecuteSlashInput } =
+    useChatCommandControls({
+      chatInput,
+      commandQuery,
+      commandSelectionIndex,
+      isCommandPaletteOpen,
+      setCommandSelectionIndex,
+      setChatInput,
+      setChatStatus,
+      setIsCommandPaletteOpen,
+      setCommandQuery,
+      onStartNewChat: startNewChat,
+      onTogglePromptLibrary: () => setIsPromptLibraryOpen((prev) => !prev),
+      onSetWorkflowTask: setWorkflowTask,
+      onSetActiveTab: setActiveTab,
+      onSaveSessionPreset: createSessionPreset,
+      onExportSession: exportSessionSnapshot,
+      onImportSession: importSessionSnapshotFromPrompt,
+      onCreateWorkspaceSnapshot: createWorkspaceSnapshot,
+      onRestorePreviousWorkspaceSnapshot: restorePreviousWorkspaceSnapshot,
+      onCopyLastReply: copyLastReply,
+      onExportTranscript: exportTranscript,
+    });
 
   async function transformAssistantMessage(index: number, mode: "improve" | "rewrite" | "shorten") {
     if (isChatLoading || isCharging) return;
@@ -1892,596 +1262,84 @@ export const AINeuralHub = () => {
     return `landing_hub_${(normalizeGuideName(guideName) || "trader").toLowerCase().replace(/\s+/g, "_")}`;
   }
 
-  function addMemoryCard(scope: MemoryScope, title: string, content: string) {
-    const trimmedTitle = title.trim().slice(0, 40);
-    const trimmedContent = content.trim().slice(0, 160);
-    if (!trimmedTitle || !trimmedContent) return;
-
-    setMemoryCards((prev) => {
-      const next = [
-        {
-          id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-          scope,
-          title: trimmedTitle,
-          content: trimmedContent,
-          updatedAt: Date.now(),
-          confidence: scope === "long" ? 84 : 72,
-        },
-        ...prev,
-      ];
-
-      const shorts = next.filter((card) => card.scope === "short").slice(0, 6);
-      const longs = next.filter((card) => card.scope === "long").slice(0, 6);
-      return [...longs, ...shorts].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 12);
-    });
+  function applyMemoryToInput(card: MemoryCard) {
+    const suffix = card.scope === "long" ? "(pinned memory)" : "(session memory)";
+    setChatInput((prev) => `${prev.trim()} ${card.content} ${suffix}`.trim().slice(0, 500));
+    boostMemoryCard(card.id);
+    setActiveTab("CHAT");
   }
 
-  function beginEditMemory(card: MemoryCard) {
-    setEditingMemoryId(card.id);
-    setEditingMemoryTitle(card.title);
-    setEditingMemoryContent(card.content);
-  }
-
-  function cancelEditMemory() {
-    setEditingMemoryId(null);
-    setEditingMemoryTitle("");
-    setEditingMemoryContent("");
-  }
-
-  function saveEditMemory(id: string) {
-    const title = editingMemoryTitle.trim().slice(0, 40);
-    const content = editingMemoryContent.trim().slice(0, 160);
-    if (!title || !content) {
+  function handleSaveEditMemory(id: string) {
+    const ok = saveEditMemory(id);
+    if (!ok) {
       setChatStatus("Memory title and content are required.");
       return;
     }
-
-    setMemoryCards((prev) =>
-      prev.map((card) =>
-        card.id === id
-          ? {
-              ...card,
-              title,
-              content,
-              updatedAt: Date.now(),
-              confidence: Math.min(100, card.confidence + 4),
-            }
-          : card,
-      ),
-    );
-    cancelEditMemory();
     setChatStatus("Memory card updated.");
   }
 
-  function deleteMemoryCard(id: string) {
-    setMemoryCards((prev) => prev.filter((card) => card.id !== id));
-  }
+  const {
+    insertVideoInstructionBrief,
+    rememberVideoInstructionBrief,
+    insertCompetitiveEdgeBrief,
+    rememberCompetitiveEdgeBrief,
+    insertPostTradeForensicsBrief,
+    rememberPostTradeForensicsBrief,
+    insertRegimeShiftSentinelBrief,
+    rememberRegimeShiftSentinelBrief,
+    insertExecutionLatencyGuardBrief,
+    rememberExecutionLatencyGuardBrief,
+    insertSessionDriftGovernorBrief,
+    rememberSessionDriftGovernorBrief,
+    insertCapitalPreservationCircuitBrief,
+    rememberCapitalPreservationCircuitBrief,
+    insertOpportunityCostRadarBrief,
+    rememberOpportunityCostRadarBrief,
+    insertConvictionCalibrationBrief,
+    rememberConvictionCalibrationBrief,
+  } = useBriefComposerActions({
+    focusSymbol,
+    videoSourceUrl,
+    setChatInput,
+    setChatStatus,
+    onActivateChat: () => setActiveTab("CHAT"),
+    addMemoryCard,
+    normalizeVideoUrl,
+    buildVideoInstructionBrief,
+  });
 
-  function toggleMemoryScope(id: string) {
-    setMemoryCards((prev) =>
-      prev.map((card) =>
-        card.id === id
-          ? {
-              ...card,
-              scope: card.scope === "long" ? "short" : "long",
-              updatedAt: Date.now(),
-              confidence: Math.min(100, card.confidence + 2),
-            }
-          : card,
-      ),
-    );
-  }
-
-  function applyMemoryToInput(card: MemoryCard) {
-    const suffix = card.scope === "long" ? "(pinned memory)" : "(session memory)";
-    const stitched = `${chatInput.trim()} ${card.content} ${suffix}`.trim();
-    setChatInput(stitched.slice(0, 500));
-    setMemoryCards((prev) =>
-      prev.map((entry) =>
-        entry.id === card.id
-          ? {
-              ...entry,
-              updatedAt: Date.now(),
-              confidence: Math.min(100, entry.confidence + 8),
-            }
-          : entry,
-      ),
-    );
-    setActiveTab("CHAT");
-  }
-
-  function beginEditMessage(index: number) {
-    const target = messages[index];
-    if (!target || target.role !== "user") return;
-    setEditingMessageIndex(index);
-    setEditingMessageDraft(target.content);
-  }
-
-  function cancelEditMessage() {
-    setEditingMessageIndex(null);
-    setEditingMessageDraft("");
-  }
-
-  function pruneConversationAtUser(index: number, replacementContent?: string) {
-    const target = messages[index];
-    if (!target || target.role !== "user") return "";
-
-    const updatedUserContent = (replacementContent ?? target.content).trim();
-    if (!updatedUserContent) return "";
-
-    const nextHistory = messages.slice(0, index + 1).map((entry, entryIdx) =>
-      entryIdx === index
-        ? {
-            ...entry,
-            content: updatedUserContent,
-          }
-        : entry,
-    );
-    setMessages(nextHistory);
-    return updatedUserContent;
-  }
-
-  function logBranch(kind: "retry" | "edit-retry", fromIndex: number, preview: string) {
-    const safePreview = preview.trim().slice(0, 120);
-    if (!safePreview) return;
-
-    setBranchTrail((prev) => [
-      {
-        id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        kind,
-        fromIndex,
-        preview: safePreview,
-        createdAt: Date.now(),
-      },
-      ...prev,
-    ].slice(0, 18));
-  }
-
-  function stepReplay(delta: number) {
-    setReplayCursor((prev) => {
-      const next = prev + delta;
-      if (next < 0) return 0;
-      if (next >= branchTrail.length) return Math.max(0, branchTrail.length - 1);
-      return next;
-    });
-  }
-
-  function restoreReplayEntry(entry: BranchTrailEntry | null) {
-    if (!entry) return;
-    setActiveTab("CHAT");
-    setChatInput(entry.preview);
-    setChatStatus(`Loaded ${entry.kind === "edit-retry" ? "edited" : "retry"} branch #${entry.fromIndex + 1} into input.`);
-  }
-
-  function startNewChat() {
-    setMessages([
-      {
-        role: "assistant",
-        content: `${guideName} is synced. Intent locked: ${sessionIntent}. Focus: ${focusSymbol}. Say the word and we begin.`,
-      },
-    ]);
-    setBranchTrail([]);
-    setChatInput("");
-    cancelEditMessage();
-    setChatStatus("Started a fresh secure session.");
-  }
-
-  function getLastAssistantReply() {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      if (messages[i].role === "assistant") {
-        return messages[i].content;
-      }
-    }
-    return "";
-  }
-
-  async function copyLastReply() {
-    const text = getLastAssistantReply();
-    if (!text) {
-      setChatStatus("No assistant reply to copy yet.");
-      return;
-    }
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      }
-      setChatStatus("Copied last reply to clipboard.");
-    } catch {
-      setChatStatus("Copy failed. Try selecting text manually.");
-    }
-  }
-
-  function rememberLastPrompt() {
-    const lastUser = [...messages].reverse().find((item) => item.role === "user")?.content || "";
-    if (!lastUser) {
-      setChatStatus("No recent user prompt to store.");
-      return;
-    }
-    addMemoryCard("short", `Prompt ${new Date().toLocaleTimeString()}`, lastUser);
-    setChatStatus("Stored latest prompt in session memory.");
-  }
-
-  function pinCurrentFocus() {
-    addMemoryCard("long", `Focus ${focusSymbol}`, `${sessionIntent} • Symbol: ${focusSymbol}`);
-    setChatStatus("Pinned current focus into long-term memory.");
-  }
-
-  function insertVideoInstructionBrief() {
-    const safeUrl = normalizeVideoUrl(videoSourceUrl);
-    if (!safeUrl) {
-      setChatStatus("Add a video URL first to infuse instructions.");
-      return;
-    }
-
-    const brief = buildVideoInstructionBrief();
-    const stitched = `${chatInput.trim()}\n\n${brief}`.trim();
-    setActiveTab("CHAT");
-    setChatInput(stitched.slice(0, 1500));
-    setChatStatus("Video AI instruction brief inserted into chat input.");
-  }
-
-  function rememberVideoInstructionBrief() {
-    const safeUrl = normalizeVideoUrl(videoSourceUrl);
-    if (!safeUrl) {
-      setChatStatus("Cannot store video brief without a URL.");
-      return;
-    }
-
-    addMemoryCard("long", "Video Instruction Brief", buildVideoInstructionBrief());
-    setChatStatus("Stored video instruction brief in long-term memory.");
-  }
-
-  function insertCompetitiveEdgeBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Edge brief is empty. Adjust inputs and retry.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Competitive edge brief inserted into chat input.");
-  }
-
-  function rememberCompetitiveEdgeBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Nothing to save yet. Build an edge brief first.");
-      return;
-    }
-    addMemoryCard("long", `Edge Brief ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Competitive edge brief saved to long-term memory.");
-  }
-
-  function insertPostTradeForensicsBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Forensics brief is empty. Fill post-trade inputs first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Post-trade forensics brief inserted into chat input.");
-  }
-
-  function rememberPostTradeForensicsBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Nothing to store yet. Generate a forensics brief first.");
-      return;
-    }
-    addMemoryCard("long", `Forensics ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Post-trade recovery brief saved to long-term memory.");
-  }
-
-  function insertRegimeShiftSentinelBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Regime sentinel brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Regime shift sentinel brief inserted into chat input.");
-  }
-
-  function rememberRegimeShiftSentinelBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No regime brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Regime Sentinel ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Regime sentinel brief saved to long-term memory.");
-  }
-
-  function insertExecutionLatencyGuardBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Latency guard brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Execution latency guard brief inserted into chat input.");
-  }
-
-  function rememberExecutionLatencyGuardBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No latency guard brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Latency Guard ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Execution latency guard brief saved to long-term memory.");
-  }
-
-  function insertSessionDriftGovernorBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Session drift brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Session drift governor brief inserted into chat input.");
-  }
-
-  function rememberSessionDriftGovernorBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No session drift brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Session Drift ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Session drift governor brief saved to long-term memory.");
-  }
-
-  function insertCapitalPreservationCircuitBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Capital circuit brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Capital preservation circuit brief inserted into chat input.");
-  }
-
-  function rememberCapitalPreservationCircuitBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No capital circuit brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Capital Circuit ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Capital preservation circuit brief saved to long-term memory.");
-  }
-
-  function insertOpportunityCostRadarBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Opportunity cost brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Opportunity cost radar brief inserted into chat input.");
-  }
-
-  function rememberOpportunityCostRadarBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No opportunity cost brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Opportunity Cost ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Opportunity cost radar brief saved to long-term memory.");
-  }
-
-  function insertConvictionCalibrationBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("Calibration brief is empty. Fill metrics first.");
-      return;
-    }
-    setActiveTab("CHAT");
-    setChatInput((prev) => `${safeBrief}\n\n${prev.trim()}`.trim().slice(0, 3500));
-    setChatStatus("Conviction calibration brief inserted into chat input.");
-  }
-
-  function rememberConvictionCalibrationBrief(brief: string) {
-    const safeBrief = brief.trim();
-    if (!safeBrief) {
-      setChatStatus("No calibration brief to store yet.");
-      return;
-    }
-    addMemoryCard("long", `Calibration ${focusSymbol}`, safeBrief.slice(0, 160));
-    setChatStatus("Conviction calibration brief saved to long-term memory.");
-  }
-
-  async function generateWebsiteAutopilotDraft() {
-    const normalizedSource = normalizeVideoUrl(websiteSourceUrl);
-    if (!normalizedSource) {
-      setChatStatus("Add a website URL first for social autopilot.");
-      return;
-    }
-
-    setIsGeneratingAutopilot(true);
-    setChatStatus("Generating cross-platform social drafts from website content...");
-
-    try {
-      const response = await fetch("/api/intelligence/content/repurpose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          websiteUrl: normalizedSource,
-          focus: autopilotFocus,
-          channels: autopilotChannels,
-        }),
-      });
-
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        setChatStatus(typeof payload?.error === "string" ? payload.error : "Failed to generate social drafts.");
-        return;
-      }
-
-      const block = buildAutopilotDraftBlock(payload.draft);
-      if (!block) {
-        setChatStatus("Draft generation returned empty content.");
-        return;
-      }
-
-      setLatestAutopilotDraft(payload.draft as Record<string, unknown>);
-      setActiveTab("CHAT");
-      setChatInput((prev) => `${prev.trim()}\n\n${block}`.trim().slice(0, 3500));
-      addMemoryCard("long", "Website Social Autopilot", block.slice(0, 160));
-      setChatStatus("Social autopilot drafts inserted into chat input. Save it to ops when ready.");
-    } catch (error) {
-      setChatStatus(error instanceof Error ? error.message : "Social autopilot request failed.");
-    } finally {
-      setIsGeneratingAutopilot(false);
-    }
-  }
-
-  async function refreshAutopilotOps() {
-    try {
-      const response = await fetch("/api/intelligence/content/autopilot", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        setChatStatus(typeof payload?.error === "string" ? payload.error : "Failed to refresh social ops status.");
-        return;
-      }
-      setAutopilotOpsSnapshot(payload as SocialOpsSnapshot);
-      if (!autopilotOpsDraftId && Array.isArray(payload?.drafts) && payload.drafts[0]?.id) {
-        setAutopilotOpsDraftId(String(payload.drafts[0].id));
-      }
-    } catch (error) {
-      setChatStatus(error instanceof Error ? error.message : "Could not refresh social ops state.");
-    }
-  }
-
-  async function performAutopilotAction(action: string, extra: Record<string, unknown> = {}) {
-    setAutopilotOpsLoading(true);
-    try {
-      const response = await fetch("/api/intelligence/content/autopilot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, ...extra }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload?.ok) {
-        setChatStatus(typeof payload?.error === "string" ? payload.error : `Autopilot action failed: ${action}`);
-        return null;
-      }
-      await refreshAutopilotOps();
-      return payload as Record<string, unknown>;
-    } catch (error) {
-      setChatStatus(error instanceof Error ? error.message : `Autopilot action failed: ${action}`);
-      return null;
-    } finally {
-      setAutopilotOpsLoading(false);
-    }
-  }
-
-  async function saveCurrentAutopilotDraftToOps() {
-    if (!latestAutopilotDraft) {
-      setChatStatus("Generate drafts first, then save to Social Ops.");
-      return;
-    }
-
-    const response = await performAutopilotAction("create_draft", {
-      sourceUrl: String(latestAutopilotDraft.sourceUrl || normalizeVideoUrl(websiteSourceUrl) || ""),
-      focus: String(latestAutopilotDraft.focus || autopilotFocus || "cross-platform brand growth"),
-      channels: autopilotChannels,
-      content: (latestAutopilotDraft.channels && typeof latestAutopilotDraft.channels === "object")
-        ? (latestAutopilotDraft.channels as Record<string, unknown>)
-        : {},
-    });
-
-    const draft = response?.draft as { id?: string } | undefined;
-    if (draft?.id) {
-      setAutopilotOpsDraftId(String(draft.id));
-      setChatStatus(`Saved draft to social ops: ${draft.id}`);
-    }
-  }
-
-  async function submitAutopilotForApproval() {
-    if (!autopilotOpsDraftId.trim()) {
-      setChatStatus("Enter or save a Social Ops draft ID first.");
-      return;
-    }
-    const response = await performAutopilotAction("submit_for_approval", { draftId: autopilotOpsDraftId.trim() });
-    if (response) setChatStatus("Draft submitted for approval.");
-  }
-
-  async function approveAutopilotDraft() {
-    if (!autopilotOpsDraftId.trim()) {
-      setChatStatus("Enter or save a Social Ops draft ID first.");
-      return;
-    }
-    const response = await performAutopilotAction("approve_draft", { draftId: autopilotOpsDraftId.trim() });
-    if (response) setChatStatus("Draft approved and ready to publish.");
-  }
-
-  async function scheduleAutopilotDraft() {
-    if (!autopilotOpsDraftId.trim()) {
-      setChatStatus("Enter or save a Social Ops draft ID first.");
-      return;
-    }
-    if (!autopilotScheduleAt.trim()) {
-      setChatStatus("Pick a schedule datetime first.");
-      return;
-    }
-
-    const response = await performAutopilotAction("schedule_draft", {
-      draftId: autopilotOpsDraftId.trim(),
-      runAt: autopilotScheduleAt,
-      channels: autopilotChannels,
-    });
-    if (response) setChatStatus("Draft scheduled and queued by channel.");
-  }
-
-  async function publishAutopilotNow() {
-    if (!autopilotOpsDraftId.trim()) {
-      setChatStatus("Enter or save a Social Ops draft ID first.");
-      return;
-    }
-    const response = await performAutopilotAction("publish_now", {
-      draftId: autopilotOpsDraftId.trim(),
-      channels: autopilotChannels,
-    });
-    if (response) setChatStatus("Publish now executed. Check queue results and connector status.");
-  }
-
-  async function runDueAutopilotJobs() {
-    const response = await performAutopilotAction("run_due_jobs");
-    if (response) setChatStatus("Processed due queued jobs.");
-  }
-
-  async function syncAutopilotPerformance() {
-    if (!autopilotOpsDraftId.trim()) {
-      setChatStatus("Enter or save a Social Ops draft ID first.");
-      return;
-    }
-
-    const impressions = Number(autopilotImpressions.replace(/\D/g, "") || "0");
-    const engagements = Number(autopilotEngagements.replace(/\D/g, "") || "0");
-    const clicks = Number(autopilotClicks.replace(/\D/g, "") || "0");
-
-    const response = await performAutopilotAction("update_performance", {
-      draftId: autopilotOpsDraftId.trim(),
-      metrics: {
-        impressions,
-        engagements,
-        clicks,
-      },
-    });
-    if (response) setChatStatus("Performance metrics synced to calendar feedback loop.");
-  }
+  const {
+    generateWebsiteAutopilotDraft,
+    refreshAutopilotOps,
+    saveCurrentAutopilotDraftToOps,
+    submitAutopilotForApproval,
+    approveAutopilotDraft,
+    scheduleAutopilotDraft,
+    publishAutopilotNow,
+    runDueAutopilotJobs,
+    syncAutopilotPerformance,
+  } = useWebsiteAutopilotWorkflows({
+    websiteSourceUrl,
+    autopilotFocus,
+    autopilotChannels,
+    latestAutopilotDraft,
+    autopilotOpsDraftId,
+    autopilotScheduleAt,
+    autopilotImpressions,
+    autopilotEngagements,
+    autopilotClicks,
+    setIsGeneratingAutopilot,
+    setLatestAutopilotDraft,
+    setAutopilotOpsLoading,
+    setAutopilotOpsSnapshot,
+    setAutopilotOpsDraftId,
+    setChatInput,
+    setChatStatus,
+    onActivateChat: () => setActiveTab("CHAT"),
+    addMemoryCard,
+    normalizeVideoUrl,
+    buildAutopilotDraftBlock,
+  });
 
   function exportTranscript() {
     if (messages.length === 0) {
@@ -2633,7 +1491,7 @@ export const AINeuralHub = () => {
 
   async function retryFromMessageIndex(index: number) {
     if (isChatLoading || isCharging) return;
-    const retryMessage = pruneConversationAtUser(index);
+    const retryMessage = pruneConversationAtUser(messages, index, undefined, setMessages);
     if (!retryMessage) {
       setChatStatus("Could not retry from that message.");
       return;
@@ -2644,7 +1502,7 @@ export const AINeuralHub = () => {
 
   async function saveEditAndRetry() {
     if (editingMessageIndex === null || isChatLoading || isCharging) return;
-    const updated = pruneConversationAtUser(editingMessageIndex, editingMessageDraft);
+    const updated = pruneConversationAtUser(messages, editingMessageIndex, editingMessageDraft, setMessages);
     if (!updated) {
       setChatStatus("Edited prompt is empty. Please add text before retrying.");
       return;
@@ -2743,14 +1601,6 @@ export const AINeuralHub = () => {
   const detectedMarketRegime: "BULLISH" | "BEARISH" | "MIXED" = marketTrendScore >= 2 ? "BULLISH" : marketTrendScore <= -2 ? "BEARISH" : "MIXED";
   const activePromptPack = PERSONA_PROMPT_PACKS[personaPreset][detectedMarketRegime];
   const branchGraphEntries = branchTrail.slice(0, 8).reverse();
-  const replayEntries = branchTrail;
-  const activeReplayEntry = replayEntries.length > 0 ? replayEntries[Math.min(replayCursor, replayEntries.length - 1)] : null;
-  const selectedWorkspaceSnapshot = selectedWorkspaceSnapshotId
-    ? workspaceSnapshots.find((item) => item.id === selectedWorkspaceSnapshotId) ?? null
-    : workspaceSnapshots[0] ?? null;
-  const selectedWorkspaceSnapshotDiff = selectedWorkspaceSnapshot
-    ? getWorkspaceSnapshotDiff(selectedWorkspaceSnapshot)
-    : null;
   const latestAssistantReverseIndex = [...messages].reverse().findIndex((item) => item.role === "assistant");
   const latestAssistantIndex = latestAssistantReverseIndex === -1 ? -1 : messages.length - 1 - latestAssistantReverseIndex;
 
@@ -3202,7 +2052,7 @@ export const AINeuralHub = () => {
                               <p className="text-[10px] font-mono uppercase tracking-wide text-zinc-300">Branch Timeline</p>
                               <button
                                 type="button"
-                                onClick={() => setBranchTrail([])}
+                                onClick={clearBranchTrail}
                                 className="rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[9px] uppercase text-zinc-400 hover:border-red-300/30"
                                 title="Clear branch history"
                               >
@@ -3377,6 +2227,7 @@ export const AINeuralHub = () => {
                             <button
                               type="button"
                               onClick={() => {
+                                setCommandQuery("");
                                 setIsCommandPaletteOpen(true);
                                 setActiveTab("CHAT");
                               }}
@@ -3756,7 +2607,7 @@ export const AINeuralHub = () => {
                                         <div className="flex items-center gap-2">
                                           <button
                                             type="button"
-                                            onClick={() => saveEditMemory(card.id)}
+                                            onClick={() => handleSaveEditMemory(card.id)}
                                             className="rounded-full border border-cyan-300/30 bg-cyan-500/10 px-2.5 py-1 text-[9px] uppercase text-cyan-100"
                                           >
                                             Save
@@ -3844,7 +2695,7 @@ export const AINeuralHub = () => {
                                   <div className="flex items-center gap-1.5">
                                     <button
                                       type="button"
-                                      onClick={() => beginEditMessage(i)}
+                                      onClick={() => beginEditMessage(messages, i)}
                                       className="rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-[9px] uppercase text-zinc-300 hover:border-cyan-300/40"
                                       title="Edit this prompt"
                                     >
