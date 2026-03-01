@@ -14,6 +14,7 @@
     "clean": "rimraf .next out node_modules/.cache",
     "clean:ps": "powershell -ExecutionPolicy Bypass -File ./scripts/cleanup.ps1",
     "reinstall": "rimraf node_modules package-lock.json && npm install",
+    "generate:all": "echo 'Image generation skipped (tools not configured)'",
     "hooks:install": "node ./scripts/install-hooks.js",
     "deploy:build": "npm run clean && npm run build",
     "check:vercel": "node ./scripts/check-deploy-config.js --vercel",
