@@ -3,20 +3,33 @@
 import {
     Archive,
     ArrowUp,
+    BarChart3,
     Bot,
+    ChevronDown,
     Compass,
     Copy,
     FileJson,
     FileText,
+    Flame,
+    HelpCircle,
     Keyboard,
     Loader2,
+    Lock,
+    Mic,
+    Newspaper,
     PanelLeft,
+    Paperclip,
     Pencil,
     Pin,
     Plus,
     Search,
+    Settings2,
+    Smile,
     Sparkles,
     Trash2,
+    Trophy,
+    Unlock,
+    Upload,
     UserRound,
     X
 } from "lucide-react";
@@ -80,6 +93,19 @@ type ChatSession = {
   autoFallback: boolean;
   freedomMode: FreedomMode;
   llmPreset: LlmPresetId;
+};
+
+type NavTab = "chat" | "quant" | "settings" | "help";
+
+type CommunityPost = {
+  id: string;
+  handle: string;
+  channel: "Market Pulse" | "Community Thread" | "Strategy Board";
+  content: string;
+  timeAgo: string;
+  likes: number;
+  replies: number;
+  tag: "crypto" | "stocks" | "macro" | "ops";
 };
 
 const PIPELINE_MEMORY_KEY = "tradehax-ai-pipeline-memory-v1";
@@ -294,6 +320,60 @@ const COMPOSER_QUICK_ACTIONS: Array<{
   },
 ];
 
+const PREDICTIVE_QUERY_SNIPPETS = [
+  "Forecast SOL trend for next 24h with bullish and bearish scenarios.",
+  "Build a risk-managed BTC scalp checklist with invalidation rules.",
+  "Compare portfolio drawdown risk if market drops 8% this week.",
+  "Generate a concise macro watchlist with priority signals.",
+  "Simulate a 3-asset rebalance using low-volatility allocation.",
+  "Create entry, stop-loss, and take-profit ranges for ETH swing setup.",
+  "Summarize social sentiment impact on top 5 Solana ecosystem tokens.",
+  "Create a daily trading journal template with risk scoring.",
+];
+
+const COMMUNITY_FEED: CommunityPost[] = [
+  {
+    id: "feed-1",
+    handle: "@quant_helix",
+    channel: "Market Pulse",
+    content: "SOL volume breakout forming. Watching 4H structure + funding divergence before entries.",
+    timeAgo: "2m",
+    likes: 41,
+    replies: 9,
+    tag: "crypto",
+  },
+  {
+    id: "feed-2",
+    handle: "@freemarket_alpha",
+    channel: "Community Thread",
+    content: "Debating whether today's CPI print is noise or regime shift. Post your risk map.",
+    timeAgo: "8m",
+    likes: 63,
+    replies: 22,
+    tag: "macro",
+  },
+  {
+    id: "feed-3",
+    handle: "@ops_dynasty",
+    channel: "Strategy Board",
+    content: "Shared a no-fluff execution stack: objective → setup score → trigger → post-trade review.",
+    timeAgo: "14m",
+    likes: 28,
+    replies: 7,
+    tag: "ops",
+  },
+  {
+    id: "feed-4",
+    handle: "@equity_signal_lab",
+    channel: "Market Pulse",
+    content: "Small-cap momentum improving; keeping strict position sizing after fakeout cluster.",
+    timeAgo: "21m",
+    likes: 19,
+    replies: 4,
+    tag: "stocks",
+  },
+];
+
 function resolveSlashShortcut(input: string) {
   const trimmed = input.trim();
   if (!trimmed.startsWith("/")) {
@@ -472,13 +552,69 @@ export function HFChatComponent() {
   const [responseLoadProgress, setResponseLoadProgress] = useState(0);
   const [responseLoadSeconds, setResponseLoadSeconds] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<NavTab>("chat");
+  const [showMobileTabs, setShowMobileTabs] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [voiceSupport, setVoiceSupport] = useState(false);
+  const [showGuidedTour, setShowGuidedTour] = useState(true);
+  const [dynastyMode, setDynastyMode] = useState(false);
+  const [privacyShieldEnabled, setPrivacyShieldEnabled] = useState(true);
+  const [rewardPoints, setRewardPoints] = useState(120);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const voiceRecognitionRef = useRef<{
+    start: () => void;
+    stop: () => void;
+    onresult: ((event: any) => void) | null;
+    onerror: ((event: any) => void) | null;
+    onend: (() => void) | null;
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+  } | null>(null);
+
+  const navTabs: Array<{ id: NavTab; label: string; icon: React.ReactNode; hint: string }> = [
+    {
+      id: "chat",
+      label: "Chat",
+      icon: <Sparkles className="w-3.5 h-3.5" />,
+      hint: "General AI workflow",
+    },
+    {
+      id: "quant",
+      label: "Predictive Quant Assistant",
+      icon: <BarChart3 className="w-3.5 h-3.5" />,
+      hint: "Market scenarios and tables",
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <Settings2 className="w-3.5 h-3.5" />,
+      hint: "Profiles, lanes, and controls",
+    },
+    {
+      id: "help",
+      label: "Help",
+      icon: <HelpCircle className="w-3.5 h-3.5" />,
+      hint: "Beginner tour and guidance",
+    },
+  ];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(max-width: 1023px)").matches) {
       setShowControlPanel(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const speechAvailable = Boolean(
+      (window as Window & { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition ||
+      (window as Window & { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).webkitSpeechRecognition,
+    );
+    setVoiceSupport(speechAvailable);
   }, []);
 
   const applySession = useCallback((session: ChatSession) => {
@@ -822,6 +958,7 @@ export function HFChatComponent() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    setRewardPoints((prev) => prev + 2);
     setInput("");
     setLoading(true);
     setError("");
@@ -959,6 +1096,7 @@ export function HFChatComponent() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      setRewardPoints((prev) => prev + 6);
 
       if (isLlmPresetId(data?.preset?.id) && data.preset.id !== llmPreset) {
         setLlmPreset(data.preset.id);
@@ -1001,6 +1139,121 @@ export function HFChatComponent() {
     }
     if (!objective.trim()) {
       setObjective(action.label);
+    }
+  };
+
+  const appendEmoji = (emoji: string) => {
+    setInput((prev) => `${prev}${emoji}`);
+    setShowEmojiPicker(false);
+  };
+
+  const handleVoiceInput = () => {
+    if (typeof window === "undefined") return;
+    const speechCtor = (
+      window as Window & {
+        SpeechRecognition?: new () => {
+          start: () => void;
+          stop: () => void;
+          onresult: ((event: any) => void) | null;
+          onerror: ((event: any) => void) | null;
+          onend: (() => void) | null;
+          continuous: boolean;
+          interimResults: boolean;
+          lang: string;
+        };
+        webkitSpeechRecognition?: new () => {
+          start: () => void;
+          stop: () => void;
+          onresult: ((event: any) => void) | null;
+          onerror: ((event: any) => void) | null;
+          onend: (() => void) | null;
+          continuous: boolean;
+          interimResults: boolean;
+          lang: string;
+        };
+      }
+    ).SpeechRecognition ||
+      (
+        window as Window & {
+          SpeechRecognition?: new () => {
+            start: () => void;
+            stop: () => void;
+            onresult: ((event: any) => void) | null;
+            onerror: ((event: any) => void) | null;
+            onend: (() => void) | null;
+            continuous: boolean;
+            interimResults: boolean;
+            lang: string;
+          };
+          webkitSpeechRecognition?: new () => {
+            start: () => void;
+            stop: () => void;
+            onresult: ((event: any) => void) | null;
+            onerror: ((event: any) => void) | null;
+            onend: (() => void) | null;
+            continuous: boolean;
+            interimResults: boolean;
+            lang: string;
+          };
+        }
+      ).webkitSpeechRecognition;
+
+    if (!speechCtor) {
+      setError("Voice input is not supported in this browser.");
+      return;
+    }
+
+    if (isVoiceRecording && voiceRecognitionRef.current) {
+      voiceRecognitionRef.current.stop();
+      setIsVoiceRecording(false);
+      return;
+    }
+
+    try {
+      const recognition = new speechCtor();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "en-US";
+      recognition.onresult = (event: any) => {
+        const transcript = event?.results?.[0]?.[0]?.transcript;
+        if (typeof transcript === "string" && transcript.trim()) {
+          setInput((prev) => `${prev}${prev.trim().length > 0 ? " " : ""}${transcript.trim()}`);
+        }
+      };
+      recognition.onerror = () => {
+        setError("Voice capture failed. Please try again.");
+      };
+      recognition.onend = () => {
+        setIsVoiceRecording(false);
+      };
+      voiceRecognitionRef.current = recognition;
+      setIsVoiceRecording(true);
+      recognition.start();
+    } catch {
+      setIsVoiceRecording(false);
+      setError("Could not start voice capture.");
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2_000_000) {
+      setError("File is too large. Keep uploads under 2MB for quick analysis.");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const content = await file.text();
+      const compact = content.replace(/\s+/g, " ").trim().slice(0, 900);
+      const enrichedPrompt = `Analyze uploaded file \"${file.name}\" and extract trading-relevant insights.\n\nExcerpt:\n${compact}`;
+      setInput(enrichedPrompt);
+    } catch {
+      setError("Unable to read this file. Try a text, CSV, or JSON file.");
+    } finally {
+      event.target.value = "";
     }
   };
 
@@ -1242,12 +1495,27 @@ export function HFChatComponent() {
   });
 
   const filteredPinnedPrompts = pinnedPrompts.filter((item) => item.category === pinCategory);
+  const filteredCommunityFeed = COMMUNITY_FEED.filter((item) => {
+    if (activeTab === "quant") {
+      return item.tag === "crypto" || item.tag === "stocks" || item.tag === "macro";
+    }
+    return true;
+  });
+
+  const predictiveSuggestions = (() => {
+    const query = input.trim().toLowerCase();
+    if (query.length < 3) return PREDICTIVE_QUERY_SNIPPETS.slice(0, 4);
+    const matching = PREDICTIVE_QUERY_SNIPPETS.filter((item) => item.toLowerCase().includes(query));
+    return matching.length > 0 ? matching.slice(0, 4) : PREDICTIVE_QUERY_SNIPPETS.slice(0, 4);
+  })();
+
+  const gridTemplateClass = showControlPanel ? "lg:grid-cols-[320px_1fr_320px]" : "lg:grid-cols-[1fr_320px]";
 
   return (
-    <div className="theme-panel w-full h-[78dvh] sm:h-[82dvh] min-h-[560px] sm:min-h-[640px] [@media(max-height:820px)]:min-h-[520px] [@media(max-height:700px)]:min-h-[460px] max-h-[980px] overflow-hidden rounded-2xl border border-emerald-400/20 bg-gradient-to-b from-black/65 via-black/50 to-black/70 shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
-      <div className="grid h-full lg:grid-cols-[320px_1fr]">
+    <div className="theme-panel w-full h-[78dvh] sm:h-[82dvh] min-h-[560px] sm:min-h-[640px] [@media(max-height:820px)]:min-h-[520px] [@media(max-height:700px)]:min-h-[460px] max-h-[980px] overflow-hidden rounded-2xl border border-blue-400/30 bg-gradient-to-b from-[#05070f]/90 via-black/85 to-[#08101a]/90 shadow-[0_25px_80px_rgba(0,0,0,0.65),0_0_60px_rgba(6,182,212,0.06)]">
+      <div className={`grid h-full ${gridTemplateClass}`}>
         {showControlPanel && (
-          <aside className="border-b lg:border-b-0 lg:border-r border-emerald-500/20 bg-black/35 p-4 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
+          <aside className="border-b lg:border-b-0 lg:border-r border-blue-500/20 bg-[#050a14]/60 p-4 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
             <div className="mb-3 rounded border border-white/10 bg-white/[0.03] px-3 py-2">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[11px] uppercase tracking-wide text-emerald-200/80">Sessions</p>
@@ -1649,10 +1917,10 @@ export function HFChatComponent() {
         )}
 
         <section className="flex flex-col min-h-0">
-          <div className="flex items-center justify-between border-b border-emerald-500/20 px-4 py-3 bg-black/35 backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-blue-500/20 px-4 py-3 bg-[#050a14]/70 backdrop-blur-sm">
             <div>
-              <h3 className="font-bold text-emerald-200 tracking-tight">AI Assistant Console</h3>
-              <p className="text-xs text-emerald-200/70">
+              <h3 className="font-bold text-white tracking-tight">AI Assistant Console</h3>
+              <p className="text-xs text-blue-200/70">
                 {sessions.find((session) => session.id === activeSessionId)?.title || "Session"} • Mode: {MODE_META[mode].label} • Preset: {LLM_PRESET_META[llmPreset].label} • Step {selectedStep + 1}/4
               </p>
             </div>
@@ -1682,6 +1950,75 @@ export function HFChatComponent() {
             </div>
           </div>
 
+          <div className="border-b border-blue-500/20 px-4 py-2 bg-gradient-to-r from-blue-950/30 via-black/30 to-rose-950/30">
+            <div className="flex items-center justify-between gap-2">
+              <div className="hidden sm:flex flex-wrap items-center gap-2">
+                {navTabs.map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      title={tab.hint}
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+                        active
+                          ? "border-cyan-300/50 bg-cyan-500/20 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.2)]"
+                          : "border-white/15 bg-white/[0.03] text-zinc-200 hover:bg-white/[0.08]"
+                      }`}
+                    >
+                      {tab.icon}
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setShowMobileTabs((prev) => !prev)}
+                className="sm:hidden inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-semibold text-zinc-100"
+              >
+                Tabs
+                <ChevronDown className={`w-3 h-3 transition ${showMobileTabs ? "rotate-180" : ""}`} />
+              </button>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full border border-fuchsia-300/50 bg-fuchsia-500/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-fuchsia-100 shadow-[0_0_10px_rgba(217,70,239,0.25)]">
+                  <Unlock className="w-3 h-3" />
+                  No Filters
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/35 bg-amber-500/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-100">
+                  <Flame className="w-3 h-3" />
+                  Dynasty Mode
+                </span>
+              </div>
+            </div>
+
+            {showMobileTabs && (
+              <div className="sm:hidden mt-2 flex flex-wrap gap-2">
+                {navTabs.map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setShowMobileTabs(false);
+                      }}
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                        active
+                          ? "border-cyan-300/50 bg-cyan-500/20 text-cyan-100"
+                          : "border-white/15 bg-white/[0.03] text-zinc-200"
+                      }`}
+                    >
+                      {tab.icon}
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="border-b border-emerald-500/20 px-4 py-2 text-[11px] text-emerald-200/75 flex flex-wrap gap-2 bg-black/20">
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1"><Sparkles className="w-3 h-3" />Prompt quality: {promptQualityScore}%</span>
             <span className="rounded-full border border-white/10 bg-white/[0.03] px-2 py-1">Style: {responseStyle}</span>
@@ -1699,6 +2036,61 @@ export function HFChatComponent() {
             {storageWarning && <span className="text-amber-200 rounded-full border border-amber-300/25 bg-amber-500/10 px-2 py-1">{storageWarning}</span>}
           </div>
 
+          {showGuidedTour && (
+            <div className="mx-4 mt-2 rounded border border-blue-400/30 bg-blue-600/10 px-3 py-2 text-[11px] text-blue-100 flex items-center justify-between gap-3">
+              <p>
+                <strong>Quick tour:</strong> 1) Pick a tab, 2) choose a profile/step, 3) use predictive suggestions, 4) send and iterate.
+              </p>
+              <button
+                onClick={() => setShowGuidedTour(false)}
+                className="rounded border border-blue-300/40 bg-black/25 px-2 py-1 text-[10px] uppercase tracking-wide"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {activeTab === "quant" && (
+            <div className="mx-4 mt-2 rounded-lg border border-cyan-400/25 bg-cyan-600/10 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-cyan-100 uppercase tracking-wide">Quant snapshot</p>
+                <span className="text-[11px] text-cyan-100/75">Scenario table</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left text-cyan-100/90">
+                  <thead>
+                    <tr className="text-cyan-200/80">
+                      <th className="pb-1 pr-3">Asset</th>
+                      <th className="pb-1 pr-3">Bias</th>
+                      <th className="pb-1 pr-3">Confidence</th>
+                      <th className="pb-1">Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-cyan-500/15">
+                      <td className="py-1 pr-3">SOL</td>
+                      <td className="py-1 pr-3">Bullish continuation</td>
+                      <td className="py-1 pr-3">72%</td>
+                      <td className="py-1">Medium</td>
+                    </tr>
+                    <tr className="border-t border-cyan-500/15">
+                      <td className="py-1 pr-3">BTC</td>
+                      <td className="py-1 pr-3">Range-bound</td>
+                      <td className="py-1 pr-3">61%</td>
+                      <td className="py-1">Low</td>
+                    </tr>
+                    <tr className="border-t border-cyan-500/15">
+                      <td className="py-1 pr-3">ETH</td>
+                      <td className="py-1 pr-3">Volatility expansion</td>
+                      <td className="py-1 pr-3">57%</td>
+                      <td className="py-1">High</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {showOpenModeNotice && (
             <div className="mx-4 mt-2 rounded border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100 flex items-center justify-between gap-3">
               <p>
@@ -1713,6 +2105,208 @@ export function HFChatComponent() {
             </div>
           )}
 
+          {activeTab === "settings" ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 overscroll-contain [scrollbar-width:thin]">
+              <div className="mb-1">
+                <h4 className="text-sm font-bold text-white mb-0.5">Settings</h4>
+                <p className="text-[11px] text-blue-200/60">Customize your AI session, profile, and behavior controls.</p>
+              </div>
+              <div className="rounded-lg border border-blue-500/25 bg-blue-600/10 p-3">
+                <p className="text-xs font-semibold text-blue-100 mb-2 uppercase tracking-wide">Assistant Profile</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(Object.keys(ASSISTANT_PROFILE_META) as AssistantProfileId[]).map((pid) => {
+                    const p = ASSISTANT_PROFILE_META[pid];
+                    const isActive = activeProfile === pid;
+                    return (
+                      <button
+                        key={pid}
+                        onClick={() => {
+                          setActiveProfile(pid);
+                          setMode(p.mode);
+                          setResponseStyle(p.responseStyle);
+                          setLlmPreset(p.preset);
+                          setSelectedStep(p.selectedStep);
+                          setFreedomMode(p.freedomMode);
+                          setObjective(p.objective);
+                        }}
+                        className={`rounded border px-2 py-2 text-left text-[11px] transition ${
+                          isActive
+                            ? "border-blue-300/60 bg-blue-500/25 text-blue-50"
+                            : "border-blue-500/20 bg-black/30 text-blue-200/80 hover:border-blue-400/40"
+                        }`}
+                      >
+                        <p className="font-semibold">{p.label}</p>
+                        <p className="opacity-75 mt-0.5 line-clamp-2">{p.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="rounded-lg border border-cyan-500/20 bg-cyan-600/10 p-3">
+                <p className="text-xs font-semibold text-cyan-100 mb-2 uppercase tracking-wide">Chat Mode</p>
+                <div className="space-y-1.5">
+                  {(Object.keys(MODE_META) as ChatMode[]).map((mk) => {
+                    const isActive = mode === mk;
+                    return (
+                      <button
+                        key={mk}
+                        onClick={() => setMode(mk)}
+                        className={`w-full text-left rounded border px-3 py-2 text-xs transition ${
+                          isActive
+                            ? "border-cyan-300/55 bg-cyan-500/20 text-cyan-50"
+                            : "border-cyan-500/20 bg-black/30 text-cyan-200/70 hover:border-cyan-400/40"
+                        }`}
+                      >
+                        <p className="font-semibold uppercase tracking-wide">{MODE_META[mk].label}</p>
+                        <p className="mt-0.5 opacity-75">{MODE_META[mk].description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <label htmlFor="settings-preset" className="block text-[11px] font-semibold text-white/80 mb-1 uppercase tracking-wide">LLM Preset</label>
+                  <select
+                    id="settings-preset"
+                    value={llmPreset}
+                    onChange={(e) => { const v = e.target.value; if (isLlmPresetId(v)) setLlmPreset(v); }}
+                    className="w-full rounded border border-white/15 bg-black/40 px-2 py-1.5 text-xs text-white outline-none"
+                  >
+                    {LLM_PRESET_IDS.map((pid) => (<option key={pid} value={pid}>{LLM_PRESET_META[pid].label}</option>))}
+                  </select>
+                  <p className="mt-1 text-[10px] text-white/55">{LLM_PRESET_META[llmPreset].description}</p>
+                </div>
+                <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <label htmlFor="settings-style" className="block text-[11px] font-semibold text-white/80 mb-1 uppercase tracking-wide">Response Style</label>
+                  <select
+                    id="settings-style"
+                    value={responseStyle}
+                    onChange={(e) => setResponseStyle(e.target.value as ResponseStyle)}
+                    className="w-full rounded border border-white/15 bg-black/40 px-2 py-1.5 text-xs text-white outline-none"
+                  >
+                    <option value="concise">Concise</option>
+                    <option value="coach">Coach</option>
+                    <option value="operator">Operator</option>
+                  </select>
+                </div>
+              </div>
+              <div className="rounded-lg border border-fuchsia-500/25 bg-fuchsia-600/10 p-3">
+                <p className="text-xs font-semibold text-fuchsia-100 mb-2 uppercase tracking-wide">Freedom &amp; Fallback</p>
+                <div className="space-y-2">
+                  <div>
+                    <label htmlFor="settings-freedom" className="block text-[11px] text-fuchsia-100/80 mb-1">Freedom Mode</label>
+                    <select
+                      id="settings-freedom"
+                      value={freedomMode}
+                      onChange={(e) => setFreedomMode(e.target.value as FreedomMode)}
+                      className="w-full rounded border border-fuchsia-500/30 bg-black/40 px-2 py-1.5 text-xs text-fuchsia-100 outline-none"
+                    >
+                      <option value="uncensored">Uncensored — full open lane</option>
+                      <option value="standard">Standard — filtered lane</option>
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-fuchsia-100/80">
+                    <input type="checkbox" checked={autoFallback} onChange={(e) => setAutoFallback(e.target.checked)} className="accent-fuchsia-400" />
+                    Auto-fallback to General Chat on primary failure
+                  </label>
+                </div>
+              </div>
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3">
+                <p className="text-xs font-semibold text-cyan-100 mb-2 uppercase tracking-wide inline-flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Privacy &amp; Data Controls
+                </p>
+                <label className="flex items-center gap-2 text-xs text-cyan-100/80 mb-2">
+                  <input type="checkbox" checked={privacyShieldEnabled} onChange={(e) => setPrivacyShieldEnabled(e.target.checked)} className="accent-cyan-400" />
+                  Privacy Shield — local session controls active
+                </label>
+                <div className="flex gap-2">
+                  <button onClick={() => exportActiveSession("json")} className="rounded border border-cyan-300/30 bg-cyan-500/10 px-3 py-1.5 text-[11px] text-cyan-100 hover:bg-cyan-500/20 inline-flex items-center gap-1">
+                    <FileJson className="w-3 h-3" /> Export JSON
+                  </button>
+                  <button onClick={() => exportActiveSession("md")} className="rounded border border-cyan-300/30 bg-cyan-500/10 px-3 py-1.5 text-[11px] text-cyan-100 hover:bg-cyan-500/20 inline-flex items-center gap-1">
+                    <FileText className="w-3 h-3" /> Export MD
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : activeTab === "help" ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 overscroll-contain [scrollbar-width:thin]">
+              <div className="mb-1">
+                <h4 className="text-sm font-bold text-white mb-0.5">Help &amp; Guided Tour</h4>
+                <p className="text-[11px] text-blue-200/60">Get up and running in minutes — built for all expertise levels.</p>
+              </div>
+              <div className="rounded-lg border border-blue-400/25 bg-blue-600/10 p-3">
+                <p className="text-xs font-semibold text-blue-100 mb-2 uppercase tracking-wide">Quick Start — 4 Steps</p>
+                <ol className="space-y-2">
+                  {[
+                    { n: 1, title: "Pick a Profile", desc: "Tap Beginner, Trader, Creator, or Developer in the left panel to auto-configure your session." },
+                    { n: 2, title: "Set an Objective", desc: "Type your goal in the Objective Memory field — the AI keeps this as context throughout the session." },
+                    { n: 3, title: "Send a Message", desc: "Use the input bar, a quick prompt chip, or a predictive suggestion. Hit Enter or tap the arrow." },
+                    { n: 4, title: "Follow Pipeline Steps", desc: "The AI auto-advances you through Define → Route → Execute → Next Action." },
+                  ].map(({ n, title, desc }) => (
+                    <li key={n} className="flex gap-2 text-xs text-blue-100/90">
+                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/30 border border-blue-400/40 text-blue-50 text-[10px] font-bold inline-flex items-center justify-center">{n}</span>
+                      <div><p className="font-semibold">{title}</p><p className="text-blue-200/65 mt-0.5">{desc}</p></div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3">
+                <p className="text-xs font-semibold text-cyan-100 mb-2 uppercase tracking-wide inline-flex items-center gap-1">
+                  <Keyboard className="w-3 h-3" /> Slash Commands
+                </p>
+                <div className="space-y-1.5">
+                  {[
+                    { cmd: "/plan", desc: "Generates a step-by-step execution plan with milestones." },
+                    { cmd: "/risk", desc: "Runs a risk analysis with probability, impact, and invalidation criteria." },
+                    { cmd: "/content", desc: "Creates content assets — headline, hook, body draft, CTA, and variants." },
+                    { cmd: "/next", desc: "Identifies the single highest-leverage next action right now." },
+                  ].map(({ cmd, desc }) => (
+                    <div key={cmd} className="flex gap-2 items-start text-xs">
+                      <code className="flex-shrink-0 rounded border border-cyan-400/30 bg-black/40 px-1.5 py-0.5 text-[11px] text-cyan-200 font-mono">{cmd}</code>
+                      <span className="text-cyan-100/75">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                <p className="text-xs font-semibold text-white mb-2 uppercase tracking-wide">Tab Guide</p>
+                <div className="space-y-2">
+                  {([
+                    { icon: <Sparkles className="w-3 h-3" />, name: "Chat", desc: "General AI workflow — conversations, plans, content, and execution guidance." },
+                    { icon: <BarChart3 className="w-3 h-3" />, name: "Predictive Quant Assistant", desc: "Market scenario tables, asset bias summaries, and quantitative signal snapshots." },
+                    { icon: <Settings2 className="w-3 h-3" />, name: "Settings", desc: "Configure profile, mode, preset, freedom mode, and data export." },
+                    { icon: <HelpCircle className="w-3 h-3" />, name: "Help", desc: "Guided tour, slash commands, keyboard shortcuts, and feature explanations — this panel." },
+                  ] as Array<{ icon: React.ReactNode; name: string; desc: string }>).map(({ icon, name, desc }) => (
+                    <div key={name} className="flex gap-2 items-start text-xs text-white/80">
+                      <span className="flex-shrink-0 mt-0.5 text-cyan-300">{icon}</span>
+                      <div><p className="font-semibold text-white">{name}</p><p className="text-white/55">{desc}</p></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                <p className="text-xs font-semibold text-white mb-2 uppercase tracking-wide">Keyboard Shortcuts</p>
+                <div className="space-y-1.5 text-xs">
+                  {[
+                    { key: "Enter", action: "Send message" },
+                    { key: "Shift + Enter", action: "New line in input" },
+                    { key: "Esc (in rename)", action: "Cancel session rename" },
+                  ].map(({ key, action }) => (
+                    <div key={key} className="flex items-center gap-2 text-white/75">
+                      <code className="rounded border border-white/15 bg-black/40 px-1.5 py-0.5 text-[11px] font-mono text-white/85">{key}</code>
+                      <span>{action}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-fuchsia-400/20 bg-fuchsia-500/10 p-3 text-xs text-fuchsia-100/85">
+                <p className="font-semibold text-fuchsia-100 mb-0.5 inline-flex items-center gap-1"><Unlock className="w-3 h-3" /> Open Lane Active</p>
+                <p>This assistant runs in uncensored mode by default — no content filters, full freedom. Verify risk-sensitive information before acting on it.</p>
+              </div>
+            </div>
+          ) : (
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 overscroll-contain [scrollbar-gutter:stable] [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
             {showFirstRunNudge && messages.length === 0 && (
               <div className="rounded-lg border border-emerald-300/30 bg-emerald-500/10 p-3 text-sm text-emerald-100">
@@ -1759,8 +2353,8 @@ export function HFChatComponent() {
                 <div
                   className={`max-w-[95%] sm:max-w-[88%] lg:max-w-2xl px-4 py-2 rounded-xl ${
                     msg.role === "user"
-                      ? "bg-emerald-600/35 text-emerald-100 border border-emerald-400/35 shadow-[0_8px_24px_rgba(16,185,129,0.12)]"
-                      : "bg-cyan-600/15 text-cyan-100 border border-cyan-400/25 shadow-[0_8px_24px_rgba(6,182,212,0.10)]"
+                      ? "bg-indigo-600/30 text-indigo-100 border border-indigo-400/40 shadow-[0_8px_24px_rgba(99,102,241,0.14)]"
+                      : "bg-blue-600/12 text-blue-50 border border-blue-400/35 shadow-[0_0_28px_rgba(59,130,246,0.20),0_8px_24px_rgba(6,182,212,0.12)]"
                   }`}
                 >
                   <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-wide opacity-75">
@@ -1855,8 +2449,9 @@ export function HFChatComponent() {
 
             <div ref={messagesEndRef} />
           </div>
+          )}
 
-          <div className="border-t border-emerald-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-black/40 backdrop-blur-sm">
+          <div className="border-t border-blue-500/20 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#050a14]/60 backdrop-blur-sm">
             {objective && (
               <div className="mb-2 text-[11px] text-cyan-200/70">Objective memory: {objective}</div>
             )}
@@ -1901,7 +2496,75 @@ export function HFChatComponent() {
                 </button>
               ))}
             </div>
+            <div className="mb-2 flex flex-wrap gap-2">
+              {predictiveSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => setInput(suggestion)}
+                  className="rounded-lg border border-blue-300/25 bg-blue-500/10 px-2.5 py-1 text-[11px] text-blue-100 hover:border-blue-200/40"
+                  title="Apply predictive query"
+                >
+                  {suggestion.length > 68 ? `${suggestion.slice(0, 68)}…` : suggestion}
+                </button>
+              ))}
+            </div>
             <div className="flex gap-2 items-end">
+              <div className="relative flex flex-col gap-2">
+                <button
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  className="rounded-xl border border-white/20 bg-white/5 p-2 text-zinc-200 hover:bg-white/10"
+                  title="Emoji picker"
+                >
+                  <Smile className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleVoiceInput}
+                  disabled={!voiceSupport}
+                  className={`rounded-xl border p-2 text-zinc-200 disabled:opacity-40 ${
+                    isVoiceRecording
+                      ? "border-rose-300/50 bg-rose-500/20 text-rose-100"
+                      : "border-white/20 bg-white/5 hover:bg-white/10"
+                  }`}
+                  title={voiceSupport ? "Voice input" : "Voice input unavailable"}
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl border border-white/20 bg-white/5 p-2 text-zinc-200 hover:bg-white/10"
+                  title="Upload file"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.csv,.json,.md"
+                  aria-label="Upload file for AI analysis"
+                  title="Upload file"
+                  className="hidden"
+                  onChange={(e) => {
+                    void handleFileUpload(e);
+                  }}
+                />
+
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full left-0 mb-2 rounded-lg border border-white/15 bg-black/90 p-2 shadow-xl">
+                    <div className="grid grid-cols-5 gap-1">
+                      {["🚀", "📈", "📉", "🧠", "⚡", "💎", "🔥", "🎯", "🛡️", "🧪"].map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => appendEmoji(emoji)}
+                          className="rounded border border-white/10 bg-white/[0.03] px-2 py-1 text-sm hover:bg-white/[0.12]"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -1909,7 +2572,7 @@ export function HFChatComponent() {
                 placeholder="Ask naturally (or use /plan, /risk, /content, /next)…"
                 rows={3}
                 disabled={loading}
-                className="flex-1 rounded-xl border border-emerald-500/30 bg-black/40 px-3 py-2 text-emerald-100 placeholder-emerald-200/40 outline-none resize-none disabled:opacity-50 focus:border-emerald-300/60"
+                className="flex-1 rounded-xl border border-blue-500/30 bg-black/50 px-3 py-2 text-blue-50 placeholder-blue-200/35 outline-none resize-none disabled:opacity-50 focus:border-blue-300/60 focus:shadow-[0_0_16px_rgba(59,130,246,0.15)]"
               />
               <button
                 onClick={sendMessage}
@@ -1926,6 +2589,138 @@ export function HFChatComponent() {
             </div>
           </div>
         </section>
+
+        <aside className="hidden lg:flex flex-col border-l border-blue-500/20 bg-gradient-to-b from-blue-950/20 via-black/35 to-rose-950/15 p-3 overflow-y-auto overscroll-contain [scrollbar-width:thin]">
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 mb-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-zinc-100 inline-flex items-center gap-1">
+                <Newspaper className="w-3.5 h-3.5 text-cyan-300" />
+                Social Signal Feed
+              </p>
+              <span className="rounded-full border border-rose-300/30 bg-rose-500/15 px-2 py-0.5 text-[10px] text-rose-100 font-semibold">
+                Unfiltered vibe
+              </span>
+            </div>
+            <p className="mt-1 text-[11px] text-zinc-400">Related X-like posts and community threads for context.</p>
+          </div>
+
+          <div className="rounded-lg border border-fuchsia-400/20 bg-fuchsia-500/10 p-3 mb-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-fuchsia-100">Dynasty Mode</p>
+              <button
+                onClick={() => setDynastyMode((prev) => !prev)}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                  dynastyMode
+                    ? "border-amber-300/45 bg-amber-500/20 text-amber-100"
+                    : "border-white/20 bg-white/5 text-zinc-200"
+                }`}
+                title="Toggle dynasty integrations"
+              >
+                {dynastyMode ? "ON" : "OFF"}
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] text-fuchsia-100/80">
+              Integrates trading, repairs, and music workflow intents from one command surface.
+            </p>
+            {dynastyMode && (
+              <div className="mt-3 space-y-2">
+                {[
+                  {
+                    icon: <BarChart3 className="w-3.5 h-3.5" />,
+                    label: "Trading Intelligence",
+                    desc: "Market signals, position sizing, and quant predictions",
+                    hint: "Open /intelligence for live market suite",
+                    color: "border-cyan-400/35 bg-cyan-500/15 text-cyan-100",
+                    prompt: "Give me the top 3 trading setups right now with entry, stop, and target levels.",
+                  },
+                  {
+                    icon: <Settings2 className="w-3.5 h-3.5" />,
+                    label: "Repair Services",
+                    desc: "Book device repair, diagnostics, and tech support",
+                    hint: "Route to /services for booking",
+                    color: "border-amber-400/30 bg-amber-500/12 text-amber-100",
+                    prompt: "I need to book a device repair. What's the fastest way to get scheduled?",
+                  },
+                  {
+                    icon: <Mic className="w-3.5 h-3.5" />,
+                    label: "Music Lessons",
+                    desc: "Guitar studio, beginner lessons, and scholarship programs",
+                    hint: "View /music for all programs",
+                    color: "border-fuchsia-400/30 bg-fuchsia-500/12 text-fuchsia-100",
+                    prompt: "Tell me about music lesson options and how to get started with guitar sessions.",
+                  },
+                ].map(({ icon, label, desc, hint, color, prompt }) => (
+                  <button
+                    key={label}
+                    onClick={() => {
+                      setInput(prompt);
+                      setActiveTab("chat");
+                    }}
+                    className={`w-full rounded-lg border text-left px-2.5 py-2 transition hover:brightness-110 ${color}`}
+                    title={hint}
+                  >
+                    <p className="text-[11px] font-semibold inline-flex items-center gap-1">{icon}{label}</p>
+                    <p className="text-[10px] opacity-75 mt-0.5">{desc}</p>
+                    <p className="text-[10px] opacity-55 mt-0.5 italic">{hint}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3 mb-3">
+            <p className="text-xs font-semibold text-emerald-100 inline-flex items-center gap-1">
+              <Trophy className="w-3.5 h-3.5" />
+              Rewards
+            </p>
+            <p className="mt-1 text-2xl font-black text-emerald-50">{rewardPoints} XP</p>
+            <p className="text-[11px] text-emerald-100/75">Earned from interactions and completed action loops.</p>
+          </div>
+
+          <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3 mb-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-cyan-100 inline-flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5" /> Privacy Shield
+              </p>
+              <button
+                onClick={() => setPrivacyShieldEnabled((prev) => !prev)}
+                className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                  privacyShieldEnabled
+                    ? "border-cyan-300/45 bg-cyan-500/20 text-cyan-100"
+                    : "border-white/20 bg-white/5 text-zinc-200"
+                }`}
+              >
+                {privacyShieldEnabled ? "Enabled" : "Disabled"}
+              </button>
+            </div>
+            <p className="mt-1 text-[11px] text-cyan-100/75">Local session controls, export options, and user-managed history.</p>
+          </div>
+
+          <div className="space-y-2">
+            {filteredCommunityFeed.map((post) => (
+              <article key={post.id} className="rounded-lg border border-white/10 bg-black/25 p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-semibold text-zinc-100">{post.handle}</p>
+                  <span className="text-[10px] text-zinc-400">{post.timeAgo}</span>
+                </div>
+                <p className="text-[10px] uppercase tracking-wide text-cyan-300/80">{post.channel}</p>
+                <p className="mt-1 text-xs text-zinc-200/90 leading-relaxed">{post.content}</p>
+                <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-400">
+                  <span>#{post.tag}</span>
+                  <span>{post.likes} likes • {post.replies} replies</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <button
+            className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300/30 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-100 hover:bg-blue-500/20"
+            title="Simulated action"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Load More Threads
+          </button>
+        </aside>
       </div>
     </div>
   );
