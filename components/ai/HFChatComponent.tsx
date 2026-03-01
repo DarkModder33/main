@@ -327,7 +327,7 @@ const PREDICTIVE_QUERY_SNIPPETS = [
   "Generate a concise macro watchlist with priority signals.",
   "Simulate a 3-asset rebalance using low-volatility allocation.",
   "Create entry, stop-loss, and take-profit ranges for ETH swing setup.",
-  "Summarize social sentiment impact on top 5 Solana ecosystem tokens.",
+  "Summarize social sentiment impact on the top 5 tracked ecosystem tokens.",
   "Create a daily trading journal template with risk scoring.",
 ];
 

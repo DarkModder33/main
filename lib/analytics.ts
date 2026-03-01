@@ -101,7 +101,7 @@ export const trackEvent = {
     });
   },
 
-  tradeExecuted: (amount: number, token: string = 'SOL') => {
+  tradeExecuted: (amount: number, token: string = 'NATIVE') => {
     event({
       action: 'trade_executed',
       category: 'web3',

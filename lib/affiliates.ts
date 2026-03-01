@@ -62,7 +62,7 @@ export const affiliates: Record<string, AffiliateLink> = {
   phantom: {
     id: 'phantom',
     name: 'Phantom Wallet',
-    description: 'The best Solana wallet for traders.',
+    description: 'A popular chain wallet for active traders.',
     url: normalizeAffiliateUrl(process.env.NEXT_PUBLIC_PHANTOM_REF, defaultAffiliateUrls.phantom),
     expectedPath: '/?ref=REF_CODE',
     commission: 'Variable',

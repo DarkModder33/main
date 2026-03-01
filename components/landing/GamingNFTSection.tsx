@@ -16,7 +16,7 @@ const cards: CardData[] = [
   {
     title: "Hyperborea",
     description:
-      "Explore a 3D blockchain-powered game world. Earn rewards, collect NFTs, and compete in a decentralized gaming ecosystem built on Solana.",
+      "Explore a 3D blockchain-powered game world. Earn rewards, collect NFTs, and compete in a decentralized gaming ecosystem built for modern chains.",
     tag: "Game",
     href: "/game",
     accentColor: "#00F0FF",
@@ -113,7 +113,7 @@ export function GamingNFTSection() {
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
             Discover the intersection of blockchain gaming, digital collectibles,
-            and artificial intelligence
+            and artificial intelligence across interoperable ecosystems
           </p>
         </div>
 

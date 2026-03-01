@@ -17,13 +17,13 @@ export const metadata = createPageMetadata({
   description:
     "Explore TradeHax AI Web3 progress, including wallet onboarding, NFT utility planning, and product roadmap updates.",
   path: "/crypto-project",
-  keywords: ["web3 project", "solana onboarding", "nft utility roadmap", "crypto product updates"],
+  keywords: ["web3 project", "multi-chain onboarding", "nft utility roadmap", "crypto product updates"],
 });
 
 const features = [
   {
     title: "Devnet Wallet Connect",
-    text: "Use Phantom or any supported wallet to connect and verify readiness.",
+    text: "Use your preferred chain wallet to connect and verify readiness.",
     icon: ShieldCheck,
   },
   {
@@ -49,7 +49,7 @@ export default function CryptoProjectPage() {
       <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
-          <span className="theme-kicker mb-3">Solana Project Hub</span>
+          <span className="theme-kicker mb-3">Chain Project Hub</span>
           <h1 className="theme-title text-3xl sm:text-4xl font-bold mb-4">
             Hyperborea NFT and Utility Roadmap
           </h1>

@@ -1,7 +1,10 @@
 import { parsePositiveNumber, sanitizeQueryText } from "@/lib/intelligence/filters";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
+import { SUPPORTED_CRYPTO_CHAINS } from "@/lib/intelligence/types";
 import { enforceRateLimit, enforceTrustedOrigin } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
+
+const VALID_SIDES = new Set(["long", "short", "spot_buy", "spot_sell"]);
 
 export async function GET(request: NextRequest) {
   const originBlock = enforceTrustedOrigin(request);
@@ -20,8 +23,9 @@ export async function GET(request: NextRequest) {
 
   const search = request.nextUrl.searchParams;
   const pair = sanitizeQueryText(search.get("pair"), 18).toUpperCase();
-  const chain = sanitizeQueryText(search.get("chain"), 12);
-  const side = sanitizeQueryText(search.get("side"), 12);
+  const chain = sanitizeQueryText(search.get("chain"), 32);
+  const requestedSide = sanitizeQueryText(search.get("side"), 12);
+  const side = VALID_SIDES.has(requestedSide) ? requestedSide : "";
   const minNotional = parsePositiveNumber(search.get("minNotional"));
   const minConfidence = parsePositiveNumber(search.get("minConfidence"));
   const snapshot = await getIntelligenceSnapshot();
@@ -44,6 +48,14 @@ export async function GET(request: NextRequest) {
       count: items.length,
       generatedAt: new Date().toISOString(),
       provider: snapshot.status,
+      supportedChains: SUPPORTED_CRYPTO_CHAINS,
+      appliedFilters: {
+        pair: pair || null,
+        chain: chain || null,
+        side: side || null,
+        minNotional,
+        minConfidence,
+      },
     },
     { headers: rateLimit.headers },
   );

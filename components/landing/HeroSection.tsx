@@ -31,7 +31,7 @@ export function HeroSection() {
           style={{ animationDelay: "0.1s" }}
         >
           <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
-          AI-Powered Trading on Solana
+          AI-Powered Multi-Chain Trading
         </div>
 
         {/* Main headline */}
@@ -63,7 +63,7 @@ export function HeroSection() {
           style={{ animationDelay: "0.45s" }}
         >
           Join 10,000+ traders leveraging automated strategies, real-time AI signals,
-          and decentralized execution on Solana.
+          and decentralized execution across modern chains.
         </p>
 
         {/* CTAs */}

@@ -6,7 +6,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 import { SiteNavigatorWidget } from "@/components/ai/SiteNavigatorWidget";
-import { SolanaProvider } from "@/components/counter/provider/Solana";
+import { ChainSessionProvider } from "@/components/counter/provider/ChainSession";
 import { HyperboreaIntroOverlay } from "@/components/intro/HyperboreaIntroOverlay";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { CinematicFxLayer } from "@/components/ui/CinematicFxLayer";
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     "computer repair philadelphia",
     "cell phone repair south jersey",
     "online guitar lessons",
-    "solana development services",
+    "multi-chain development services",
     "blockchain consulting",
     "website design for small business",
     "device repair",
@@ -141,7 +141,7 @@ export default function RootLayout({
           <CinematicFxLayer />
           <CyberCursor />
           <HyperboreaIntroOverlay />
-          <SolanaProvider>
+          <ChainSessionProvider>
             <WalletProvider>
               <nav id="global-top-nav" className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
                 <MarketTicker />
@@ -186,7 +186,7 @@ export default function RootLayout({
               </a>
               <SiteNavigatorWidget />
             </WalletProvider>
-          </SolanaProvider>
+          </ChainSessionProvider>
           <Toaster position="bottom-right" theme="dark" closeButton />
           <Analytics />
           <footer className="py-20 border-t border-white/5 bg-black">
@@ -194,7 +194,7 @@ export default function RootLayout({
               <div className="col-span-1 md:col-span-2">
                 <div className="text-2xl font-black tracking-tighter mb-4">TRADEHAX</div>
                 <p className="text-zinc-500 text-sm max-w-xs leading-relaxed">
-                  The future of automated trading and decentralized gaming on Solana.
+                  The future of automated trading and decentralized gaming across modern chains.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <a

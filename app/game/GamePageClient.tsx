@@ -19,7 +19,7 @@ import type {
     HyperboreaLevelDefinition,
 } from "@/lib/game/level-types";
 import { isHyperboreaLevelDefinition } from "@/lib/game/level-types";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@/lib/wallet-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Gamepad2,
@@ -105,9 +105,10 @@ export default function GamePage() {
   const [showControlCoach, setShowControlCoach] = useState(false);
   const [playerAlias, setPlayerAlias] = useState("Guest");
   const pressedControlsRef = useRef<Set<Exclude<ControlAction, "use">>>(new Set());
-  const { connected: walletConnected, publicKey } = useWallet();
+  const { status: walletStatus, address } = useWallet();
   const { data: session } = useSession();
-  const walletAddress = publicKey?.toBase58();
+  const walletConnected = walletStatus === "CONNECTED";
+  const walletAddress = address ?? undefined;
 
   const topArtifacts = useMemo(() => artifactFeed.slice(0, 3), [artifactFeed]);
   const oauthProvider = useMemo(() => {

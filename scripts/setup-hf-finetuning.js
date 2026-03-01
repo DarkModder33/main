@@ -49,8 +49,8 @@ function main() {
   // Check core files
   log('📋 Checking files...', 'blue');
   const files = [
-    ['src/app/api/hf-server.ts', 'HF Server API'],
-    ['src/components/hf-client.ts', 'HF Client Hook'],
+    ['app/api/hf-server/route.ts', 'HF Server API'],
+    ['components/hf-client.ts', 'HF Client Hook'],
     ['scripts/fine-tune-mistral-lora.py', 'Fine-Tune Script'],
     ['scripts/fine-tune-requirements.txt', 'Python Deps'],
     ['scripts/run-finetune-workflow.js', 'Workflow Orchestrator'],

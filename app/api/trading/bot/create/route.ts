@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     if (allocatedCapital < 0.1 || allocatedCapital > 1000) {
       return NextResponse.json(
-        { ok: false, error: "Allocated capital must be between 0.1 and 1000 SOL" },
+        { ok: false, error: "Allocated capital must be between 0.1 and 1000 native units" },
         { status: 400, headers: rateLimit.headers },
       );
     }

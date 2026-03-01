@@ -12,7 +12,7 @@ interface ArtistCardProps {
 
 /**
  * Artist profile card with tip jar and social features
- * Integrates with Solana for tipping functionality
+ * Integrates with chain-native tipping flows
  */
 export function ArtistCard({
   name,
@@ -23,8 +23,8 @@ export function ArtistCard({
   const [isFollowing, setIsFollowing] = useState(false);
 
   const handleTip = () => {
-    // This would integrate with Solana wallet in production
-    alert('Solana tip jar integration coming soon!');
+    // This would integrate with chain wallet in production
+    alert('On-chain tip jar integration coming soon!');
   };
 
   const handleFollow = () => {
@@ -37,23 +37,23 @@ export function ArtistCard({
         <div className="w-20 h-20 bg-gradient-to-br from-[#FF6B35] to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
           {name.charAt(0)}
         </div>
-        
+
         <div className="flex-1">
           <h3 className="text-xl font-bold text-white mb-1">{name}</h3>
           <p className="text-gray-400 text-sm mb-2">{instrument}</p>
           <p className="text-gray-500 text-xs">{followers} followers</p>
         </div>
-        
-        <button 
+
+        <button
           className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
           aria-label={`Share ${name}'s profile`}
         >
           <Share2 className="w-5 h-5 text-gray-400" />
         </button>
       </div>
-      
+
       <p className="text-gray-300 text-sm mb-4 line-clamp-3">{bio}</p>
-      
+
       <div className="flex gap-2">
         <button
           onClick={handleFollow}
@@ -72,15 +72,15 @@ export function ArtistCard({
             'Follow'
           )}
         </button>
-        
+
         <button
           onClick={handleTip}
           className="px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-orange-600 transition-all font-semibold"
         >
-          Tip SOL
+          Tip
         </button>
-        
-        <button 
+
+        <button
           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all"
           aria-label={`Play ${name}'s music`}
         >

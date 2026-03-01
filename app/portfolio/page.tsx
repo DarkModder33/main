@@ -111,10 +111,10 @@ export default function PortfolioPage() {
             <SkillCategory
               title="Web3 & Blockchain"
               skills={[
-                "Solana",
-                "Anchor",
-                "Web3.js",
-                "Wallet Adapters",
+                "Multi-chain Architecture",
+                "Smart Contract Frameworks",
+                "Chain Data SDKs",
+                "Wallet Connectors",
                 "Smart Contracts",
               ]}
             />
@@ -150,10 +150,10 @@ export default function PortfolioPage() {
               description="Service platform combining web development offerings, wallet tooling, booking funnels, and analytics-ready customer flows."
               technologies={[
                 "Next.js",
-                "Solana",
+                "Multi-chain",
                 "TypeScript",
                 "Tailwind CSS",
-                "Anchor",
+                "Agentic AI",
               ]}
               link={siteConfig.primarySiteUrl}
             />
@@ -164,7 +164,7 @@ export default function PortfolioPage() {
                 "HTML5 Canvas",
                 "TypeScript",
                 "Web3",
-                "Solana NFTs",
+                "On-chain NFTs",
               ]}
               link="/game"
             />

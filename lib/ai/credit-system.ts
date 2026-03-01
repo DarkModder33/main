@@ -597,20 +597,20 @@ export function listCreditPacks() {
 }
 
 /**
- * Web3 Token Integration (Solana)
- * Deducts $HAX tokens for high-performance requests.
+ * Native asset settlement integration (chain-agnostic)
+ * Deducts $HAX-equivalent units for high-performance requests.
  */
 export async function deductTokens(walletAddress: string, amount: number) {
-  console.log(`[WEB3_TOKEN] Charging ${amount} $HAX to ${walletAddress} (Mint: ${HAX_TOKEN_CONFIG.MINT_ADDRESS})`);
+  console.log(`[NATIVE_ASSET] Charging ${amount} ${HAX_TOKEN_CONFIG.SYMBOL} to ${walletAddress} (Asset: ${HAX_TOKEN_CONFIG.ASSET_ID})`);
 
-  // Real implementation would build a transfer instruction
-  // 1. Get associated token account (ATA)
-  // 2. Build transfer transaction
-  // 3. Return TX for signing
+  // Real implementation should submit settlement intent to your chain/L2 settlement service.
+  // 1. Resolve source account
+  // 2. Build native transfer/settlement intent
+  // 3. Return unsigned payload or execution reference
 
   return {
-    txId: "0x_REAL_SOLANA_TX_ID_PROTOTYPE",
-    mint: HAX_TOKEN_CONFIG.MINT_ADDRESS,
-    status: "pending_signature"
+    txId: "native_settlement_reference_placeholder",
+    assetId: HAX_TOKEN_CONFIG.ASSET_ID,
+    status: "pending_settlement"
   };
 }

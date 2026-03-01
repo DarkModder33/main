@@ -201,8 +201,8 @@ Latest Commits:
 29b8ee9 - feat: add Hugging Face fine-tuning workflow and API integrations
 
 Files Ready:
-✅ src/app/api/hf-server.ts
-✅ src/components/hf-client.ts
+✅ app/api/hf-server/route.ts
+✅ components/hf-client.ts
 ✅ scripts/fine-tune-mistral-lora.py
 ✅ scripts/fine-tune-requirements.txt
 ✅ scripts/run-finetune-workflow.js

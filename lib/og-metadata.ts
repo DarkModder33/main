@@ -32,17 +32,6 @@ const DEFAULT_IMAGE = `${BASE_URL}/og-default.png`;
 const SOCIAL_IMAGE_WIDTH = 1200;
 const SOCIAL_IMAGE_HEIGHT = 630;
 
-// Platform-specific image dimensions
-const PLATFORM_DIMENSIONS = {
-  facebook: { width: 1200, height: 630 },
-  twitter: { width: 1024, height: 512 },
-  twitter_large: { width: 506, height: 506 },
-  linkedin: { width: 1200, height: 627 },
-  pinterest: { width: 1000, height: 1500 },
-  instagram: { width: 1080, height: 1350 },
-  tiktok: { width: 1080, height: 1920 },
-};
-
 export function generateOGMetadata(
   title: string,
   description: string,
@@ -51,7 +40,7 @@ export function generateOGMetadata(
   type: 'website' | 'article' = 'website',
 ): SocialMediaMeta {
   const fullUrl = `${BASE_URL}${path}`;
-  
+
   return {
     title: `${title} | TradeHax AI`,
     description: description.slice(0, 160),
@@ -80,46 +69,46 @@ export function generateOGMetadata(
 export const PAGE_METADATA = {
   home: generateOGMetadata(
     'Automated Web3 Trading Platform',
-    'Advanced automated trading platform powered by Solana blockchain. Trade smarter with AI-driven insights and decentralized technology.',
+    'Advanced automated trading platform powered by modern blockchain infrastructure. Trade smarter with AI-driven insights and decentralized technology.',
     '/',
     '/og-home.png'
   ),
-  
+
   game: generateOGMetadata(
     'Hyperborea - Browser Game',
     'Play Hyperborea, an Escher-inspired 3D browser game with NFT rewards and blockchain integration.',
     '/game',
     '/og-game.png'
   ),
-  
+
   dashboard: generateOGMetadata(
     'Trading Dashboard',
     'Monitor your trading performance with comprehensive analytics and real-time portfolio insights.',
     '/dashboard',
     '/og-dashboard.png'
   ),
-  
+
   music: generateOGMetadata(
     'Music & Arts Platform',
-    'Learn guitar remotely from professional instructors. Showcase your music and earn SOL tips from fans.',
+    'Learn guitar remotely from professional instructors. Showcase your music and earn on-chain tips from fans.',
     '/music',
     '/og-music.png'
   ),
-  
+
   portfolio: generateOGMetadata(
     'Portfolio - Michael S. Flaherty',
     'Full-stack developer & Web3 architect. View projects, skills, and get in touch.',
     '/portfolio',
     '/og-portfolio.png'
   ),
-  
+
   services: generateOGMetadata(
     'Professional Services',
     'Web3 development, trading systems, consulting, and full-stack development services.',
     '/services',
     '/og-services.png'
   ),
-  
+
   blog: generateOGMetadata(
     'Blog - Trading Insights & Web3 Guides',
     'Expert articles on cryptocurrency trading, blockchain technology, and automated trading strategies.',
@@ -147,14 +136,17 @@ export function generateMetaTagsHTML(metadata: SocialMediaMeta): string {
     `<meta name="twitter:image" content="${metadata.image}" />`,
     `<meta name="twitter:creator" content="${metadata.twitter?.creator || '@tradehaxai'}" />`,
   ];
-  
+
   return tags.join('\n');
 }
 
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**

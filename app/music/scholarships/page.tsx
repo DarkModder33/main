@@ -143,7 +143,7 @@ export default function ScholarshipsPage() {
               phase="Phase 1"
               title="Token Launch & Liquidity Pool"
               status="In Progress"
-              description="Launch L2 utility token and establish initial liquidity pool on Solana DEX"
+              description="Launch L2 utility token and establish initial liquidity pool on a supported multi-chain DEX"
               statusColor="yellow"
             />
             <RoadmapItem

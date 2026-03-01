@@ -28,7 +28,7 @@ export const metadata: Metadata = createPageMetadata({
     "analytics",
     "crypto trading",
     "performance tracking",
-    "solana",
+    "multi-chain",
     "workflow dashboard",
   ],
 });
@@ -88,7 +88,7 @@ export default function DashboardPage() {
                 Demo Counter
               </h2>
               <p className="text-gray-400 text-sm">
-                Interact with Solana-connected features in a safe preview mode.
+                Interact with chain-connected features in a safe preview mode.
               </p>
             </div>
 

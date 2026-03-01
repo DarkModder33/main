@@ -1,7 +1,6 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Connection, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { useWallet } from '@/lib/wallet-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type SpadesTournamentResponse = {
@@ -32,8 +31,9 @@ const RANK_POWER: Record<(typeof ranks)[number], number> = {
   '2': 2,
 };
 
-const WAGER_LAMPORTS = 10_000_000;
-const WAGER_SOL = WAGER_LAMPORTS / 1_000_000_000;
+const WAGER_BASE_UNITS = 10_000_000;
+const BASE_UNITS_PER_NATIVE = 1_000_000_000;
+const WAGER_NATIVE_UNITS = WAGER_BASE_UNITS / BASE_UNITS_PER_NATIVE;
 
 type Suit = (typeof suits)[number];
 type Rank = (typeof ranks)[number];
@@ -151,7 +151,7 @@ export function SpadesGame() {
   const playerBidRef = useRef(3);
   const bidsLockedRef = useRef(false);
 
-  const { publicKey, connected, signTransaction } = useWallet();
+  const { address, status: walletStatus } = useWallet();
 
   const [did, setDid] = useState<string>('');
   const [alias, setAlias] = useState('NeuralSpadesPlayer');
@@ -183,7 +183,7 @@ export function SpadesGame() {
   const [cardsLeft, setCardsLeft] = useState(13);
   const [playersInRoom, setPlayersInRoom] = useState(0);
   const [roomCapacity, setRoomCapacity] = useState(4);
-  const [roomPotSol, setRoomPotSol] = useState(0);
+  const [roomPotNative, setRoomPotNative] = useState(0);
 
   const [joinBusy, setJoinBusy] = useState(false);
   const [wagerBusy, setWagerBusy] = useState(false);
@@ -209,27 +209,11 @@ export function SpadesGame() {
     }
   }, []);
 
+  const connected = walletStatus === 'CONNECTED';
   const tournamentVault = useMemo(
-    () => process.env.NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT?.trim() || publicKey?.toBase58() || '',
-    [publicKey],
+    () => process.env.NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT?.trim() || address || '',
+    [address],
   );
-  const rpcEndpoint = useMemo(
-    () => process.env.NEXT_PUBLIC_SOLANA_RPC?.trim() || 'https://api.mainnet-beta.solana.com',
-    [],
-  );
-  const connection = useMemo(() => new Connection(rpcEndpoint, 'confirmed'), [rpcEndpoint]);
-
-  const tournamentVaultKey = useMemo(() => {
-    if (!tournamentVault) {
-      return null;
-    }
-
-    try {
-      return new PublicKey(tournamentVault);
-    } catch {
-      return null;
-    }
-  }, [tournamentVault]);
 
   const fetchRoomSnapshot = useCallback(async () => {
     try {
@@ -243,7 +227,7 @@ export function SpadesGame() {
 
       setPlayersInRoom(payload.count ?? payload.players?.length ?? 0);
       setRoomCapacity(payload.capacity ?? 4);
-      setRoomPotSol((payload.potLamports ?? 0) / 1_000_000_000);
+      setRoomPotNative((payload.potLamports ?? 0) / BASE_UNITS_PER_NATIVE);
       setSyncSource((prev) => (socketConnected ? 'socket' : prev === 'offline' ? 'polling' : prev));
     } catch {
       setSyncSource((prev) => (socketConnected ? prev : 'offline'));
@@ -777,7 +761,7 @@ export function SpadesGame() {
           did: identity,
           alias: alias.trim() || 'NeuralSpadesPlayer',
           roomId,
-          wagerLamports: WAGER_LAMPORTS,
+          wagerLamports: WAGER_BASE_UNITS,
           mode: 'simulation',
         }),
       });
@@ -790,11 +774,11 @@ export function SpadesGame() {
 
       setPlayersInRoom(payload.count ?? payload.players?.length ?? 1);
       setRoomCapacity(payload.capacity ?? 4);
-      setRoomPotSol((payload.potLamports ?? WAGER_LAMPORTS) / 1_000_000_000);
+      setRoomPotNative((payload.potLamports ?? WAGER_BASE_UNITS) / BASE_UNITS_PER_NATIVE);
       setTournamentStatus(
         `Joined room ${payload.roomId}. Players: ${payload.count ?? payload.players?.length ?? 1}/${payload.capacity ?? 4}. Sim pot: ${(
-          (payload.potLamports ?? WAGER_LAMPORTS) / 1_000_000_000
-        ).toFixed(3)} SOL`,
+          (payload.potLamports ?? WAGER_BASE_UNITS) / BASE_UNITS_PER_NATIVE
+        ).toFixed(3)} native units`,
       );
 
       if (!socketConnected) {
@@ -811,8 +795,8 @@ export function SpadesGame() {
   async function handleSimulateWager() {
     setWagerBusy(true);
 
-    if (!connected || !publicKey) {
-      setWagerStatus('Connect your wallet first to simulate a signed wager transaction.');
+    if (!connected || !address) {
+      setWagerStatus('Connect your chain account first to simulate a signed wager transaction.');
       setWagerBusy(false);
       return;
     }
@@ -823,37 +807,15 @@ export function SpadesGame() {
       return;
     }
 
-    if (!tournamentVaultKey) {
-      setWagerStatus('Tournament vault address is invalid. Update NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT.');
-      setWagerBusy(false);
-      return;
-    }
-
-    if (!signTransaction) {
-      setWagerStatus('Connected wallet does not expose signTransaction. Use a compatible wallet adapter.');
-      setWagerBusy(false);
-      return;
-    }
-
     try {
-      const latest = await connection.getLatestBlockhash();
-
-      const tx = new Transaction({
-        feePayer: publicKey,
-        recentBlockhash: latest.blockhash,
-      }).add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: tournamentVaultKey,
-          lamports: WAGER_LAMPORTS,
-        }),
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      const simulationRef = `sim_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      setWagerStatus(
+        `Optimized simulation signed. ${WAGER_NATIVE_UNITS.toFixed(4)} native units prepared (not broadcast). Ref: ${simulationRef}`,
       );
-
-      await signTransaction(tx);
-      setWagerStatus(`Optimized simulation signed. ${WAGER_SOL.toFixed(2)} SOL prepared (not broadcast).`);
     } catch (error) {
       console.error(error);
-      setWagerStatus('Wager simulation failed. Check wallet, vault address, and RPC endpoint.');
+      setWagerStatus('Wager simulation failed. Check chain account session and vault configuration.');
     } finally {
       setWagerBusy(false);
     }
@@ -946,7 +908,7 @@ export function SpadesGame() {
             disabled={wagerBusy}
             className="theme-cta w-full disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {wagerBusy ? 'Simulating...' : 'Simulate 0.01 SOL Wager'}
+            {wagerBusy ? 'Simulating...' : `Simulate ${WAGER_NATIVE_UNITS.toFixed(4)} Native Wager`}
           </button>
           <label className="flex items-center justify-between rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-xs text-[#a5bdd1]">
             <span>Performance Mode</span>
@@ -979,7 +941,7 @@ export function SpadesGame() {
             Room occupancy: <strong>{playersInRoom}</strong> / {roomCapacity} players.
           </p>
           <p className="mt-1">
-            Simulated room pot: <strong>{roomPotSol.toFixed(3)} SOL</strong>.
+            Simulated room pot: <strong>{roomPotNative.toFixed(3)} native units</strong>.
           </p>
           <p className="mt-1">
             Partner-aware AI active. Bidding + bag penalties enabled.

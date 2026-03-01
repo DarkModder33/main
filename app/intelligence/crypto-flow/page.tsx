@@ -19,7 +19,7 @@ export default function IntelligenceCryptoFlowPage() {
         <IntelligencePageShell
           kicker="Crypto Layer"
           title="Crypto Flow Intelligence"
-          description="Unify pair-level directional flow across Solana, Ethereum, Base, and Arbitrum."
+          description="Unify pair-level directional flow across major chain ecosystems with consistent confidence scoring."
           quickLinks={[
             { label: "Overview", href: "/intelligence" },
             { label: "Flow Tape", href: "/intelligence/flow" },

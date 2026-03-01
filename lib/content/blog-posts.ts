@@ -22,16 +22,16 @@ export type BlogPost = {
 export const blogPosts: BlogPost[] = [
   {
     slug: "getting-started-solana-trading",
-    title: "Getting Started with Solana Trading: A Complete Guide",
+    title: "Getting Started with On-Chain Trading: A Complete Guide",
     excerpt:
-      "A practical walkthrough for wallet setup, risk controls, and first-trade execution on Solana.",
+      "A practical walkthrough for wallet setup, risk controls, and first-trade execution across modern chains.",
     date: "2026-02-10",
     readTime: 8,
     category: "Tutorial",
     featured: true,
     author: "TradeHax AI Team",
     content: `
-<p>Solana trading can be fast and efficient, but speed without structure usually leads to losses. Start with setup discipline before your first execution.</p>
+  <p>On-chain trading can be fast and efficient, but speed without structure usually leads to losses. Start with setup discipline before your first execution.</p>
 <h2>Step 1: Wallet + RPC setup</h2>
 <p>Use a production wallet, enable hardware security where possible, and choose a stable RPC provider. Track failed transactions and latency spikes.</p>
 <h2>Step 2: Risk framework</h2>
