@@ -26,7 +26,10 @@ function resolveVercelScope() {
 
 function run(label, command, commandArgs) {
   process.stdout.write(`\n==> ${label}\n`);
-  const result = spawnSync(command, commandArgs, { stdio: "inherit" });
+  const result = spawnSync(command, commandArgs, {
+    stdio: "inherit",
+    shell: process.platform === "win32" && (command === "npm" || command === "npm.cmd"),
+  });
   if (result.error) {
     process.stderr.write(`${result.error.message}\n`);
     process.exit(1);
@@ -41,7 +44,7 @@ function runNpm(label, npmArgs) {
     run(label, nodeExecPath, [npmExecPath, ...npmArgs]);
     return;
   }
-  run(label, npmCmd, npmArgs);
+  run(label, "npm", npmArgs);
 }
 
 function runDeploy() {
