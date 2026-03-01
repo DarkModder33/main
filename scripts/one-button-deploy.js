@@ -16,6 +16,14 @@ const npmExecPath = process.env.npm_execpath;
 const nodeExecPath = process.execPath;
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 
+function resolveVercelScope() {
+  const explicitScope = String(process.env.VERCEL_SCOPE || process.env.VERCEL_TEAM_SLUG || "").trim();
+  if (explicitScope) {
+    return explicitScope;
+  }
+  return "hackavelliz";
+}
+
 function run(label, command, commandArgs) {
   process.stdout.write(`\n==> ${label}\n`);
   const result = spawnSync(command, commandArgs, { stdio: "inherit" });
@@ -38,10 +46,14 @@ function runNpm(label, npmArgs) {
 
 function runDeploy() {
   const deployArgs = ["exec", "--yes", "vercel@latest", "--"];
+  const vercelScope = resolveVercelScope();
   if (isProd) {
     deployArgs.push("--prod");
   }
   deployArgs.push("--yes");
+  if (vercelScope) {
+    deployArgs.push("--scope", vercelScope);
+  }
 
   const token = process.env.VERCEL_TOKEN;
   if (token) {
@@ -67,6 +79,7 @@ function runDeploy() {
 (function main() {
   process.stdout.write("\nTradeHax One-Button Deploy\n");
   process.stdout.write(`Target: ${isProd ? "production" : "preview"}\n`);
+  process.stdout.write(`Vercel scope: ${resolveVercelScope()}\n`);
   if (strictDnsCheck) {
     process.stdout.write("DNS mode: STRICT apex A record required\n");
   }
