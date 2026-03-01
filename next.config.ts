@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
 
   // Experimental features - Enable ALL
   experimental: {
-    optimizePackageImports: ["lucide-react", "@solana/wallet-adapter-react"],
+    optimizePackageImports: ["lucide-react"],
     optimisticClientCache: true,
     // Enable all experimental features for maximum functionality
   },

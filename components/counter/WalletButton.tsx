@@ -6,54 +6,37 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWallet } from "@/lib/wallet-provider";
 
 import React from "react";
-import dynamic from "next/dynamic";
-
-// Nextjs hydration error fix
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
-    ),
-  {
-    ssr: false,
-    loading: () => {
-      return (
-        <div
-          className="bg-black border border-gray-800 rounded-md animate-pulse flex items-center"
-          style={{
-            width: "173.47px",
-            height: "48px",
-            padding: "0 12px",
-            gap: "8px",
-          }}
-        >
-          <div
-            className="rounded-full bg-green-400/30"
-            style={{ width: "24px", height: "24px" }}
-          ></div>
-          <div
-            className="h-4 bg-white/10 rounded-sm"
-            style={{ width: "100px" }}
-          ></div>
-        </div>
-      );
-    },
-  }
-);
 
 export function WalletButton() {
+  const { address, status, connect, disconnect } = useWallet();
+
+  const label =
+    status === "CONNECTED"
+      ? `${address ?? "Connected"}`
+      : status === "CONNECTING"
+        ? "CONNECTING..."
+        : "CONNECT CHAIN ACCOUNT";
+
+  const action = status === "CONNECTED" ? disconnect : connect;
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="inline-block">
-            <WalletMultiButton />
-          </div>
+          <button
+            type="button"
+            onClick={action}
+            disabled={status === "CONNECTING"}
+            className="inline-flex min-w-[180px] items-center justify-center rounded-md border border-white/20 bg-black px-4 py-2 text-xs font-mono tracking-wide text-cyan-300 transition-colors hover:border-cyan-400/70 hover:text-cyan-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {label}
+          </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Devnet Only</p>
+          <p>{status === "CONNECTED" ? "Disconnect" : "Connect"} chain session</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

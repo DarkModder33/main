@@ -1,5 +1,19 @@
 export type IntelligenceSentiment = "bullish" | "bearish" | "neutral";
 
+export const SUPPORTED_CRYPTO_CHAINS = [
+  "solana",
+  "ethereum",
+  "base",
+  "arbitrum",
+  "polygon",
+  "optimism",
+  "avalanche",
+  "bsc",
+] as const;
+
+export type SupportedCryptoChain = (typeof SUPPORTED_CRYPTO_CHAINS)[number];
+export type CryptoChain = SupportedCryptoChain | (string & {});
+
 export type FlowTrade = {
   id: string;
   symbol: string;
@@ -42,7 +56,7 @@ export type PoliticalTrade = {
 export type CryptoFlowTrade = {
   id: string;
   pair: string;
-  chain: "solana" | "ethereum" | "base" | "arbitrum";
+  chain: CryptoChain;
   side: "long" | "short" | "spot_buy" | "spot_sell";
   notionalUsd: number;
   confidence: number;

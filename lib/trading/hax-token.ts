@@ -1,72 +1,122 @@
-import { PublicKey, Connection, Transaction, SystemProgram, Keypair } from "@solana/web3.js";
-
 /**
- * TradeHax $HAX Token configuration
+ * TradeHax native asset configuration (chain-agnostic)
  */
 export const HAX_TOKEN_CONFIG = {
-  NAME: "TradeHax Utility Token",
+  NAME: "TradeHax Native Utility Asset",
   SYMBOL: "HAX",
-  DECIMALS: 9,
-  // Placeholder mint address - in a real deployment this would be fixed after creation
-  MINT_ADDRESS: "HAX1111111111111111111111111111111111111111", 
-  TOKEN_PROGRAM_ID: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-  METADATA_PROGRAM_ID: new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+  DECIMALS: Number.parseInt(process.env.TRADEHAX_NATIVE_DECIMALS || "18", 10),
+  CHAIN_NAMESPACE: process.env.TRADEHAX_CHAIN_NAMESPACE || "tradehax-l2",
+  NETWORK: process.env.TRADEHAX_CHAIN_NETWORK || "alpha",
+  ASSET_ID: process.env.TRADEHAX_NATIVE_ASSET_ID || "HAX_NATIVE_ASSET",
+  TREASURY_ACCOUNT: process.env.TRADEHAX_TREASURY_ACCOUNT || "tradehax_treasury_main",
+  // Backward compatibility aliases for existing UI/runtime references.
+  MINT_ADDRESS: process.env.TRADEHAX_NATIVE_ASSET_ID || "HAX_NATIVE_ASSET",
 };
 
-export class HaxTokenManager {
-  private connection: Connection;
+type BalanceStore = Map<string, number>;
 
-  constructor(connection: Connection) {
-    this.connection = connection;
+function getBalanceStore(): BalanceStore {
+  const globalRef = globalThis as typeof globalThis & {
+    __TRADEHAX_HAX_BALANCE_STORE__?: BalanceStore;
+  };
+
+  if (!globalRef.__TRADEHAX_HAX_BALANCE_STORE__) {
+    globalRef.__TRADEHAX_HAX_BALANCE_STORE__ = new Map<string, number>();
   }
 
+  return globalRef.__TRADEHAX_HAX_BALANCE_STORE__;
+}
+
+function normalizeAccountId(value: string) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_\-.:@]/g, "")
+    .slice(0, 128);
+}
+
+function resolveInitialBalance() {
+  const parsed = Number.parseFloat(process.env.TRADEHAX_NATIVE_BOOTSTRAP_BALANCE || "0");
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+  return Math.max(0, parsed);
+}
+
+export class HaxTokenManager {
+  constructor() {}
+
   /**
-   * Logic to simulate/prepare token creation on Solana
+   * Prepare native asset deployment metadata for chain-agnostic minting/orchestration.
    */
-  async prepareTokenCreation(payer: PublicKey) {
-    console.log(`[HAX_TOKEN] Preparing creation for ${payer.toBase58()}`);
-    
-    // In a real implementation using @solana/spl-token:
-    // 1. Create Mint Account
-    // 2. Initialize Mint
-    // 3. Create Metadata (Metaplex)
-    
+  async prepareTokenCreation(operatorAccountId: string) {
+    const operator = normalizeAccountId(operatorAccountId);
+    if (!operator) {
+      throw new Error("operatorAccountId is required");
+    }
+
     return {
-      message: "Token creation logic initialized. Requires signature.",
-      mint: HAX_TOKEN_CONFIG.MINT_ADDRESS
+      message: "Native asset deployment metadata prepared.",
+      chainNamespace: HAX_TOKEN_CONFIG.CHAIN_NAMESPACE,
+      network: HAX_TOKEN_CONFIG.NETWORK,
+      assetId: HAX_TOKEN_CONFIG.ASSET_ID,
+      operator,
+      decimals: HAX_TOKEN_CONFIG.DECIMALS,
     };
   }
 
   /**
-   * Get balance of $HAX for a given wallet
+   * Get balance of HAX for a given account id.
    */
-  async getHaxBalance(walletAddress: string): Promise<number> {
-    try {
-      const pubkey = new PublicKey(walletAddress);
-      const accounts = await this.connection.getParsedTokenAccountsByOwner(pubkey, {
-        mint: new PublicKey(HAX_TOKEN_CONFIG.MINT_ADDRESS)
-      });
-
-      if (accounts.value.length === 0) return 0;
-
-      const balance = accounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
-      return balance || 0;
-    } catch (error) {
-      console.error("[HAX_TOKEN] Failed to fetch balance:", error);
+  async getHaxBalance(accountId: string): Promise<number> {
+    const normalized = normalizeAccountId(accountId);
+    if (!normalized) {
       return 0;
     }
+
+    const store = getBalanceStore();
+    if (!store.has(normalized)) {
+      store.set(normalized, resolveInitialBalance());
+    }
+
+    return store.get(normalized) || 0;
   }
 
   /**
-   * Generate liquidity pool connection parameters
+   * Apply settlement delta to account balance (positive for mint/credit, negative for debit/burn).
+   */
+  async applySettlement(accountId: string, delta: number) {
+    const normalized = normalizeAccountId(accountId);
+    if (!normalized) {
+      throw new Error("accountId is required");
+    }
+    if (!Number.isFinite(delta)) {
+      throw new Error("delta must be finite");
+    }
+
+    const current = await this.getHaxBalance(normalized);
+    const next = Math.max(0, current + delta);
+    getBalanceStore().set(normalized, next);
+    return {
+      accountId: normalized,
+      previous: current,
+      next,
+      delta,
+      appliedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Generate liquidity/routing bootstrap config for your own chain/L2.
    */
   getLiquidityPoolConfig() {
     return {
-      dex: "Raydium",
-      baseToken: HAX_TOKEN_CONFIG.MINT_ADDRESS,
-      quoteToken: "So11111111111111111111111111111111111111112", // WSOL
-      targetLiquidity: 1000, // Initial SOL to add
-      feeTier: 0.003, // 0.3%
+      chainNamespace: HAX_TOKEN_CONFIG.CHAIN_NAMESPACE,
+      network: HAX_TOKEN_CONFIG.NETWORK,
+      baseToken: HAX_TOKEN_CONFIG.ASSET_ID,
+      quoteToken: process.env.TRADEHAX_QUOTE_ASSET_ID || "USDX",
+      targetLiquidity: Number.parseFloat(process.env.TRADEHAX_TARGET_LIQUIDITY || "100000"),
+      feeBps: Number.parseInt(process.env.TRADEHAX_DEFAULT_FEE_BPS || "30", 10),
     };
   }
 }

@@ -44,6 +44,12 @@ class SmartEnvironment {
   private state: EnvironmentState;
   private updateInterval: NodeJS.Timeout | null = null;
 
+  private readonly symbolPairs: Record<string, string> = {
+    SOL: "SOLUSDT",
+    USDC: "USDCUSDT",
+    RAY: "RAYUSDT",
+  };
+
   constructor(userId: string) {
     this.state = this.initializeState(userId);
   }
@@ -96,6 +102,39 @@ class SmartEnvironment {
     this.state.marketData.lastUpdate = Date.now();
   }
 
+  private async fetchLiveMarketData(): Promise<void> {
+    const symbols = this.state.marketData.selectedSymbols
+      .map((symbol) => this.symbolPairs[symbol])
+      .filter(Boolean);
+
+    if (symbols.length === 0) {
+      return;
+    }
+
+    const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`market_http_${response.status}`);
+    }
+
+    const payload = (await response.json()) as Array<Record<string, unknown>>;
+    for (const row of payload) {
+      const pair = String(row.symbol || "").toUpperCase();
+      const symbol = Object.entries(this.symbolPairs).find(([, value]) => value === pair)?.[0];
+      if (!symbol) {
+        continue;
+      }
+
+      const price = Number.parseFloat(String(row.lastPrice ?? "NaN"));
+      const change24h = Number.parseFloat(String(row.priceChangePercent ?? "NaN"));
+      if (!Number.isFinite(price) || !Number.isFinite(change24h)) {
+        continue;
+      }
+
+      this.updateMarketData(symbol, price, change24h);
+    }
+  }
+
   /**
    * Add interaction to history
    */
@@ -125,7 +164,7 @@ class SmartEnvironment {
 User Context:
 - Experience Level: ${experience}
 - Risk Tolerance: ${this.state.user.preferences.riskTolerance}
-- Portfolio Value: ${portfolio.totalAssets} SOL
+- Portfolio Value: ${portfolio.totalAssets} portfolio units
 - Active Bots: ${this.state.botState.activeBots.length}
 
 Recent Market Context:
@@ -197,9 +236,20 @@ Guidelines:
    * Start auto-update of market data
    */
   startAutoUpdate(interval: number = 30000): void {
+    void this.fetchLiveMarketData().catch((error) => {
+      console.warn(
+        "[SmartEnv] Initial live market update failed:",
+        error instanceof Error ? error.message : String(error),
+      );
+    });
+
     this.updateInterval = setInterval(() => {
-      // TODO: Fetch actual market data
-      console.log("[SmartEnv] Auto-updating market data");
+      void this.fetchLiveMarketData().catch((error) => {
+        console.warn(
+          "[SmartEnv] Auto-update failed:",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
     }, interval);
   }
 

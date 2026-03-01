@@ -144,7 +144,7 @@ const bookingOptions = [
   {
     key: "web3-consulting" as ScheduleOptionKey,
     title: "Web3 Consulting",
-    detail: "Architecture planning, implementation guidance, and Solana integrations.",
+    detail: "Architecture planning, implementation guidance, and multi-chain integrations.",
     href: bookingLinks.webDevConsult,
     conversionId: "book_web3_consult" as ServiceConversionId,
     aliases: [

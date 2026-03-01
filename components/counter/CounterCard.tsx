@@ -10,7 +10,7 @@ import { WalletButton } from "./WalletButton";
 
 /**
  * CounterCard is the main component for the Counter dApp.
- * It provides a user interface for interacting with a Solana counter program.
+ * It provides a user interface for interacting with the chain-native counter workflow.
  */
 export function CounterCard() {
   return (

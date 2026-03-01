@@ -3,8 +3,18 @@
 import { CopilotPanel } from "@/components/intelligence/CopilotPanel";
 import { useIntelligenceFeed } from "@/components/intelligence/useIntelligenceFeed";
 import { formatDateTime, formatPct, formatUsd } from "@/lib/intelligence/format";
-import { CryptoFlowTrade } from "@/lib/intelligence/types";
+import { CryptoFlowTrade, SUPPORTED_CRYPTO_CHAINS } from "@/lib/intelligence/types";
 import { useMemo, useState } from "react";
+
+function formatChainLabel(chain: string) {
+  if (chain === "bsc") {
+    return "BSC";
+  }
+  return chain
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export function CryptoFlowPanel() {
   const [pair, setPair] = useState("");
@@ -50,10 +60,11 @@ export function CryptoFlowPanel() {
               className="mt-2 w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-400/60"
             >
               <option value="">Any</option>
-              <option value="solana">Solana</option>
-              <option value="ethereum">Ethereum</option>
-              <option value="base">Base</option>
-              <option value="arbitrum">Arbitrum</option>
+              {SUPPORTED_CRYPTO_CHAINS.map((chainName) => (
+                <option key={chainName} value={chainName}>
+                  {formatChainLabel(chainName)}
+                </option>
+              ))}
             </select>
           </label>
           <label className="text-xs font-mono uppercase tracking-[0.2em] text-[#8ea8be]">

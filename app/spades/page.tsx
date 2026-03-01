@@ -18,7 +18,7 @@ export const metadata = createPageMetadata({
     'spades game',
     'spades online',
     'web3 card game',
-    'solana game',
+    'blockchain game',
     'tradehax arcade',
     'spades tournament',
     'crypto wagering simulation',

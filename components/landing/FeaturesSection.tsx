@@ -9,7 +9,7 @@ const features: FeatureCardProps[] = [
     icon: <Zap className="w-8 h-8 text-[#00F0FF]" />,
     title: "Lightning-Fast Transactions",
     description:
-      "Execute trades in milliseconds on Solana's high-performance blockchain with ultra-low fees.",
+      "Execute trades in milliseconds on high-performance chains with low-fee routing.",
   },
   {
     icon: <Bot className="w-8 h-8 text-[#3B82F6]" />,
@@ -21,7 +21,7 @@ const features: FeatureCardProps[] = [
     icon: <Lock className="w-8 h-8 text-[#00F0FF]" />,
     title: "Secure Wallet Integration",
     description:
-      "Connect your wallet securely with support for Phantom, Solflare, and other popular wallets.",
+      "Connect your account securely with support for modern chain wallets and signing connectors.",
   },
   {
     icon: <BarChart3 className="w-8 h-8 text-[#3B82F6]" />,
@@ -70,7 +70,7 @@ export function FeaturesSection() {
             </span>
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Everything you need to trade smarter on the Solana blockchain
+            Everything you need to trade smarter across modern blockchain ecosystems
           </p>
         </div>
 

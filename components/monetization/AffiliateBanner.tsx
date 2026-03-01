@@ -40,12 +40,12 @@ export function AffiliateBanner({
           {badge}
         </div>
       )}
-      
+
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-12 h-12 rounded-lg border border-[#79efb6]/48 bg-[#0d261c]/86 flex items-center justify-center">
           <TrendingUp className="w-6 h-6 text-white" />
         </div>
-        
+
         <div className="flex-1">
           <h3 className="theme-title text-xl font-bold mb-2">
             {title}
@@ -53,7 +53,7 @@ export function AffiliateBanner({
           <p className="theme-subtitle text-sm mb-4">
             {description}
           </p>
-          
+
           {disabled ? (
             <span className="inline-flex items-center gap-2 rounded-lg border border-[#617683]/45 bg-[#18222a]/82 px-6 py-2 font-semibold text-[#a6bcc9] cursor-not-allowed">
               Configure Referral URL
@@ -123,7 +123,7 @@ export function RecommendedTools() {
       <h2 className="theme-title text-2xl font-bold mb-6">
         🛠️ Recommended Trading Tools
       </h2>
-      
+
       <AffiliateBanner
         partner="coinbase"
         title="Coinbase - Best for Beginners"
@@ -133,7 +133,7 @@ export function RecommendedTools() {
         disabled={!coinbaseConfigured}
         badge="$10 BONUS"
       />
-      
+
       <AffiliateBanner
         partner="binance"
         title="Binance - Advanced Trading"
@@ -142,11 +142,11 @@ export function RecommendedTools() {
         href={binance?.url || '#'}
         disabled={!binanceConfigured}
       />
-      
+
       <AffiliateBanner
         partner="phantom"
-        title="Phantom Wallet - Solana Wallet"
-        description="The easiest way to store and swap tokens on Solana. Required for trading on our platform."
+        title="Phantom Wallet - Chain Wallet"
+        description="A streamlined wallet for storing and swapping on-chain assets. Use any supported wallet on our platform."
         ctaText="Download Phantom"
         href={phantom?.url || '#'}
         disabled={!phantomConfigured}

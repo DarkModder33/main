@@ -15,7 +15,7 @@ export const metadata = createPageMetadata({
   keywords: [
     'artist showcase platform',
     'music creator platform',
-    'solana music tips',
+    'web3 music tips',
     'tradehax music community',
   ],
 });
@@ -46,7 +46,7 @@ export default function ShowcasePage() {
             Showcase Your Musical Talent
           </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Upload your songs, gain followers, and receive tips directly to your Solana wallet.
+            Upload your songs, gain followers, and receive tips directly to your connected chain wallet.
             Join our waitlist to get launch updates and early access.
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function ShowcasePage() {
             <FeatureCard
               icon={<Wallet />}
               title="Tip Jar"
-              description="Receive tips via Solana wallet integration"
+              description="Receive tips via chain-wallet integration"
             />
             <FeatureCard
               icon={<TrendingUp />}
@@ -142,7 +142,7 @@ export default function ShowcasePage() {
             <ProcessStep
               number="1"
               title="Sign Up"
-              description="Create your artist profile and connect Solana wallet"
+              description="Create your artist profile and connect your chain wallet"
             />
             <ProcessStep
               number="2"
@@ -193,7 +193,7 @@ export default function ShowcasePage() {
             />
             <BenefitCard
               title="Crypto Native"
-              description="Built on Solana for instant, low-cost transactions. No traditional payment processing delays."
+              description="Built for fast, low-cost blockchain settlement without traditional payment processing delays."
             />
             <BenefitCard
               title="Full Ownership"

@@ -1,80 +1,85 @@
 "use client";
 
-import * as anchor from "@coral-xyz/anchor";
-
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import {
-  useAnchorWallet,
-  useConnection,
-  useWallet,
-} from "@solana/wallet-adapter-react";
-
-import type { Counter } from "../../../anchor-idl/idl";
-import Idl from "../../../anchor-idl/idl.json";
-import { useEffect } from "react";
+import { useWallet } from "@/lib/wallet-provider";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface UseProgramReturn {
-  program: anchor.Program<Counter>;
-  counterAddress: PublicKey;
-  publicKey: PublicKey | null;
+  counterValue: number;
+  publicKey: string | null;
   connected: boolean;
-  connection: anchor.web3.Connection;
+  increment: () => Promise<string>;
+  decrement: () => Promise<string>;
 }
 
-/**
- * A hook that provides access to the Solana program, counter address,
- * connected wallet, and connection.
- * This hook handles the basic setup for the program.
- */
-export function useProgram(): UseProgramReturn {
-  const { publicKey, connected } = useWallet();
-  const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+const COUNTER_KEY = "tradehax_counter_v1";
 
-  // Program initialization - conditionally create with provider if wallet connected
-  let program;
-  if (wallet) {
-    // Create a provider with the wallet for transaction signing
-    const provider = new anchor.AnchorProvider(connection, wallet, {
-      preflightCommitment: "confirmed",
-    });
-    program = new anchor.Program<Counter>(Idl as anchor.Idl, provider);
-  } else {
-    // Create program with just connection for read-only operations
-    program = new anchor.Program<Counter>(Idl as anchor.Idl, { connection });
+function readCounter() {
+  if (typeof window === "undefined") {
+    return 0;
   }
+  const raw = window.localStorage.getItem(COUNTER_KEY);
+  const parsed = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
-  // Get the counter account address
-  const counterAddress = PublicKey.findProgramAddressSync(
-    [Buffer.from("counter")],
-    new PublicKey(Idl.address)
-  )[0];
+function writeCounter(next: number) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(COUNTER_KEY, String(next));
+  window.dispatchEvent(new CustomEvent("tradehax-counter-updated", { detail: { value: next } }));
+}
 
-  // Fund connected wallet with devnet SOL
+export function useProgram(): UseProgramReturn {
+  const { status, address } = useWallet();
+  const [counterValue, setCounterValue] = useState<number>(0);
+
   useEffect(() => {
-    const airdropDevnetSol = async () => {
-      if (!publicKey) return;
+    setCounterValue(readCounter());
 
-      try {
-        const balance = await connection.getBalance(publicKey);
-        const solBalance = balance / LAMPORTS_PER_SOL;
+    const onUpdate = (event: Event) => {
+      const custom = event as CustomEvent<{ value?: number }>;
+      const value = custom.detail?.value;
+      if (typeof value === "number") {
+        setCounterValue(value);
+        return;
+      }
+      setCounterValue(readCounter());
+    };
 
-        if (solBalance < 1) {
-          await connection.requestAirdrop(publicKey, LAMPORTS_PER_SOL);
-        }
-      } catch (error) {
-        console.log(error);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === COUNTER_KEY) {
+        setCounterValue(readCounter());
       }
     };
 
-    airdropDevnetSol();
-  }, [publicKey, connection]);
+    window.addEventListener("tradehax-counter-updated", onUpdate as EventListener);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("tradehax-counter-updated", onUpdate as EventListener);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  const updateCounter = useCallback(async (delta: number) => {
+    const current = readCounter();
+    const next = Math.max(0, current + delta);
+    writeCounter(next);
+    setCounterValue(next);
+    return `tx_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  }, []);
+
+  const increment = useCallback(async () => updateCounter(1), [updateCounter]);
+  const decrement = useCallback(async () => updateCounter(-1), [updateCounter]);
+
+  const connected = status === "CONNECTED";
+  const publicKey = useMemo(() => address ?? null, [address]);
 
   return {
-    program,
-    counterAddress,
+    counterValue,
     publicKey,
     connected,
-    connection,
+    increment,
+    decrement,
   };
 }

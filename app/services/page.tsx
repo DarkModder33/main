@@ -174,7 +174,7 @@ export default function ServicesPage() {
             title="Web3 Development"
             description="Custom blockchain applications, smart contracts, and decentralized platforms built with modern technologies."
             features={[
-              "Solana & Ethereum development",
+              "Multi-chain EVM + non-EVM development",
               "Smart contract auditing",
               "DApp architecture & design",
               "Wallet integration",

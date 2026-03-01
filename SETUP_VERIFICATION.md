@@ -5,8 +5,9 @@
 All required files are in place:
 
 ### API & Client Files
-- [x] `src/app/api/hf-server.ts` — Server-side HF Inference endpoint
-- [x] `src/components/hf-client.ts` — React hook for client API calls
+
+- [x] `app/api/hf-server/route.ts` — Server-side HF Inference endpoint
+- [x] `components/hf-client.ts` — React hook for client API calls
 
 ### Fine-Tuning Scripts
 - [x] `scripts/fine-tune-mistral-lora.py` — Mistral-7B LoRA trainer

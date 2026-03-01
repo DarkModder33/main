@@ -1,4 +1,4 @@
-// src/components/hf-client.ts - Client-side wrapper for HF API calls in TradeHax.net
+// components/hf-client.ts - Client-side wrapper for HF API calls in TradeHax.net
 import { useState } from 'react';
 
 export const useHfClient = () => {

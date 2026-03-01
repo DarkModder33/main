@@ -13,7 +13,7 @@ import { useTransactionToast } from "./hooks/useTransactionToast";
  */
 export function DecrementButton() {
   // Get program and wallet information from the hook
-  const { program, publicKey, connected } = useProgram();
+  const { decrement, publicKey, connected } = useProgram();
 
   // Local state
   const [isLoading, setIsLoading] = useState(false);
@@ -31,13 +31,8 @@ export function DecrementButton() {
     try {
       setIsLoading(true);
 
-      // Send the transaction
-      const txSignature = await program.methods
-        .decrement()
-        .accounts({
-          user: publicKey,
-        })
-        .rpc();
+      // Send a chain-agnostic simulated transaction
+      const txSignature = await decrement();
 
       setTransactionSignature(txSignature);
     } catch (err) {

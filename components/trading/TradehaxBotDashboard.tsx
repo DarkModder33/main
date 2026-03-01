@@ -130,7 +130,7 @@ export function TradehaxBotDashboard() {
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isCreateTradeOpen, setIsCreateTradeOpen] = useState(false);
-  const [tradeSymbol, setTradeSymbol] = useState(activeCategory === "crypto" ? "SOL" : "AAPL");
+  const [tradeSymbol, setTradeSymbol] = useState(activeCategory === "crypto" ? "HAX" : "AAPL");
   const [tradeSide, setTradeSide] = useState<"buy" | "sell">("buy");
   const [tradeSize, setTradeSize] = useState("1");
 
@@ -155,7 +155,7 @@ export function TradehaxBotDashboard() {
   }, []);
 
   useEffect(() => {
-    setTradeSymbol(activeCategory === "crypto" ? "SOL" : "AAPL");
+    setTradeSymbol(activeCategory === "crypto" ? "HAX" : "AAPL");
   }, [activeCategory]);
 
   const closeWalkthrough = useCallback((markSeen = true) => {
@@ -325,7 +325,7 @@ export function TradehaxBotDashboard() {
           <div className="flex items-center gap-2 text-emerald-300 font-semibold">
             <Coins className="w-5 h-5" /> Crypto Trading
           </div>
-          <p className="mt-2 text-sm text-emerald-100/80">Pairs like SOL/USDC, BTC, ETH. PnL shown in SOL in this dashboard.</p>
+          <p className="mt-2 text-sm text-emerald-100/80">Pairs like HAX/USDC, BTC, ETH. PnL shown in native units in this dashboard.</p>
         </button>
 
         <button
@@ -418,7 +418,7 @@ export function TradehaxBotDashboard() {
                 {newToTradingMode && (
                   <p className="mt-2 text-xs text-cyan-100/70">
                     {bot.market === "crypto"
-                      ? "This bot trades crypto markets. Profit uses SOL units in this dashboard."
+                      ? "This bot trades crypto markets. Profit uses native units in this dashboard."
                       : "This bot trades stock markets. Profit is shown as percentage return."}
                   </p>
                 )}
@@ -447,7 +447,7 @@ export function TradehaxBotDashboard() {
                 <div>
                   <div className="text-xs text-gray-400">Net Profit</div>
                   <div className="font-bold text-yellow-300">
-                    {bot.market === "crypto" ? `${bot.netProfit} SOL` : `${bot.netProfit}%`}
+                    {bot.market === "crypto" ? `${bot.netProfit} native` : `${bot.netProfit}%`}
                   </div>
                 </div>
               </div>
@@ -528,7 +528,7 @@ export function TradehaxBotDashboard() {
               <Input
                 value={tradeSymbol}
                 onChange={(event) => setTradeSymbol(event.target.value)}
-                placeholder={activeCategory === "crypto" ? "SOL" : "AAPL"}
+                placeholder={activeCategory === "crypto" ? "HAX" : "AAPL"}
                 className="bg-black/40 border-cyan-500/30"
               />
             </div>

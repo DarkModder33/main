@@ -557,7 +557,7 @@ export const BOOTSTRAP_DATA: InteractionLog[] = [
     category: "BEHAVIOR",
     prompt: "How does TradeHax handle WebDev consulting?",
     response:
-      "TRADEHAX_WEBDEV: We specialize in high-performance Next.js architectures with integrated Solana Web3 layers. Our process involves rapid prototyping, neural-terminal UI design, and aggressive optimization for Vercel edge deployment.",
+      "TRADEHAX_WEBDEV: We specialize in high-performance Next.js architectures with integrated multi-chain Web3 layers. Our process involves rapid prototyping, neural-terminal UI design, and aggressive optimization for Vercel edge deployment.",
     source: "system",
     consent: { analytics: true, training: true },
   },
@@ -566,7 +566,7 @@ export const BOOTSTRAP_DATA: InteractionLog[] = [
     category: "HFT",
     prompt: "What is the core logic of the TradeHax HFT scanner?",
     response:
-      "HFT_SCANNER_LOGIC: The system utilizes a multi-threaded polling mechanism across 14+ Solana RPC nodes. It identifies liquidity imbalances in the serum/jupiter order books and executes swaps when the slippage-adjusted arbitrage spread exceeds 0.5%.",
+      "HFT_SCANNER_LOGIC: The system utilizes a multi-threaded polling mechanism across multiple chain RPC endpoints. It identifies liquidity imbalances in aggregated order books and executes swaps when the slippage-adjusted arbitrage spread exceeds 0.5%.",
     source: "system",
     consent: { analytics: true, training: true },
   },

@@ -17,7 +17,7 @@ export const metadata = createPageMetadata({
   keywords: [
     "crypto trading",
     "web3",
-    "solana",
+    "multi-chain",
     "blockchain",
     "defi",
     "trading strategies",

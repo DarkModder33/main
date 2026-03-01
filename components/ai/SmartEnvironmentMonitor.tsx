@@ -10,14 +10,40 @@ interface EnvironmentContext {
     portfolio: { totalAssets: number; allocation: Record<string, number> };
   };
   marketData: Record<string, { price: number; change24h: number }>;
+  marketFreshness?: {
+    generatedAt: string;
+    latencyMs: number;
+    isDegraded: boolean;
+    coverage: number;
+    averageDivergenceBps: number;
+    trackedSymbols: string[];
+    providerStatus: Record<string, { ok: boolean; error?: string }>;
+  };
+  marketConvergence?: Record<
+    string,
+    {
+      symbol: string;
+      price: number;
+      change24h: number;
+      providers: string[];
+      divergenceBps: number;
+      confidence: "high" | "medium" | "low";
+      updatedAt: string;
+    }
+  >;
   activeBots: string[];
   recentSignals: Array<{ symbol: string; action: string; confidence: number }>;
+}
+
+function confidenceTone(value?: "high" | "medium" | "low") {
+  if (value === "high") return "text-emerald-400";
+  if (value === "medium") return "text-yellow-300";
+  return "text-red-300";
 }
 
 export function SmartEnvironmentMonitor() {
   const [context, setContext] = useState<EnvironmentContext | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sessionId, setSessionId] = useState("");
 
   useEffect(() => {
     const initSession = async () => {
@@ -36,7 +62,6 @@ export function SmartEnvironmentMonitor() {
         });
 
         const initData = await initResponse.json();
-        setSessionId(initData.environment.sessionId);
 
         // Get context
         const contextResponse = await fetch(
@@ -85,7 +110,7 @@ export function SmartEnvironmentMonitor() {
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <div className="text-4xl font-bold text-emerald-400">
-              {context.user.portfolio.totalAssets} SOL
+              {context.user.portfolio.totalAssets} units
             </div>
             <p className="text-sm text-gray-400">Total Assets</p>
           </div>
@@ -97,12 +122,11 @@ export function SmartEnvironmentMonitor() {
                   <div key={token} className="flex items-center justify-between">
                     <span className="text-sm text-gray-300">{token}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-700 rounded overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
+                      <progress
+                        className="w-24 h-2 [&::-webkit-progress-bar]:bg-gray-700 [&::-webkit-progress-value]:bg-emerald-500 [&::-moz-progress-bar]:bg-emerald-500 rounded overflow-hidden"
+                        value={Number(percent)}
+                        max={100}
+                      />
                       <span className="text-sm font-bold text-gray-300 w-8 text-right">
                         {percent}%
                       </span>
@@ -121,6 +145,27 @@ export function SmartEnvironmentMonitor() {
           <TrendingUp className="w-5 h-5 text-blue-400" />
           Market Data
         </h2>
+        {context.marketFreshness ? (
+          <div
+            className={`mb-4 rounded border p-3 text-xs ${
+              context.marketFreshness.isDegraded
+                ? "border-yellow-500/40 bg-yellow-500/10 text-yellow-200"
+                : "border-cyan-500/30 bg-cyan-500/10 text-cyan-100"
+            }`}
+          >
+            <div className="font-semibold">
+              Live convergence snapshot • {new Date(context.marketFreshness.generatedAt).toLocaleTimeString()}
+            </div>
+            <div className="mt-1 opacity-90">
+              Coverage: {(context.marketFreshness.coverage * 100).toFixed(0)}% • Avg divergence: {context.marketFreshness.averageDivergenceBps.toFixed(2)} bps • Fetch latency: {context.marketFreshness.latencyMs}ms
+            </div>
+            <div className="mt-1 opacity-90">
+              Providers: {Object.entries(context.marketFreshness.providerStatus)
+                .map(([name, status]) => `${name}:${status.ok ? "ok" : "down"}`)
+                .join(" | ")}
+            </div>
+          </div>
+        ) : null}
         <div className="grid md:grid-cols-3 gap-4">
           {Object.entries(context.marketData).map(([symbol, data]) => (
             <div key={symbol} className="border border-blue-500/20 rounded p-4">
@@ -134,6 +179,19 @@ export function SmartEnvironmentMonitor() {
                 {data.change24h >= 0 ? "+" : ""}
                 {data.change24h.toFixed(2)}%
               </div>
+              {context.marketConvergence?.[symbol] ? (
+                <div className="mt-2 text-xs text-gray-300">
+                  <div>
+                    Sources: {context.marketConvergence[symbol].providers.join(", ")}
+                  </div>
+                  <div>
+                    Divergence: {context.marketConvergence[symbol].divergenceBps.toFixed(2)} bps
+                  </div>
+                  <div className={confidenceTone(context.marketConvergence[symbol].confidence)}>
+                    Confidence: {context.marketConvergence[symbol].confidence.toUpperCase()}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

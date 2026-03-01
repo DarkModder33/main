@@ -8,7 +8,7 @@ const steps: HowItWorksStep[] = [
     number: 1,
     title: "Connect Your Wallet",
     description:
-      "Securely link your Solana wallet using Phantom, Solflare, or any compatible wallet adapter.",
+      "Securely link your chain account using modern wallet connectors and signer sessions.",
   },
   {
     number: 2,

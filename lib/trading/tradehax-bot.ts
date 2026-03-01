@@ -1,10 +1,14 @@
 /**
  * TradeHax Trading Bot Core
- * Solana-based automated trading with AI signals
+ * Chain-agnostic automated trading with AI signals
  */
 
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import {
+  ChainTradingAdapter,
+  ensureDefaultChainAdapter,
+  getChainAdapter,
+  resolveDefaultAdapterId,
+} from "@/lib/trading/chain-adapter";
 
 export interface TradeSignal {
   symbol: string;
@@ -22,7 +26,7 @@ export interface TradeBot {
   enabled: boolean;
   strategy: "scalping" | "swing" | "long-term" | "arbitrage";
   riskLevel: "low" | "medium" | "high";
-  allocatedCapital: number; // in SOL
+  allocatedCapital: number; // base capital units
   executedTrades: number;
   profitLoss: number;
   winRate: number;
@@ -31,19 +35,20 @@ export interface TradeBot {
 }
 
 export interface BotConfig {
-  connection: Connection;
-  wallet: Keypair;
-  program?: Program;
+  adapter?: ChainTradingAdapter;
+  adapterId?: string;
   slippageTolerance: number; // 0.5-5%
-  gasLimit?: number;
-  maxTradeSize: number; // in SOL
+  gasLimit?: number; // provider-specific execution budget
+  maxTradeSize: number; // capital units
   cooldownPeriod: number; // ms between trades
 }
 
 class TradehaxBot {
   private config: BotConfig;
+  private adapter: ChainTradingAdapter;
   private signals: Map<string, TradeSignal> = new Map();
   private activeTrades: Map<string, TradeSignal> = new Map();
+  private lastExecutionAtBySymbol: Map<string, number> = new Map();
   private stats: {
     totalTrades: number;
     successfulTrades: number;
@@ -58,6 +63,19 @@ class TradehaxBot {
 
   constructor(config: BotConfig) {
     this.config = config;
+    ensureDefaultChainAdapter();
+
+    if (config.adapter) {
+      this.adapter = config.adapter;
+      return;
+    }
+
+    const resolvedAdapterId = config.adapterId || resolveDefaultAdapterId();
+    const resolvedAdapter = getChainAdapter(resolvedAdapterId) || getChainAdapter("paper-default");
+    if (!resolvedAdapter) {
+      throw new Error("No trading adapter available. Register a chain adapter first.");
+    }
+    this.adapter = resolvedAdapter;
   }
 
   /**
@@ -66,9 +84,17 @@ class TradehaxBot {
   async processSignal(signal: TradeSignal): Promise<void> {
     console.log(`[TradeHax] Processing signal:`, signal);
 
+    this.signals.set(signal.symbol, signal);
+
     // Check if already have active trade for this pair
     if (this.activeTrades.has(signal.symbol)) {
       console.log(`[TradeHax] Already trading ${signal.symbol}`);
+      return;
+    }
+
+    const lastExecAt = this.lastExecutionAtBySymbol.get(signal.symbol) || 0;
+    if (Date.now() - lastExecAt < this.config.cooldownPeriod) {
+      console.log(`[TradeHax] Cooldown active for ${signal.symbol}`);
       return;
     }
 
@@ -93,10 +119,30 @@ class TradehaxBot {
     try {
       console.log(`[TradeHax] Executing BUY for ${signal.symbol}`);
 
-      // TODO: Integrate with Solana DEX (Raydium, Orca, etc.)
-      // This is a placeholder for actual trade execution
+      const tradeAmount = Math.max(
+        0,
+        Math.min(this.config.maxTradeSize, this.config.maxTradeSize * signal.confidence),
+      );
+      if (!Number.isFinite(tradeAmount) || tradeAmount <= 0) {
+        console.log(`[TradeHax] Invalid trade amount for ${signal.symbol}`);
+        return;
+      }
+
+      await this.adapter.executeOrder({
+        symbol: signal.symbol,
+        side: "buy",
+        amount: tradeAmount,
+        limitPrice: signal.price,
+        stopLoss: signal.stopLoss,
+        takeProfit: signal.targetPrice,
+        meta: {
+          confidence: signal.confidence,
+          strategy: "signal_buy",
+        },
+      });
 
       this.activeTrades.set(signal.symbol, signal);
+      this.lastExecutionAtBySymbol.set(signal.symbol, Date.now());
       this.stats.totalTrades++;
 
       // Set stop loss alert
@@ -115,10 +161,27 @@ class TradehaxBot {
     try {
       console.log(`[TradeHax] Executing SELL for ${signal.symbol}`);
 
-      // TODO: Integrate with Solana DEX
-      // This is a placeholder for actual trade execution
+      const activeTrade = this.activeTrades.get(signal.symbol);
+      const tradeAmount = Math.max(
+        0,
+        Math.min(this.config.maxTradeSize, this.config.maxTradeSize * signal.confidence),
+      );
+
+      await this.adapter.executeOrder({
+        symbol: signal.symbol,
+        side: "sell",
+        amount: tradeAmount,
+        limitPrice: signal.price,
+        stopLoss: signal.stopLoss,
+        takeProfit: signal.targetPrice,
+        meta: {
+          strategy: "signal_sell",
+          hadActiveTrade: Boolean(activeTrade),
+        },
+      });
 
       this.activeTrades.delete(signal.symbol);
+      this.lastExecutionAtBySymbol.set(signal.symbol, Date.now());
 
       // Calculate P&L
       const previousSignal = this.signals.get(signal.symbol);
@@ -144,11 +207,29 @@ class TradehaxBot {
   private setStopLossAlert(signal: TradeSignal): void {
     // Monitor price and execute stop loss if price drops below threshold
     const checkInterval = setInterval(() => {
-      // TODO: Fetch current price
-      // If current price <= signal.stopLoss, execute sell
-      if (!this.activeTrades.has(signal.symbol)) {
-        clearInterval(checkInterval);
-      }
+      void this.adapter
+        .getSpotPrice(signal.symbol)
+        .then((price) => {
+          if (!this.activeTrades.has(signal.symbol)) {
+            clearInterval(checkInterval);
+            return;
+          }
+
+          if (Number.isFinite(price) && price <= signal.stopLoss) {
+            void this.processSignal({
+              ...signal,
+              action: "sell",
+              price,
+              timestamp: Date.now(),
+            });
+            clearInterval(checkInterval);
+          }
+        })
+        .catch(() => {
+          if (!this.activeTrades.has(signal.symbol)) {
+            clearInterval(checkInterval);
+          }
+        });
     }, 5000); // Check every 5 seconds
   }
 
