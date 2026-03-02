@@ -102,6 +102,12 @@ export interface ExperimentPolicyDiagnostics {
   lastUpdatedAt: string;
 }
 
+export interface ExperimentPolicyAdaptiveState {
+  sensitivity: number;
+  stability: number;
+  lastUpdatedAt: string;
+}
+
 const EXPERIMENT_VARIANTS: Record<ExperimentName, readonly ExperimentVariant[]> = {
   home_hero_primary_cta: ["control", "accelerated"],
   landing_hero_primary_cta: ["control", "accelerated"],
@@ -120,6 +126,8 @@ const EXP_POLICY_SWITCH_LOG_KEY = "thx-exp-policy-switch-log";
 const EXP_POLICY_META_KEY = "thx-exp-policy-meta";
 const EXP_POLICY_REGIME_KEY = "thx-exp-policy-regime";
 const EXP_POLICY_DIAGNOSTICS_KEY = "thx-exp-policy-diagnostics";
+const EXP_POLICY_ADAPTIVE_KEY = "thx-exp-policy-adaptive";
+const EXP_POLICY_ADAPTIVE_ENABLED_KEY = "thx-exp-policy-adaptive-enabled";
 const EXP_VISITOR_ID_KEY = "thx-exp-visitor-id";
 const EXPERIMENT_NAMES = Object.keys(EXPERIMENT_VARIANTS) as ExperimentName[];
 const RAMP_STEPS = [10, 25, 50, 75, 100] as const;
@@ -185,7 +193,31 @@ export function isExperimentPolicyProfile(value: string): value is ExperimentPol
 export function getExperimentPolicySettings(
   profile: ExperimentPolicyProfile = "balanced",
 ): ExperimentPolicySettings {
-  return POLICY_SETTINGS[profile];
+  const base = POLICY_SETTINGS[profile];
+  if (typeof window === "undefined" || !getExperimentPolicyAdaptiveEnabled()) {
+    return base;
+  }
+
+  const adaptive = getExperimentPolicyAdaptiveState();
+  if (!adaptive) {
+    return base;
+  }
+
+  const stability = Math.max(0.75, Math.min(1.6, adaptive.stability));
+  const sensitivity = Math.max(0.7, Math.min(1.4, adaptive.sensitivity));
+  const tuningRatio = stability / sensitivity;
+
+  return {
+    ...base,
+    minRequiredPerVariant: Math.max(10, Math.round(base.minRequiredPerVariant * stability)),
+    minDeltaPoints: Number((base.minDeltaPoints * tuningRatio).toFixed(2)),
+    minZForAction: Number((base.minZForAction * tuningRatio).toFixed(2)),
+    highConfidenceZ: Number((base.highConfidenceZ * tuningRatio).toFixed(2)),
+    rampCooldownMs: Math.max(30_000, Math.round(base.rampCooldownMs * stability)),
+    autoswitchConfirmationCount: Math.max(1, Math.round(base.autoswitchConfirmationCount * stability)),
+    autoswitchBandPoints: Number((base.autoswitchBandPoints * stability).toFixed(3)),
+    autoswitchCoverageBand: Number((base.autoswitchCoverageBand * stability).toFixed(3)),
+  };
 }
 
 function pickRandomVariant(name: ExperimentName): ExperimentVariant {
@@ -443,6 +475,14 @@ function createEmptyPolicyDiagnostics(): ExperimentPolicyDiagnostics {
   };
 }
 
+function createDefaultAdaptiveState(): ExperimentPolicyAdaptiveState {
+  return {
+    sensitivity: 1,
+    stability: 1,
+    lastUpdatedAt: new Date(0).toISOString(),
+  };
+}
+
 function readPolicyDiagnostics(): ExperimentPolicyDiagnostics {
   if (typeof window === "undefined") {
     return createEmptyPolicyDiagnostics();
@@ -489,6 +529,90 @@ function writePolicyDiagnostics(diagnostics: ExperimentPolicyDiagnostics) {
   }
 }
 
+function readPolicyAdaptiveState(): ExperimentPolicyAdaptiveState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(EXP_POLICY_ADAPTIVE_KEY);
+    if (!raw) {
+      return createDefaultAdaptiveState();
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!isObjectRecord(parsed)) {
+      return createDefaultAdaptiveState();
+    }
+
+    return {
+      sensitivity: typeof parsed.sensitivity === "number" ? parsed.sensitivity : 1,
+      stability: typeof parsed.stability === "number" ? parsed.stability : 1,
+      lastUpdatedAt:
+        typeof parsed.lastUpdatedAt === "string" ? parsed.lastUpdatedAt : new Date(0).toISOString(),
+    };
+  } catch {
+    return createDefaultAdaptiveState();
+  }
+}
+
+function writePolicyAdaptiveState(state: ExperimentPolicyAdaptiveState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_ADAPTIVE_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function updateAdaptivePolicyFromDiagnostics(diagnostics: ExperimentPolicyDiagnostics) {
+  if (!getExperimentPolicyAdaptiveEnabled()) {
+    return;
+  }
+
+  const current = readPolicyAdaptiveState() ?? createDefaultAdaptiveState();
+  if (diagnostics.cycles < 6) {
+    writePolicyAdaptiveState({
+      ...current,
+      lastUpdatedAt: new Date().toISOString(),
+    });
+    return;
+  }
+
+  const vetoPressure =
+    (diagnostics.coverageVetoCount +
+      diagnostics.signalBandVetoCount +
+      diagnostics.cooldownVetoCount +
+      diagnostics.confirmationPendingCount) /
+    Math.max(diagnostics.cycles, 1);
+  const switchRate = diagnostics.switchedCount / Math.max(diagnostics.cycles, 1);
+
+  let nextStability = current.stability;
+  let nextSensitivity = current.sensitivity;
+
+  if (vetoPressure >= 0.55) {
+    nextStability += 0.05;
+    nextSensitivity -= 0.03;
+  } else if (switchRate <= 0.04 && diagnostics.noChangeCount / Math.max(diagnostics.cycles, 1) > 0.7) {
+    nextStability -= 0.03;
+    nextSensitivity += 0.05;
+  } else {
+    nextStability += (1 - nextStability) * 0.15;
+    nextSensitivity += (1 - nextSensitivity) * 0.15;
+  }
+
+  const next: ExperimentPolicyAdaptiveState = {
+    stability: Number(Math.max(0.75, Math.min(1.6, nextStability)).toFixed(3)),
+    sensitivity: Number(Math.max(0.7, Math.min(1.4, nextSensitivity)).toFixed(3)),
+    lastUpdatedAt: new Date().toISOString(),
+  };
+
+  writePolicyAdaptiveState(next);
+}
+
 function trackPolicyDiagnostics(reasonCode: string, reasonText: string) {
   const current = readPolicyDiagnostics();
   const nowIso = new Date().toISOString();
@@ -515,6 +639,7 @@ function trackPolicyDiagnostics(reasonCode: string, reasonText: string) {
   }
 
   writePolicyDiagnostics(next);
+  updateAdaptivePolicyFromDiagnostics(next);
 }
 
 function writePolicyMeta(meta: {
@@ -1177,6 +1302,53 @@ export function getExperimentPolicyDiagnostics(): ExperimentPolicyDiagnostics {
   return readPolicyDiagnostics();
 }
 
+export function getExperimentPolicyAdaptiveState(): ExperimentPolicyAdaptiveState | null {
+  return readPolicyAdaptiveState();
+}
+
+export function getExperimentPolicyAdaptiveEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(EXP_POLICY_ADAPTIVE_ENABLED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setExperimentPolicyAdaptiveEnabled(enabled: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_ADAPTIVE_ENABLED_KEY, enabled ? "1" : "0");
+  } catch {
+    // Ignore storage failures.
+  }
+
+  event({
+    action: "experiment_policy_adaptive_toggle",
+    category: "experiments",
+    label: enabled ? "on" : "off",
+    value: enabled ? 1 : 0,
+  });
+}
+
+export function clearExperimentPolicyAdaptiveState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(EXP_POLICY_ADAPTIVE_KEY);
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
 export function clearExperimentPolicyDiagnostics() {
   if (typeof window === "undefined") {
     return;
@@ -1184,6 +1356,7 @@ export function clearExperimentPolicyDiagnostics() {
 
   try {
     window.localStorage.removeItem(EXP_POLICY_DIAGNOSTICS_KEY);
+    window.localStorage.removeItem(EXP_POLICY_ADAPTIVE_KEY);
   } catch {
     // Ignore storage failures.
   }

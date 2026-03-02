@@ -2,6 +2,7 @@
 
 import {
   applyExperimentRecommendation,
+  clearExperimentPolicyAdaptiveState,
   clearExperimentPolicyDiagnostics,
   clearExperimentPolicySwitchEvents,
   clearExperimentSessionRollup,
@@ -11,6 +12,8 @@ import {
   clearExperimentRolloutTarget,
   EXPERIMENT_POLICY_PROFILES,
   evaluateExperimentDecision,
+  getExperimentPolicyAdaptiveEnabled,
+  getExperimentPolicyAdaptiveState,
   getExperimentPolicyAutoswitchEnabled,
   getExperimentPolicyDiagnostics,
   getExperimentPolicyPendingSwitch,
@@ -27,6 +30,7 @@ import {
   runExperimentPolicyAutoswitch,
   runExperimentGuardrailAutoRollback,
   runExperimentRampAutopilot,
+  setExperimentPolicyAdaptiveEnabled,
   setExperimentPolicyAutoswitchEnabled,
   setExperimentPolicyProfile,
   setExperimentRolloutTarget,
@@ -40,6 +44,7 @@ const MIN_STRONG_SAMPLE = 25;
 
 interface ReadoutState {
   enabled: boolean;
+  policyAdaptiveEnabled: boolean;
   policyAutoswitchEnabled: boolean;
   guardrailsEnabled: boolean;
   rampAutopilotEnabled: boolean;
@@ -50,6 +55,7 @@ interface ReadoutState {
   guardrailEvents: ReturnType<typeof listExperimentGuardrailEvents>;
   policySwitchEvents: ReturnType<typeof listExperimentPolicySwitchEvents>;
   policyDiagnostics: ReturnType<typeof getExperimentPolicyDiagnostics>;
+  policyAdaptive: ReturnType<typeof getExperimentPolicyAdaptiveState>;
   policyRegime: ReturnType<typeof getExperimentPolicyRegimeState>;
   policyPending: ReturnType<typeof getExperimentPolicyPendingSwitch>;
   rampEvents: ReturnType<typeof listExperimentRampEvents>;
@@ -93,6 +99,7 @@ function resolveDebugEnabled(): boolean {
 export function ExperimentReadoutPanel() {
   const [state, setState] = useState<ReadoutState>({
     enabled: false,
+    policyAdaptiveEnabled: false,
     policyAutoswitchEnabled: false,
     guardrailsEnabled: false,
     rampAutopilotEnabled: false,
@@ -103,6 +110,7 @@ export function ExperimentReadoutPanel() {
     guardrailEvents: [],
     policySwitchEvents: [],
     policyDiagnostics: getExperimentPolicyDiagnostics(),
+    policyAdaptive: getExperimentPolicyAdaptiveState(),
     policyRegime: null,
     policyPending: null,
     rampEvents: [],
@@ -120,6 +128,7 @@ export function ExperimentReadoutPanel() {
       const rampAutopilotEnabled =
         typeof window !== "undefined" && window.localStorage.getItem(RAMP_AUTOPILOT_STORAGE_KEY) === "1";
       const policyAutoswitchEnabled = getExperimentPolicyAutoswitchEnabled();
+      const policyAdaptiveEnabled = getExperimentPolicyAdaptiveEnabled();
       const currentPolicyProfile = getExperimentPolicyProfile();
 
       const rollupSnapshot = getExperimentSessionRollup();
@@ -140,6 +149,7 @@ export function ExperimentReadoutPanel() {
 
       setState({
         enabled,
+        policyAdaptiveEnabled,
         policyAutoswitchEnabled,
         guardrailsEnabled,
         rampAutopilotEnabled,
@@ -150,6 +160,7 @@ export function ExperimentReadoutPanel() {
         guardrailEvents: listExperimentGuardrailEvents(),
         policySwitchEvents: listExperimentPolicySwitchEvents(),
         policyDiagnostics: getExperimentPolicyDiagnostics(),
+        policyAdaptive: getExperimentPolicyAdaptiveState(),
         policyRegime: getExperimentPolicyRegimeState(),
         policyPending: getExperimentPolicyPendingSwitch(),
         rampEvents: listExperimentRampEvents(),
@@ -176,6 +187,7 @@ export function ExperimentReadoutPanel() {
     const rampAutopilotEnabled =
       typeof window !== "undefined" && window.localStorage.getItem(RAMP_AUTOPILOT_STORAGE_KEY) === "1";
     const policyAutoswitchEnabled = getExperimentPolicyAutoswitchEnabled();
+    const policyAdaptiveEnabled = getExperimentPolicyAdaptiveEnabled();
     const rollupSnapshot = getExperimentSessionRollup();
 
     if (policyAutoswitchEnabled) {
@@ -194,6 +206,7 @@ export function ExperimentReadoutPanel() {
 
     setState((previous) => ({
       ...previous,
+      policyAdaptiveEnabled,
       policyAutoswitchEnabled,
       guardrailsEnabled,
       rampAutopilotEnabled,
@@ -204,6 +217,7 @@ export function ExperimentReadoutPanel() {
       guardrailEvents: listExperimentGuardrailEvents(),
       policySwitchEvents: listExperimentPolicySwitchEvents(),
       policyDiagnostics: getExperimentPolicyDiagnostics(),
+      policyAdaptive: getExperimentPolicyAdaptiveState(),
       policyRegime: getExperimentPolicyRegimeState(),
       policyPending: getExperimentPolicyPendingSwitch(),
       rampEvents: listExperimentRampEvents(),
@@ -257,11 +271,13 @@ export function ExperimentReadoutPanel() {
                 assigned: state.assigned,
                 rollout: state.rollout,
                 profile: state.policyProfile,
+                policyAdaptiveEnabled: state.policyAdaptiveEnabled,
                 policyAutoswitchEnabled: state.policyAutoswitchEnabled,
                 rollup: state.rollup,
                 guardrailEvents: state.guardrailEvents,
                 policySwitchEvents: state.policySwitchEvents,
                 policyDiagnostics: state.policyDiagnostics,
+                policyAdaptive: state.policyAdaptive,
                 policyRegime: state.policyRegime,
                 policyPending: state.policyPending,
                 rampEvents: state.rampEvents,
@@ -298,6 +314,22 @@ export function ExperimentReadoutPanel() {
         <section>
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Policy Profile</p>
           <div className="mb-1 flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                const nextEnabled = !state.policyAdaptiveEnabled;
+                setExperimentPolicyAdaptiveEnabled(nextEnabled);
+                setState((previous) => ({ ...previous, policyAdaptiveEnabled: nextEnabled }));
+                refreshReadout();
+              }}
+              className={`rounded border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                state.policyAdaptiveEnabled
+                  ? "border-emerald-400/40 text-emerald-200"
+                  : "border-white/15 text-zinc-400 hover:text-white"
+              }`}
+            >
+              adaptive {state.policyAdaptiveEnabled ? "on" : "off"}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -362,6 +394,11 @@ export function ExperimentReadoutPanel() {
             <span>cooldown veto {state.policyDiagnostics.cooldownVetoCount}</span>
             <span>pending {state.policyDiagnostics.confirmationPendingCount}</span>
           </div>
+          {state.policyAdaptive ? (
+            <p className="mt-1 text-[10px] text-zinc-500">
+              adaptive sens {state.policyAdaptive.sensitivity.toFixed(2)} · stab {state.policyAdaptive.stability.toFixed(2)}
+            </p>
+          ) : null}
         </section>
 
         <section>
@@ -371,6 +408,7 @@ export function ExperimentReadoutPanel() {
               <button
                 type="button"
                 onClick={() => {
+                  clearExperimentPolicyAdaptiveState();
                   clearExperimentPolicyDiagnostics();
                   refreshReadout();
                 }}
