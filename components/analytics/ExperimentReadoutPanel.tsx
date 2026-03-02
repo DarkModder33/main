@@ -761,6 +761,9 @@ export function ExperimentReadoutPanel() {
                     route lift {entry.routeIntentLiftPoints.toFixed(2)} pts · value Δ {entry.routeValueDelta.toFixed(2)} · coverage {(entry.routeSignalCoverage * 100).toFixed(0)}%
                   </div>
                   <div className="text-[10px] text-zinc-500">
+                    memory lift {entry.qualityMemoryIntentLiftPoints.toFixed(2)} pts · memory value {entry.qualityMemoryValueDelta.toFixed(2)} · memory coverage {(entry.qualityMemorySignalCoverage * 100).toFixed(0)}% · memory boost {entry.qualityMemoryBoost.toFixed(2)}
+                  </div>
+                  <div className="text-[10px] text-zinc-500">
                     drift {entry.driftScore.toFixed(2)} · shock {entry.shockMode ? "on" : "off"}
                   </div>
                   <div className="text-[10px] text-zinc-500">
