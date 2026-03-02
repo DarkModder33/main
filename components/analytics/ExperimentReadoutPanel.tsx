@@ -12,6 +12,7 @@ import {
   evaluateExperimentDecision,
   getExperimentPolicyAutoswitchEnabled,
   getExperimentPolicyProfile,
+  getExperimentPolicyRegimeState,
   getExperimentPolicySettings,
   getExperimentSessionRollup,
   listExperimentGuardrailEvents,
@@ -45,6 +46,7 @@ interface ReadoutState {
   rollup: ReturnType<typeof getExperimentSessionRollup>;
   guardrailEvents: ReturnType<typeof listExperimentGuardrailEvents>;
   policySwitchEvents: ReturnType<typeof listExperimentPolicySwitchEvents>;
+  policyRegime: ReturnType<typeof getExperimentPolicyRegimeState>;
   rampEvents: ReturnType<typeof listExperimentRampEvents>;
 }
 
@@ -95,6 +97,7 @@ export function ExperimentReadoutPanel() {
     rollup: {},
     guardrailEvents: [],
     policySwitchEvents: [],
+    policyRegime: null,
     rampEvents: [],
   });
 
@@ -139,6 +142,7 @@ export function ExperimentReadoutPanel() {
         rollup: rollupSnapshot,
         guardrailEvents: listExperimentGuardrailEvents(),
         policySwitchEvents: listExperimentPolicySwitchEvents(),
+        policyRegime: getExperimentPolicyRegimeState(),
         rampEvents: listExperimentRampEvents(),
       });
     };
@@ -190,6 +194,7 @@ export function ExperimentReadoutPanel() {
       rollup: rollupSnapshot,
       guardrailEvents: listExperimentGuardrailEvents(),
       policySwitchEvents: listExperimentPolicySwitchEvents(),
+      policyRegime: getExperimentPolicyRegimeState(),
       rampEvents: listExperimentRampEvents(),
     }));
   };
@@ -245,6 +250,7 @@ export function ExperimentReadoutPanel() {
                 rollup: state.rollup,
                 guardrailEvents: state.guardrailEvents,
                 policySwitchEvents: state.policySwitchEvents,
+                policyRegime: state.policyRegime,
                 rampEvents: state.rampEvents,
               };
 
@@ -323,6 +329,12 @@ export function ExperimentReadoutPanel() {
             min sample {getExperimentPolicySettings(state.policyProfile).minRequiredPerVariant} ·
             Δ threshold {getExperimentPolicySettings(state.policyProfile).minDeltaPoints.toFixed(1)} pts
           </p>
+          {state.policyRegime ? (
+            <p className="mt-1 text-[10px] text-zinc-500">
+              regime Δ~{state.policyRegime.smoothedAbsDeltaCvrPoints.toFixed(2)} · coverage~
+              {(state.policyRegime.smoothedCoverage * 100).toFixed(0)}% · samples {state.policyRegime.sampleCount}
+            </p>
+          ) : null}
         </section>
 
         <section>
@@ -348,6 +360,9 @@ export function ExperimentReadoutPanel() {
                   <div className="flex items-center justify-between text-[10px] text-zinc-300">
                     <span>{entry.previousProfile} → {entry.nextProfile}</span>
                     <span>coverage {(entry.sufficientCoverage * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-500">
+                    smooth Δ {entry.smoothedAbsDeltaCvrPoints.toFixed(2)} · smooth cov {(entry.smoothedCoverage * 100).toFixed(0)}%
                   </div>
                   <div className="text-[10px] text-zinc-500">{new Date(entry.timestamp).toLocaleTimeString()}</div>
                 </div>

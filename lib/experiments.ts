@@ -69,6 +69,15 @@ export interface ExperimentPolicySwitchEvent {
   timestamp: string;
   meanAbsDeltaCvrPoints: number;
   sufficientCoverage: number;
+  smoothedAbsDeltaCvrPoints: number;
+  smoothedCoverage: number;
+}
+
+export interface ExperimentPolicyRegimeState {
+  smoothedAbsDeltaCvrPoints: number;
+  smoothedCoverage: number;
+  sampleCount: number;
+  lastUpdatedAt: string;
 }
 
 const EXPERIMENT_VARIANTS: Record<ExperimentName, readonly ExperimentVariant[]> = {
@@ -87,6 +96,7 @@ const EXP_POLICY_PROFILE_KEY = "thx-exp-policy-profile";
 const EXP_POLICY_AUTOSWITCH_KEY = "thx-exp-policy-autoswitch-enabled";
 const EXP_POLICY_SWITCH_LOG_KEY = "thx-exp-policy-switch-log";
 const EXP_POLICY_META_KEY = "thx-exp-policy-meta";
+const EXP_POLICY_REGIME_KEY = "thx-exp-policy-regime";
 const EXP_VISITOR_ID_KEY = "thx-exp-visitor-id";
 const EXPERIMENT_NAMES = Object.keys(EXPERIMENT_VARIANTS) as ExperimentName[];
 const RAMP_STEPS = [10, 25, 50, 75, 100] as const;
@@ -325,7 +335,9 @@ function readPolicySwitchLog(): ExperimentPolicySwitchEvent[] {
         typeof item.reason === "string" &&
         typeof item.timestamp === "string" &&
         typeof item.meanAbsDeltaCvrPoints === "number" &&
-        typeof item.sufficientCoverage === "number"
+        typeof item.sufficientCoverage === "number" &&
+        typeof item.smoothedAbsDeltaCvrPoints === "number" &&
+        typeof item.smoothedCoverage === "number"
       );
     });
   } catch {
@@ -381,6 +393,54 @@ function writePolicyMeta(meta: { lastSwitchAt?: string }) {
 
   try {
     window.localStorage.setItem(EXP_POLICY_META_KEY, JSON.stringify(meta));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function readPolicyRegimeState(): ExperimentPolicyRegimeState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(EXP_POLICY_REGIME_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!isObjectRecord(parsed)) {
+      return null;
+    }
+
+    if (
+      typeof parsed.smoothedAbsDeltaCvrPoints !== "number" ||
+      typeof parsed.smoothedCoverage !== "number" ||
+      typeof parsed.sampleCount !== "number" ||
+      typeof parsed.lastUpdatedAt !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      smoothedAbsDeltaCvrPoints: parsed.smoothedAbsDeltaCvrPoints,
+      smoothedCoverage: parsed.smoothedCoverage,
+      sampleCount: parsed.sampleCount,
+      lastUpdatedAt: parsed.lastUpdatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePolicyRegimeState(state: ExperimentPolicyRegimeState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_REGIME_KEY, JSON.stringify(state));
   } catch {
     // Ignore storage failures.
   }
@@ -973,6 +1033,10 @@ export function clearExperimentPolicySwitchEvents() {
   }
 }
 
+export function getExperimentPolicyRegimeState(): ExperimentPolicyRegimeState | null {
+  return readPolicyRegimeState();
+}
+
 export function runExperimentPolicyAutoswitch(
   snapshot: ExperimentRollupSnapshot,
   options?: { cooldownMs?: number },
@@ -989,21 +1053,58 @@ export function runExperimentPolicyAutoswitch(
         sufficientDecisions.length
       : 0;
 
+  const priorRegime = readPolicyRegimeState();
+  const nowIso = new Date().toISOString();
+  const nowMs = Date.now();
+  const halfLifeMs = 30 * 60 * 1000;
+
+  let smoothedAbsDeltaCvrPoints = meanAbsDeltaCvrPoints;
+  let smoothedCoverage = sufficientCoverage;
+  let sampleCount = 1;
+
+  if (priorRegime) {
+    const lastUpdatedMs = Date.parse(priorRegime.lastUpdatedAt);
+    const elapsedMs = Number.isFinite(lastUpdatedMs) ? Math.max(0, nowMs - lastUpdatedMs) : 0;
+    const decay = Math.exp(-elapsedMs / halfLifeMs);
+    const blending = 1 - decay;
+
+    smoothedAbsDeltaCvrPoints =
+      priorRegime.smoothedAbsDeltaCvrPoints * decay + meanAbsDeltaCvrPoints * blending;
+    smoothedCoverage = priorRegime.smoothedCoverage * decay + sufficientCoverage * blending;
+    sampleCount = priorRegime.sampleCount + 1;
+  }
+
+  writePolicyRegimeState({
+    smoothedAbsDeltaCvrPoints,
+    smoothedCoverage,
+    sampleCount,
+    lastUpdatedAt: nowIso,
+  });
+
   let nextProfile: ExperimentPolicyProfile = "balanced";
   let reason = "Data is mixed; balanced mode remains optimal.";
 
-  if (sufficientCoverage < 0.5) {
+  if (smoothedCoverage < 0.5) {
     nextProfile = "conservative";
-    reason = "Coverage is low; prioritize safety until sample depth improves.";
-  } else if (meanAbsDeltaCvrPoints >= 3) {
+    reason = "Coverage is persistently low; prioritize safety until sample depth improves.";
+  } else if (smoothedAbsDeltaCvrPoints >= 3) {
     nextProfile = "aggressive";
-    reason = "Large directional deltas detected; accelerate exploitation.";
-  } else if (meanAbsDeltaCvrPoints <= 1.0) {
+    reason = "Directional edge is sustained; accelerate exploitation.";
+  } else if (smoothedAbsDeltaCvrPoints <= 1.0) {
     nextProfile = "conservative";
-    reason = "Signal is weak; hold a conservative profile.";
+    reason = "Signal remains weak over time; hold conservative policy.";
   }
 
   const currentProfile = getExperimentPolicyProfile();
+
+  if (currentProfile === "aggressive" && smoothedAbsDeltaCvrPoints > 2.2 && smoothedCoverage >= 0.55) {
+    nextProfile = "aggressive";
+  }
+
+  if (currentProfile === "conservative" && smoothedAbsDeltaCvrPoints < 1.6) {
+    nextProfile = "conservative";
+  }
+
   if (currentProfile === nextProfile) {
     return null;
   }
@@ -1028,6 +1129,8 @@ export function runExperimentPolicyAutoswitch(
     timestamp,
     meanAbsDeltaCvrPoints,
     sufficientCoverage,
+    smoothedAbsDeltaCvrPoints,
+    smoothedCoverage,
   };
 
   appendPolicySwitchEvent(switchEvent);
@@ -1036,7 +1139,7 @@ export function runExperimentPolicyAutoswitch(
     action: "experiment_policy_autoswitch",
     category: "experiments",
     label: `${currentProfile}->${nextProfile}`,
-    value: Math.round(meanAbsDeltaCvrPoints * 100),
+    value: Math.round(smoothedAbsDeltaCvrPoints * 100),
   });
 
   return switchEvent;
