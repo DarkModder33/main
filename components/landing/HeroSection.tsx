@@ -20,6 +20,11 @@ export function HeroSection() {
 
   const primaryLabel = variant === "accelerated" ? "Execute Now" : "Start Trading";
   const secondaryLabel = variant === "accelerated" ? "Enter Hyperborea" : "Play Hyperborea";
+  const routeMatrixLabel = variant === "accelerated" ? "Choose your route · Adaptive Live" : "Choose your route";
+  const routeAssistCopy =
+    variant === "accelerated"
+      ? "No steep learning curve: each route adapts in real time as your pace accelerates—language depth, guidance, and decision support stay aligned with your execution speed."
+      : "No steep learning curve: each route adapts language depth, pacing, and decision support to your skill level.";
 
   return (
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-black px-4 sm:px-0" aria-label="TradeHax hero">
@@ -139,13 +144,13 @@ export function HeroSection() {
         </div>
 
         <div className="mt-8 sm:mt-10 opacity-0 animate-slide-up-fade [animation-delay:0.8s]">
-          <p className="text-[11px] sm:text-xs uppercase tracking-[0.26em] text-cyan-200/75 mb-3">Choose your route</p>
+          <p className="text-[11px] sm:text-xs uppercase tracking-[0.26em] text-cyan-200/75 mb-3">{routeMatrixLabel}</p>
           <div className="grid gap-3 sm:grid-cols-3 text-left">
             <TrackedCtaLink
               href="/ai-hub?route=scout&experience=beginner&skill=beginner#ai-chat-stream"
               conversionId="open_ai_chat"
               surface="landing_hero:route_matrix"
-              conversionContext={{ placement: "route_matrix", variant: "scout", audience: "new" }}
+              conversionContext={{ placement: "route_matrix", variant: `scout:exp_${variant}`, audience: "new", experiment: "landing_hero_primary_cta" }}
               ariaLabel="Open Scout Mode in AI Hub"
               className="interactive-surface rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-3 sm:p-4 transition-colors hover:bg-emerald-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70"
             >
@@ -158,7 +163,7 @@ export function HeroSection() {
               href="/ai-hub?route=forge&experience=beginner&skill=intermediate#ai-chat-stream"
               conversionId="open_ai_chat"
               surface="landing_hero:route_matrix"
-              conversionContext={{ placement: "route_matrix", variant: "forge", audience: "returning" }}
+              conversionContext={{ placement: "route_matrix", variant: `forge:exp_${variant}`, audience: "returning", experiment: "landing_hero_primary_cta" }}
               ariaLabel="Open Forge Mode in AI Hub"
               className="interactive-surface rounded-xl border border-cyan-400/25 bg-cyan-500/10 p-3 sm:p-4 transition-colors hover:bg-cyan-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
             >
@@ -171,7 +176,7 @@ export function HeroSection() {
               href="/ai-hub?route=odin&experience=odin&skill=advanced#ai-chat-stream"
               conversionId="open_ai_advanced"
               surface="landing_hero:route_matrix"
-              conversionContext={{ placement: "route_matrix", variant: "odin", audience: "returning" }}
+              conversionContext={{ placement: "route_matrix", variant: `odin:exp_${variant}`, audience: "returning", experiment: "landing_hero_primary_cta" }}
               ariaLabel="Open ODIN advanced mode in AI Hub"
               className="interactive-surface rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 p-3 sm:p-4 transition-colors hover:bg-fuchsia-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-300/70"
             >
@@ -181,7 +186,7 @@ export function HeroSection() {
             </TrackedCtaLink>
           </div>
           <p className="mt-3 text-[11px] text-zinc-400">
-            No steep learning curve: each route adapts language depth, pacing, and decision support to your skill level.
+            {routeAssistCopy}
           </p>
         </div>
       </div>
