@@ -64,6 +64,45 @@ function extractHrefCandidates(content) {
   return matches;
 }
 
+function extractAnchorIdCandidates(content) {
+  const ids = new Set();
+  const regex = /\bid\s*=\s*(?:"([^"]+)"|'([^']+)'|\{"([^"]+)"\}|\{'([^']+)'\})/g;
+  let m;
+  while ((m = regex.exec(content)) !== null) {
+    const value = (m[1] || m[2] || m[3] || m[4] || "").trim();
+    if (value) ids.add(value);
+  }
+  return ids;
+}
+
+function normalizeAnchor(raw) {
+  if (!raw) return "";
+  const value = raw.startsWith("#") ? raw.slice(1) : raw;
+  if (!value) return "";
+  try {
+    return decodeURIComponent(value).trim();
+  } catch {
+    return value.trim();
+  }
+}
+
+function splitHref(href) {
+  const hashIndex = href.indexOf("#");
+  if (hashIndex < 0) {
+    return {
+      pathname: normalizePathname(href),
+      hash: "",
+    };
+  }
+
+  const left = href.slice(0, hashIndex);
+  const right = href.slice(hashIndex + 1);
+  return {
+    pathname: normalizePathname(left || "/"),
+    hash: normalizeAnchor(right),
+  };
+}
+
 function normalizePathname(href) {
   const pathOnly = href.split("#")[0].split("?")[0] || "/";
   return pathOnly.endsWith("/") && pathOnly !== "/" ? pathOnly.slice(0, -1) : pathOnly;
@@ -74,36 +113,67 @@ function shouldSkipHref(href) {
   if (href.startsWith("http://") || href.startsWith("https://")) return true;
   if (href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("sms:")) return true;
   if (href.startsWith("javascript:")) return true;
-  if (href.startsWith("#")) return true;
-  if (!href.startsWith("/")) return true;
+  if (!href.startsWith("/") && !href.startsWith("#")) return true;
   return false;
 }
 
 function collectRoutes() {
   const appFiles = walk(appDir, []);
-  const routes = appFiles
-    .map(toRouteFromPage)
-    .filter(Boolean);
+  const routeToFile = new Map();
+  const routes = [];
+
+  for (const file of appFiles) {
+    const route = toRouteFromPage(file);
+    if (!route) continue;
+    routes.push(route);
+    routeToFile.set(route, file);
+  }
 
   // API and metadata links are valid internal paths even without page.tsx
   routes.push("/api");
 
-  return Array.from(new Set(routes));
+  return {
+    routes: Array.from(new Set(routes)),
+    routeToFile,
+  };
 }
 
 function validateInternalLinks() {
-  const routes = collectRoutes();
+  const { routes, routeToFile } = collectRoutes();
   const routePatterns = routes.map((route) => ({ route, re: routePatternToRegex(route) }));
 
   const files = scanRoots.flatMap((root) => walk(root, []));
   const broken = [];
+  const missingAnchors = [];
+
+  const fileAnchorIndex = new Map();
+  const globalAnchors = new Set();
+  for (const filePath of files) {
+    const raw = fs.readFileSync(filePath, "utf8");
+    const ids = extractAnchorIdCandidates(raw);
+    fileAnchorIndex.set(filePath, ids);
+    for (const id of ids) globalAnchors.add(id);
+  }
 
   for (const filePath of files) {
     const raw = fs.readFileSync(filePath, "utf8");
     const hrefs = extractHrefCandidates(raw);
     for (const href of hrefs) {
       if (shouldSkipHref(href)) continue;
-      const pathname = normalizePathname(href);
+      const { pathname, hash } = splitHref(href);
+
+      if (href.startsWith("#")) {
+        const ids = fileAnchorIndex.get(filePath) || new Set();
+        if (hash && !ids.has(hash)) {
+          missingAnchors.push({
+            filePath,
+            href,
+            pathname: "(same-file)",
+            hash,
+          });
+        }
+        continue;
+      }
 
       // Allow API namespace and static assets
       if (pathname.startsWith("/api/") || pathname.startsWith("/_next/") || pathname.startsWith("/public/")) {
@@ -113,20 +183,40 @@ function validateInternalLinks() {
       const exists = routePatterns.some(({ re }) => re.test(pathname));
       if (!exists) {
         broken.push({ filePath, href, pathname });
+        continue;
+      }
+
+      if (hash) {
+        const routeFile = routeToFile.get(pathname);
+        if (routeFile) {
+          const ids = fileAnchorIndex.get(routeFile) || new Set();
+          if (!ids.has(hash) && !globalAnchors.has(hash)) {
+            missingAnchors.push({ filePath, href, pathname, hash });
+          }
+        }
       }
     }
   }
 
-  if (broken.length > 0) {
+  if (broken.length > 0 || missingAnchors.length > 0) {
     console.error("\n❌ Internal link validation failed. Broken links found:\n");
-    for (const item of broken.slice(0, 200)) {
+    for (const item of broken.slice(0, 120)) {
       console.error(`- ${path.relative(projectRoot, item.filePath)} -> ${item.href}`);
     }
+
+    if (missingAnchors.length > 0) {
+      console.error("\n❌ Missing anchor targets found:\n");
+      for (const item of missingAnchors.slice(0, 120)) {
+        console.error(`- ${path.relative(projectRoot, item.filePath)} -> ${item.href} (missing #${item.hash})`);
+      }
+    }
+
     console.error(`\nTotal broken links: ${broken.length}`);
+    console.error(`Total missing anchors: ${missingAnchors.length}`);
     process.exit(1);
   }
 
-  console.log(`✅ Internal link validation passed (${files.length} files scanned, ${routes.length} routes indexed).`);
+  console.log(`✅ Internal link validation passed (${files.length} files scanned, ${routes.length} routes indexed, anchors verified).`);
 }
 
 validateInternalLinks();
