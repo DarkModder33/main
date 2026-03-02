@@ -35,8 +35,10 @@ const EXPERIMENT_VARIANTS: Record<ExperimentName, readonly ExperimentVariant[]> 
 };
 
 const EXP_STORAGE_PREFIX = "thx-exp:";
+const EXP_ROLLOUT_PREFIX = "thx-exp-rollout:";
 const EXP_EXPOSURE_PREFIX = "thx-exp-exposed:";
 const EXP_ROLLUP_STORAGE_KEY = "thx-exp-rollup";
+const EXP_VISITOR_ID_KEY = "thx-exp-visitor-id";
 const EXPERIMENT_NAMES = Object.keys(EXPERIMENT_VARIANTS) as ExperimentName[];
 
 function isVariantForExperiment(name: ExperimentName, value: string): value is ExperimentVariant {
@@ -51,6 +53,51 @@ function pickRandomVariant(name: ExperimentName): ExperimentVariant {
 
 function experimentStorageKey(name: ExperimentName): string {
   return `${EXP_STORAGE_PREFIX}${name}`;
+}
+
+function experimentRolloutStorageKey(name: ExperimentName): string {
+  return `${EXP_ROLLOUT_PREFIX}${name}`;
+}
+
+function getOrCreateVisitorId(): string {
+  if (typeof window === "undefined") {
+    return "server";
+  }
+
+  try {
+    const existing = window.localStorage.getItem(EXP_VISITOR_ID_KEY);
+    if (existing) {
+      return existing;
+    }
+
+    const generated =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+
+    window.localStorage.setItem(EXP_VISITOR_ID_KEY, generated);
+    return generated;
+  } catch {
+    return `${Date.now()}-fallback`;
+  }
+}
+
+function computeHashBucket(input: string): number {
+  let hash = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(index);
+    hash |= 0;
+  }
+
+  return Math.abs(hash) % 100;
+}
+
+function clampPercentage(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
 function computeConversionRate(entry?: ExperimentRollupEntry): number {
@@ -207,6 +254,21 @@ export function resolveExperimentVariant(
     }
   } catch {
     // Ignore storage access issues.
+  }
+
+  const rolloutTarget = getExperimentRolloutTarget(name);
+  if (rolloutTarget !== null) {
+    const visitorId = getOrCreateVisitorId();
+    const bucket = computeHashBucket(`${name}:${visitorId}`);
+    const assignedFromRollout: ExperimentVariant = bucket < rolloutTarget ? "accelerated" : "control";
+
+    try {
+      window.localStorage.setItem(experimentStorageKey(name), assignedFromRollout);
+    } catch {
+      // Ignore storage failures.
+    }
+
+    return assignedFromRollout;
   }
 
   const assigned = pickRandomVariant(name);
@@ -372,6 +434,102 @@ export function clearAssignedExperimentVariant(name: ExperimentName) {
     label: name,
     value: 1,
   });
+}
+
+export function getExperimentRolloutTarget(name: ExperimentName): number | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(experimentRolloutStorageKey(name));
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsed = Number(rawValue);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+
+    return clampPercentage(parsed);
+  } catch {
+    return null;
+  }
+}
+
+export function listExperimentRolloutTargets(): Partial<Record<ExperimentName, number>> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  return EXPERIMENT_NAMES.reduce<Partial<Record<ExperimentName, number>>>((acc, experimentName) => {
+    const target = getExperimentRolloutTarget(experimentName);
+    if (target !== null) {
+      acc[experimentName] = target;
+    }
+    return acc;
+  }, {});
+}
+
+export function setExperimentRolloutTarget(name: ExperimentName, acceleratedPercent: number) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const sanitized = clampPercentage(acceleratedPercent);
+
+  try {
+    window.localStorage.setItem(experimentRolloutStorageKey(name), String(sanitized));
+  } catch {
+    // Ignore storage failures.
+  }
+
+  event({
+    action: "experiment_set_rollout",
+    category: "experiments",
+    label: `${name}:${sanitized}`,
+    value: sanitized,
+  });
+}
+
+export function clearExperimentRolloutTarget(name: ExperimentName) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(experimentRolloutStorageKey(name));
+  } catch {
+    // Ignore storage failures.
+  }
+
+  event({
+    action: "experiment_clear_rollout",
+    category: "experiments",
+    label: name,
+    value: 1,
+  });
+}
+
+export function applyExperimentRecommendation(
+  decision: ExperimentDecisionSummary,
+  options?: { clearCurrentAssignment?: boolean },
+) {
+  if (decision.recommendation === "promote_accelerated") {
+    setExperimentRolloutTarget(decision.experiment, 75);
+    if (options?.clearCurrentAssignment) {
+      clearAssignedExperimentVariant(decision.experiment);
+    }
+    return;
+  }
+
+  if (decision.recommendation === "keep_control") {
+    setExperimentRolloutTarget(decision.experiment, 25);
+    if (options?.clearCurrentAssignment) {
+      clearAssignedExperimentVariant(decision.experiment);
+    }
+  }
 }
 
 export function evaluateExperimentDecision(

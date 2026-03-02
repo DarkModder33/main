@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  applyExperimentRecommendation,
   clearExperimentSessionRollup,
   clearAssignedExperimentVariant,
+  clearExperimentRolloutTarget,
   evaluateExperimentDecision,
   getExperimentSessionRollup,
+  listExperimentRolloutTargets,
   listExperimentNames,
   listAssignedExperimentVariants,
+  setExperimentRolloutTarget,
   setAssignedExperimentVariant,
 } from "@/lib/experiments";
 import { useEffect, useMemo, useState } from "react";
@@ -17,6 +21,7 @@ const MIN_STRONG_SAMPLE = 25;
 interface ReadoutState {
   enabled: boolean;
   assigned: ReturnType<typeof listAssignedExperimentVariants>;
+  rollout: ReturnType<typeof listExperimentRolloutTargets>;
   rollup: ReturnType<typeof getExperimentSessionRollup>;
 }
 
@@ -57,6 +62,7 @@ export function ExperimentReadoutPanel() {
   const [state, setState] = useState<ReadoutState>({
     enabled: false,
     assigned: {},
+    rollout: {},
     rollup: {},
   });
 
@@ -70,6 +76,7 @@ export function ExperimentReadoutPanel() {
       setState({
         enabled,
         assigned: listAssignedExperimentVariants(),
+        rollout: listExperimentRolloutTargets(),
         rollup: getExperimentSessionRollup(),
       });
     };
@@ -92,6 +99,7 @@ export function ExperimentReadoutPanel() {
     setState((previous) => ({
       ...previous,
       assigned: listAssignedExperimentVariants(),
+      rollout: listExperimentRolloutTargets(),
       rollup: getExperimentSessionRollup(),
     }));
   };
@@ -111,6 +119,7 @@ export function ExperimentReadoutPanel() {
               const payload = {
                 generatedAt: new Date().toISOString(),
                 assigned: state.assigned,
+                rollout: state.rollout,
                 rollup: state.rollup,
               };
 
@@ -148,6 +157,7 @@ export function ExperimentReadoutPanel() {
             {experimentNames.map((name) => {
               const typedName = name as keyof typeof state.assigned;
               const assignedVariant = state.assigned[typedName];
+              const rolloutTarget = state.rollout[name as keyof typeof state.rollout];
 
               return (
                 <div key={name} className="rounded border border-white/10 bg-white/[0.02] px-2 py-2">
@@ -156,6 +166,9 @@ export function ExperimentReadoutPanel() {
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
                       {assignedVariant ?? "unassigned"}
                     </span>
+                  </div>
+                  <div className="mb-1 text-[10px] uppercase tracking-wider text-zinc-400">
+                    rollout accelerated: {rolloutTarget ?? 50}%
                   </div>
                   <div className="flex items-center gap-1">
                     <button
@@ -190,6 +203,34 @@ export function ExperimentReadoutPanel() {
                       className="rounded border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 hover:text-white"
                     >
                       auto
+                    </button>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1">
+                    {[10, 25, 50, 75, 100].map((target) => (
+                      <button
+                        key={`${name}:rollout:${target}`}
+                        type="button"
+                        onClick={() => {
+                          setExperimentRolloutTarget(
+                            name as Parameters<typeof setExperimentRolloutTarget>[0],
+                            target,
+                          );
+                          refreshReadout();
+                        }}
+                        className="rounded border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 hover:text-white"
+                      >
+                        {target}%
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearExperimentRolloutTarget(name as Parameters<typeof clearExperimentRolloutTarget>[0]);
+                        refreshReadout();
+                      }}
+                      className="rounded border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500 hover:text-white"
+                    >
+                      clear ramp
                     </button>
                   </div>
                 </div>
@@ -250,6 +291,18 @@ export function ExperimentReadoutPanel() {
                     <div className="mb-2 text-[10px] text-zinc-400">
                       ΔCVR {decision.deltaCvrPoints >= 0 ? "+" : ""}
                       {decision.deltaCvrPoints.toFixed(2)} pts · z={decision.zScore.toFixed(2)}
+                    </div>
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          applyExperimentRecommendation(decision, { clearCurrentAssignment: true });
+                          refreshReadout();
+                        }}
+                        className="rounded border border-cyan-400/30 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-cyan-200 hover:text-white"
+                      >
+                        apply recommendation
+                      </button>
                     </div>
                     <div className="space-y-1.5">
                       {VARIANTS.map((variant) => {
