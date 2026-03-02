@@ -90,6 +90,10 @@ export interface ExperimentRampEvent {
   routeIntentLiftPoints: number;
   routeValueDelta: number;
   routeSignalCoverage: number;
+  qualityMemoryIntentLiftPoints: number;
+  qualityMemoryValueDelta: number;
+  qualityMemorySignalCoverage: number;
+  qualityMemoryBoost: number;
   driftScore: number;
   shortDriftScore: number;
   mediumDriftScore: number;
@@ -170,6 +174,16 @@ export interface ExperimentAllocatorDriftState {
   shockUntil?: string;
 }
 
+interface ExperimentAllocatorQualityMemoryEntry {
+  smoothedRouteIntentLiftPoints: number;
+  smoothedRouteValueDelta: number;
+  smoothedRouteSignalCoverage: number;
+  sampleCount: number;
+  lastUpdatedAt: string;
+}
+
+type ExperimentAllocatorQualityMemoryState = Partial<Record<ExperimentName, ExperimentAllocatorQualityMemoryEntry>>;
+
 const EXPERIMENT_VARIANTS: Record<ExperimentName, readonly ExperimentVariant[]> = {
   home_hero_primary_cta: ["control", "accelerated"],
   landing_hero_primary_cta: ["control", "accelerated"],
@@ -185,6 +199,7 @@ const EXP_RAMP_META_KEY = "thx-exp-ramp-meta";
 const EXP_RAMP_VELOCITY_META_KEY = "thx-exp-ramp-velocity-meta";
 const EXP_RAMP_PORTFOLIO_META_KEY = "thx-exp-ramp-portfolio-meta";
 const EXP_RAMP_DRIFT_STATE_KEY = "thx-exp-ramp-drift-state";
+const EXP_RAMP_QUALITY_MEMORY_KEY = "thx-exp-ramp-quality-memory";
 const EXP_POLICY_PROFILE_KEY = "thx-exp-policy-profile";
 const EXP_POLICY_AUTOSWITCH_KEY = "thx-exp-policy-autoswitch-enabled";
 const EXP_POLICY_SWITCH_LOG_KEY = "thx-exp-policy-switch-log";
@@ -488,6 +503,10 @@ function readRampLog(): ExperimentRampEvent[] {
         typeof item.routeIntentLiftPoints === "number" &&
         typeof item.routeValueDelta === "number" &&
         typeof item.routeSignalCoverage === "number" &&
+        typeof item.qualityMemoryIntentLiftPoints === "number" &&
+        typeof item.qualityMemoryValueDelta === "number" &&
+        typeof item.qualityMemorySignalCoverage === "number" &&
+        typeof item.qualityMemoryBoost === "number" &&
         typeof item.driftScore === "number" &&
         typeof item.shortDriftScore === "number" &&
         typeof item.mediumDriftScore === "number" &&
@@ -1073,6 +1092,118 @@ function writeAllocatorDriftState(state: ExperimentAllocatorDriftState) {
   } catch {
     // Ignore storage failures.
   }
+}
+
+function readAllocatorQualityMemoryState(): ExperimentAllocatorQualityMemoryState {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem(EXP_RAMP_QUALITY_MEMORY_KEY);
+    if (!raw) {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!isObjectRecord(parsed)) {
+      return {};
+    }
+
+    return EXPERIMENT_NAMES.reduce<ExperimentAllocatorQualityMemoryState>((acc, experiment) => {
+      const value = parsed[experiment];
+      if (!isObjectRecord(value)) {
+        return acc;
+      }
+
+      const entry: ExperimentAllocatorQualityMemoryEntry = {
+        smoothedRouteIntentLiftPoints:
+          typeof value.smoothedRouteIntentLiftPoints === "number" ? value.smoothedRouteIntentLiftPoints : 0,
+        smoothedRouteValueDelta:
+          typeof value.smoothedRouteValueDelta === "number" ? value.smoothedRouteValueDelta : 0,
+        smoothedRouteSignalCoverage:
+          typeof value.smoothedRouteSignalCoverage === "number" ? value.smoothedRouteSignalCoverage : 0,
+        sampleCount: typeof value.sampleCount === "number" ? value.sampleCount : 0,
+        lastUpdatedAt:
+          typeof value.lastUpdatedAt === "string" ? value.lastUpdatedAt : new Date(0).toISOString(),
+      };
+
+      acc[experiment] = entry;
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
+}
+
+function writeAllocatorQualityMemoryState(state: ExperimentAllocatorQualityMemoryState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_RAMP_QUALITY_MEMORY_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function updateAllocatorQualityMemory(
+  experiment: ExperimentName,
+  input: {
+    routeIntentLiftPoints: number;
+    routeValueDelta: number;
+    routeSignalCoverage: number;
+  },
+  policy: ExperimentPolicySettings,
+  nowMs: number,
+  state: ExperimentAllocatorQualityMemoryState,
+): {
+  memoryIntentLiftPoints: number;
+  memoryValueDelta: number;
+  memorySignalCoverage: number;
+  memoryBoost: number;
+} {
+  const prior = state[experiment];
+  const qualityHalfLifeMs = Math.max(60_000, Math.round(policy.driftHalfLifeMs * 1.25));
+  const priorUpdatedMs = prior ? Date.parse(prior.lastUpdatedAt) : 0;
+  const elapsedMs = Number.isFinite(priorUpdatedMs) ? Math.max(0, nowMs - priorUpdatedMs) : 0;
+
+  const decay = Math.exp(-elapsedMs / qualityHalfLifeMs);
+  const blend = 1 - decay;
+
+  const smoothedRouteIntentLiftPoints = prior
+    ? prior.smoothedRouteIntentLiftPoints * decay + input.routeIntentLiftPoints * blend
+    : input.routeIntentLiftPoints;
+  const smoothedRouteValueDelta = prior
+    ? prior.smoothedRouteValueDelta * decay + input.routeValueDelta * blend
+    : input.routeValueDelta;
+  const smoothedRouteSignalCoverage = prior
+    ? prior.smoothedRouteSignalCoverage * decay + input.routeSignalCoverage * blend
+    : input.routeSignalCoverage;
+
+  const sampleCount = (prior?.sampleCount ?? 0) + 1;
+  const confidenceWeight = Math.max(0.2, Math.min(1, smoothedRouteSignalCoverage));
+  const memoryMaturity = Math.max(0.25, Math.min(1, sampleCount / 8));
+  const memoryBoost =
+    (smoothedRouteIntentLiftPoints * 0.08 + smoothedRouteValueDelta * 0.16) *
+    confidenceWeight *
+    memoryMaturity;
+
+  state[experiment] = {
+    smoothedRouteIntentLiftPoints: Number(smoothedRouteIntentLiftPoints.toFixed(3)),
+    smoothedRouteValueDelta: Number(smoothedRouteValueDelta.toFixed(3)),
+    smoothedRouteSignalCoverage: Number(smoothedRouteSignalCoverage.toFixed(3)),
+    sampleCount,
+    lastUpdatedAt: new Date(nowMs).toISOString(),
+  };
+
+  return {
+    memoryIntentLiftPoints: state[experiment]?.smoothedRouteIntentLiftPoints ?? 0,
+    memoryValueDelta: state[experiment]?.smoothedRouteValueDelta ?? 0,
+    memorySignalCoverage: state[experiment]?.smoothedRouteSignalCoverage ?? 0,
+    memoryBoost: Number(memoryBoost.toFixed(3)),
+  };
 }
 
 function updateAllocatorDriftState(
@@ -2380,6 +2511,8 @@ export function runExperimentRampAutopilot(
   const policy = getExperimentPolicySettings(profile);
   const cooldownMs = options?.cooldownMs ?? policy.rampCooldownMs;
   const now = Date.now();
+  const qualityMemoryState = readAllocatorQualityMemoryState();
+  let qualityMemoryUpdated = false;
   const meta = readRampMeta();
   const velocityMeta = readRampVelocityMeta();
   const actions: ExperimentRampEvent[] = [];
@@ -2418,6 +2551,10 @@ export function runExperimentRampAutopilot(
     routeIntentLiftPoints: number;
     routeValueDelta: number;
     routeSignalCoverage: number;
+    qualityMemoryIntentLiftPoints: number;
+    qualityMemoryValueDelta: number;
+    qualityMemorySignalCoverage: number;
+    qualityMemoryBoost: number;
   }
 
   const candidates: RampCandidate[] = [];
@@ -2494,7 +2631,21 @@ export function runExperimentRampAutopilot(
     }
 
     const bayesianSignals = computeBayesianAllocatorSignals(experiment, snapshot, rolloutTarget, decision);
-    const opportunityScore = bayesianSignals.weightedOpportunityScore * (1 - 0.12 * shockIntensity);
+    const qualityMemory = updateAllocatorQualityMemory(
+      experiment,
+      {
+        routeIntentLiftPoints: bayesianSignals.routeIntentLiftPoints,
+        routeValueDelta: bayesianSignals.routeValueDelta,
+        routeSignalCoverage: bayesianSignals.routeSignalCoverage,
+      },
+      policy,
+      now,
+      qualityMemoryState,
+    );
+    qualityMemoryUpdated = true;
+
+    const opportunityScore =
+      (bayesianSignals.weightedOpportunityScore + qualityMemory.memoryBoost) * (1 - 0.12 * shockIntensity);
     const recentPortfolioActions = recentPortfolioActionCounts[experiment] ?? 0;
     const fairnessPenalty = recentPortfolioActions * policy.rampFairnessPenaltyPerRecentAction;
     const isInactiveEnough =
@@ -2525,6 +2676,10 @@ export function runExperimentRampAutopilot(
       routeIntentLiftPoints: bayesianSignals.routeIntentLiftPoints,
       routeValueDelta: bayesianSignals.routeValueDelta,
       routeSignalCoverage: bayesianSignals.routeSignalCoverage,
+      qualityMemoryIntentLiftPoints: qualityMemory.memoryIntentLiftPoints,
+      qualityMemoryValueDelta: qualityMemory.memoryValueDelta,
+      qualityMemorySignalCoverage: qualityMemory.memorySignalCoverage,
+      qualityMemoryBoost: qualityMemory.memoryBoost,
     });
   });
 
@@ -2615,6 +2770,10 @@ export function runExperimentRampAutopilot(
         routeIntentLiftPoints: Number(candidate.routeIntentLiftPoints.toFixed(3)),
         routeValueDelta: Number(candidate.routeValueDelta.toFixed(3)),
         routeSignalCoverage: Number(candidate.routeSignalCoverage.toFixed(3)),
+        qualityMemoryIntentLiftPoints: Number(candidate.qualityMemoryIntentLiftPoints.toFixed(3)),
+        qualityMemoryValueDelta: Number(candidate.qualityMemoryValueDelta.toFixed(3)),
+        qualityMemorySignalCoverage: Number(candidate.qualityMemorySignalCoverage.toFixed(3)),
+        qualityMemoryBoost: Number(candidate.qualityMemoryBoost.toFixed(3)),
         driftScore: driftState.driftScore,
         shortDriftScore: driftState.shortDriftScore,
         mediumDriftScore: driftState.mediumDriftScore,
@@ -2624,7 +2783,7 @@ export function runExperimentRampAutopilot(
         shockIntensity: Number(shockIntensity.toFixed(3)),
         recommendation: candidate.decision.recommendation,
         confidence: candidate.decision.confidence,
-        rationale: `${candidate.decision.rationale} ${candidate.strideRationale} Velocity window ${velocityWindowUsedAfter}/${candidate.velocityWindowBudget} points used. Portfolio window ${portfolioUsed}/${portfolioBudget} points used. Fairness adjusted score ${candidate.adjustedOpportunityScore.toFixed(2)} (weighted ${candidate.opportunityScore.toFixed(2)}, recent ${candidate.recentPortfolioActions}, boost ${candidate.fairnessBoostApplied ? "on" : "off"}). Bayesian lift ${candidate.bayesianLiftPoints.toFixed(2)} pts, uncertainty ${candidate.bayesianUncertaintyPoints.toFixed(2)} pts, regret ${candidate.regretPressurePoints.toFixed(2)} pts. Route intent lift ${candidate.routeIntentLiftPoints.toFixed(2)} pts, value Δ ${candidate.routeValueDelta.toFixed(2)}, coverage ${(candidate.routeSignalCoverage * 100).toFixed(0)}%. Drift fused ${driftState.driftScore.toFixed(2)} [S ${driftState.shortDriftScore.toFixed(2)} · M ${driftState.mediumDriftScore.toFixed(2)} · L ${driftState.longDriftScore.toFixed(2)}] · phase ${driftState.phase} · shock ${driftState.shockMode ? "on" : "off"}.`,
+        rationale: `${candidate.decision.rationale} ${candidate.strideRationale} Velocity window ${velocityWindowUsedAfter}/${candidate.velocityWindowBudget} points used. Portfolio window ${portfolioUsed}/${portfolioBudget} points used. Fairness adjusted score ${candidate.adjustedOpportunityScore.toFixed(2)} (weighted ${candidate.opportunityScore.toFixed(2)}, recent ${candidate.recentPortfolioActions}, boost ${candidate.fairnessBoostApplied ? "on" : "off"}). Bayesian lift ${candidate.bayesianLiftPoints.toFixed(2)} pts, uncertainty ${candidate.bayesianUncertaintyPoints.toFixed(2)} pts, regret ${candidate.regretPressurePoints.toFixed(2)} pts. Route intent lift ${candidate.routeIntentLiftPoints.toFixed(2)} pts, value Δ ${candidate.routeValueDelta.toFixed(2)}, coverage ${(candidate.routeSignalCoverage * 100).toFixed(0)}%. Memory intent ${candidate.qualityMemoryIntentLiftPoints.toFixed(2)} pts, memory value ${candidate.qualityMemoryValueDelta.toFixed(2)}, memory coverage ${(candidate.qualityMemorySignalCoverage * 100).toFixed(0)}%, memory boost ${candidate.qualityMemoryBoost.toFixed(2)}. Drift fused ${driftState.driftScore.toFixed(2)} [S ${driftState.shortDriftScore.toFixed(2)} · M ${driftState.mediumDriftScore.toFixed(2)} · L ${driftState.longDriftScore.toFixed(2)}] · phase ${driftState.phase} · shock ${driftState.shockMode ? "on" : "off"}.`,
         timestamp,
       };
 
@@ -2639,6 +2798,10 @@ export function runExperimentRampAutopilot(
 
       actions.push(rampEvent);
     });
+
+  if (qualityMemoryUpdated) {
+    writeAllocatorQualityMemoryState(qualityMemoryState);
+  }
 
   if (actions.length > 0) {
     writeRampMeta(meta);
