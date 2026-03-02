@@ -52,6 +52,7 @@ export interface ConversionContext {
   placement?: string;
   variant?: string;
   audience?: "new" | "returning" | "all";
+  experiment?: string;
 }
 
 export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMeta> = {
@@ -290,6 +291,16 @@ export function trackServiceConversion(id: ServiceConversionId, surface: string,
     label,
     value: conversion.value,
   });
+
+  if (context?.experiment && context?.variant?.startsWith("exp_")) {
+    const experimentVariant = context.variant.replace("exp_", "");
+    event({
+      action: "experiment_goal",
+      category: "experiments",
+      label: `${context.experiment}:${experimentVariant}:${conversion.action}:${surface}`,
+      value: conversion.value,
+    });
+  }
 
   if (typeof window !== "undefined" && window.gtag && conversion.stage === "intent") {
     window.gtag("event", "generate_lead", {

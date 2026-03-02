@@ -85,7 +85,7 @@ export function HeroSection() {
             href="/dashboard"
             conversionId="open_dashboard"
             surface="landing_hero:primary_cta"
-            conversionContext={{ placement: "hero_primary", variant: `exp_${variant}`, audience: "all" }}
+            conversionContext={{ placement: "hero_primary", variant: `exp_${variant}`, audience: "all", experiment: "landing_hero_primary_cta" }}
             ariaLabel="Start trading dashboard"
             className="w-full sm:w-auto rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
           >
@@ -102,7 +102,7 @@ export function HeroSection() {
             href="/game"
             conversionId="open_game"
             surface="landing_hero:secondary_cta"
-            conversionContext={{ placement: "hero_secondary", variant: `exp_${variant}`, audience: "all" }}
+            conversionContext={{ placement: "hero_secondary", variant: `exp_${variant}`, audience: "all", experiment: "landing_hero_primary_cta" }}
             ariaLabel="Open Hyperborea experience"
             className="w-full sm:w-auto rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80"
           >
