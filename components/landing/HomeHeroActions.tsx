@@ -22,7 +22,7 @@ export function HomeHeroActions({ scheduleHref }: HomeHeroActionsProps) {
         href={scheduleHref}
         conversionId="open_schedule"
         surface="home:hero"
-        conversionContext={{ placement: "hero_primary", variant: `exp_${variant}`, audience: "all" }}
+        conversionContext={{ placement: "hero_primary", variant: `exp_${variant}`, audience: "all", experiment: "home_hero_primary_cta" }}
         className="theme-cta theme-cta--loud px-6 py-3"
       >
         {primaryLabel}
@@ -31,7 +31,7 @@ export function HomeHeroActions({ scheduleHref }: HomeHeroActionsProps) {
         href="/ai-hub"
         conversionId="open_ai_chat"
         surface="home:hero"
-        conversionContext={{ placement: "hero_secondary", variant: `exp_${variant}`, audience: "all" }}
+        conversionContext={{ placement: "hero_secondary", variant: `exp_${variant}`, audience: "all", experiment: "home_hero_primary_cta" }}
         className="theme-cta theme-cta--secondary px-6 py-3"
       >
         {secondaryLabel}
