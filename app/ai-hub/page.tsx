@@ -4,10 +4,11 @@ import { ImageGeneratorComponent } from "@/components/ai/ImageGeneratorComponent
 import { ModelScoreboardPanel } from "@/components/ai/ModelScoreboardPanel";
 import { SmartEnvironmentMonitor } from "@/components/ai/SmartEnvironmentMonitor";
 import { VoiceSearchControlPanel } from "@/components/ai/VoiceSearchControlPanel";
+import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
-import { Brain, MessageSquare } from "lucide-react";
+import { Brain, ChevronDown, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -48,19 +49,25 @@ export default function AIHubPage({
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
             {isAdvancedView ? (
-              <Link
+              <TrackedCtaLink
                 href="/ai-hub#ai-chat-stream"
+                conversionId="open_ai_simple"
+                surface="ai_hub:mode_switch"
+                conversionContext={{ placement: "hero_toggle", variant: "simple", audience: "all" }}
                 className="rounded-full border border-emerald-300/40 bg-emerald-500/20 px-3 py-1.5 font-semibold text-emerald-100 transition hover:bg-emerald-500/30"
               >
                 Switch to Simple Mode
-              </Link>
+              </TrackedCtaLink>
             ) : (
-              <Link
+              <TrackedCtaLink
                 href="/ai-hub?view=advanced#ai-chat-stream"
+                conversionId="open_ai_advanced"
+                surface="ai_hub:mode_switch"
+                conversionContext={{ placement: "hero_toggle", variant: "advanced", audience: "all" }}
                 className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-semibold text-zinc-100 transition hover:bg-white/15"
               >
                 Open Advanced Mode
-              </Link>
+              </TrackedCtaLink>
             )}
             <Link
               href="/ai-hub?starter=new-user-setup#ai-chat-stream"
@@ -150,20 +157,26 @@ export default function AIHubPage({
           </ToolAccordion>
         </section>
 
-        <div className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 mx-auto w-[min(620px,calc(100%-1rem))] rounded-xl border border-white/15 bg-black/85 supports-[backdrop-filter]:bg-black/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
-          <div className="flex items-center gap-2">
-            <Link
+        <div className="mobile-action-shell md:hidden">
+          <div className="mobile-action-grid">
+            <TrackedCtaLink
               href="#ai-chat-stream"
-              className="flex-1 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-2.5 text-center text-xs font-semibold text-emerald-50"
+              conversionId="open_ai_chat"
+              surface="ai_hub:mobile_sticky"
+              conversionContext={{ placement: "sticky", variant: "chat_anchor", audience: "all" }}
+              className="mobile-action-btn mobile-action-btn--primary"
             >
               Open Chat
-            </Link>
-            <Link
+            </TrackedCtaLink>
+            <TrackedCtaLink
               href={isAdvancedView ? "/ai-hub#ai-chat-stream" : "/ai-hub?view=advanced#ai-chat-stream"}
-              className="flex-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-semibold text-zinc-100"
+              conversionId={isAdvancedView ? "open_ai_simple" : "open_ai_advanced"}
+              surface="ai_hub:mobile_sticky"
+              conversionContext={{ placement: "sticky", variant: isAdvancedView ? "simple" : "advanced", audience: "all" }}
+              className="mobile-action-btn"
             >
               {isAdvancedView ? "Simple Mode" : "Advanced"}
-            </Link>
+            </TrackedCtaLink>
           </div>
         </div>
       </main>
@@ -196,14 +209,17 @@ function ToolAccordion({
   }[tone];
 
   return (
-    <details id={id} open={defaultOpen} className={`overflow-hidden rounded-xl border ${toneClass}`}>
-      <summary className="cursor-pointer list-none px-4 py-3 transition hover:bg-black/20">
+    <details id={id} open={defaultOpen} className={`group disclosure-shell ${toneClass}`}>
+      <summary className="disclosure-summary">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">{title}</p>
             <p className="text-xs opacity-80">{subtitle}</p>
           </div>
-          <span className="rounded-full border border-white/20 bg-black/20 px-2 py-0.5 text-[10px] uppercase tracking-wide">toggle</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/20 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+            <span>toggle</span>
+            <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180" />
+          </span>
         </div>
       </summary>
       <div className="border-t border-white/10 p-3 sm:p-4">{children}</div>

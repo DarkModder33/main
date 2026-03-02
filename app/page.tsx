@@ -157,7 +157,7 @@ export default function Home() {
                   detail: "Book, deploy, or run the recommended operation.",
                 },
               ].map((step) => (
-                <article key={step.title} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <article key={step.title} className="interactive-surface rounded-xl border border-white/10 bg-white/[0.02] p-4">
                   <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-300" />
                     {step.title}
@@ -275,19 +275,20 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 mx-auto w-[min(620px,calc(100%-1rem))] rounded-xl border border-white/15 bg-black/85 supports-[backdrop-filter]:bg-black/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
-        <div className="flex items-center gap-2">
+      <div className="mobile-action-shell md:hidden">
+        <div className="mobile-action-grid">
           <TrackedCtaLink
             href={scheduleLinks.root}
             conversionId="open_schedule"
             surface="home:mobile_sticky"
-            className="flex-1 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-2.5 text-center text-xs font-semibold text-emerald-50"
+            conversionContext={{ placement: "sticky", variant: "book_now", audience: "all" }}
+            className="mobile-action-btn mobile-action-btn--primary"
           >
             Book Now
           </TrackedCtaLink>
           <Link
             href="/ai-hub"
-            className="flex-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-semibold text-zinc-100"
+            className="mobile-action-btn"
           >
             Start AI
           </Link>

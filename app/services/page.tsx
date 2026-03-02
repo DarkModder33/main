@@ -203,7 +203,7 @@ export default function ServicesPage() {
 
         <section className="mb-12 grid gap-4 md:grid-cols-3">
           {servicePaths.map((path) => (
-            <article key={path.title} className="rounded-xl border border-white/10 bg-white/[0.02] p-5 min-h-[190px]">
+            <article key={path.title} className="interactive-surface rounded-xl border border-white/10 bg-white/[0.02] p-5 min-h-[190px]">
               <h2 className="text-lg font-bold text-white">{path.title}</h2>
               <p className="mt-2 text-sm text-gray-300">{path.summary}</p>
               <TrackedCtaLink
@@ -221,14 +221,17 @@ export default function ServicesPage() {
         </section>
 
         {/* Services Grid */}
-        <details id="full-service-catalog" className="mb-16 rounded-xl border border-gray-800 bg-gray-900/30" open={false}>
-          <summary className="cursor-pointer list-none px-5 py-4 hover:bg-white/[0.02] transition">
+        <details id="full-service-catalog" className="group disclosure-shell mb-16 border-gray-800 bg-gray-900/30" open={false}>
+          <summary className="disclosure-summary px-5 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-white">Full Service Catalog</p>
                 <p className="text-xs text-gray-400">10 detailed offerings with feature breakdowns and pricing anchors</p>
               </div>
-              <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">expand</span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">
+                <span>expand</span>
+                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-90" />
+              </span>
             </div>
           </summary>
           <div className="border-t border-gray-800 px-4 py-5 sm:px-6 sm:py-6">
@@ -533,22 +536,26 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <div className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 mx-auto w-[min(620px,calc(100%-1rem))] rounded-xl border border-white/15 bg-black/85 supports-[backdrop-filter]:bg-black/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
-          <div className="flex items-center gap-2">
+        <div className="mobile-action-shell md:hidden">
+          <div className="mobile-action-grid">
             <TrackedCtaLink
               href={scheduleLinks.root}
               conversionId="open_schedule"
               surface="services:mobile_sticky"
-              className="flex-1 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-2.5 text-center text-xs font-semibold text-emerald-50"
+              conversionContext={{ placement: "sticky", variant: "book_now", audience: "all" }}
+              className="mobile-action-btn mobile-action-btn--primary"
             >
               Book Now
             </TrackedCtaLink>
-            <Link
+            <TrackedCtaLink
               href="#full-service-catalog"
-              className="flex-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-semibold text-zinc-100"
+              conversionId="open_service_catalog"
+              surface="services:mobile_sticky"
+              conversionContext={{ placement: "sticky", variant: "catalog", audience: "all" }}
+              className="mobile-action-btn"
             >
               Full Catalog
-            </Link>
+            </TrackedCtaLink>
           </div>
         </div>
       </main>
@@ -578,7 +585,7 @@ function ServiceCard({
   ctaConversionId: ServiceConversionId;
 }) {
   return (
-    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 hover:border-[#0366d6]/50 transition-all">
+    <div className="interactive-surface bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8">
       <div className="w-16 h-16 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6 text-purple-400">
         {icon}
       </div>

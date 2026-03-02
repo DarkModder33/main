@@ -1,5 +1,6 @@
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
+import { TrackedCtaLink } from '@/components/monetization/TrackedCtaLink';
 import { BookingCalendar } from '@/components/music/BookingCalendar';
 import { InstagramReelEmbed } from '@/components/music/InstagramReelEmbed';
 import { LessonCard } from '@/components/music/LessonCard';
@@ -358,20 +359,26 @@ export default function LessonsPage() {
           <AdSenseBlock adSlot="lessons-bottom" adFormat="horizontal" />
         </div>
 
-        <div className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 mx-auto w-[min(620px,calc(100%-1rem))] rounded-xl border border-white/15 bg-black/85 supports-[backdrop-filter]:bg-black/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
-          <div className="flex items-center gap-2">
-            <Link
+        <div className="mobile-action-shell md:hidden">
+          <div className="mobile-action-grid">
+            <TrackedCtaLink
               href="#lesson-packages"
-              className="flex-1 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-2.5 text-center text-xs font-semibold text-emerald-50"
+              conversionId="open_lesson_packages"
+              surface="music_lessons:mobile_sticky"
+              conversionContext={{ placement: "sticky", variant: "packages", audience: "all" }}
+              className="mobile-action-btn mobile-action-btn--primary"
             >
               View Packages
-            </Link>
-            <Link
+            </TrackedCtaLink>
+            <TrackedCtaLink
               href="#studio"
-              className="flex-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-semibold text-zinc-100"
+              conversionId="open_lesson_studio"
+              surface="music_lessons:mobile_sticky"
+              conversionContext={{ placement: "sticky", variant: "studio", audience: "all" }}
+              className="mobile-action-btn"
             >
               Book / Studio
-            </Link>
+            </TrackedCtaLink>
           </div>
         </div>
       </main>
@@ -453,14 +460,14 @@ function CollapsiblePanel({
   children: ReactNode;
 }) {
   return (
-    <details open={defaultOpen} className="rounded-xl border border-cyan-500/25 bg-black/35 overflow-hidden">
-      <summary className="list-none cursor-pointer px-4 py-3 hover:bg-white/[0.02] transition">
+    <details open={defaultOpen} className="group disclosure-shell border-cyan-500/25 bg-black/35">
+      <summary className="disclosure-summary">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-white">{title}</p>
             <p className="text-xs text-cyan-100/70">{subtitle}</p>
           </div>
-          <ChevronDown className="h-4 w-4 text-cyan-200/80" />
+          <ChevronDown className="h-4 w-4 text-cyan-200/80 transition-transform duration-200 group-open:rotate-180" />
         </div>
       </summary>
       <div className="border-t border-cyan-500/20 p-4 sm:p-5">{children}</div>
