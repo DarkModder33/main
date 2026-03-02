@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
 
+  // Improve upstream connection reuse under moderate traffic.
+  httpAgentOptions: {
+    keepAlive: true,
+  },
+
   typescript: {
     ignoreBuildErrors: false,
   },

@@ -5,7 +5,7 @@ import { trackNeuralEvent } from "@/lib/ai/site-neural-memory";
 import { MessageCircle, Send, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Suggestion = {
   path: string;
@@ -79,6 +79,7 @@ export function SiteNavigatorWidget() {
         "I can help you navigate TradeHax. Ask me what you want to do, and I’ll point you to the right pages.",
     },
   ]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
 
@@ -275,6 +276,11 @@ export function SiteNavigatorWidget() {
     void sendPrompt(nextPrompt);
   }, [loading, open, pendingPrompt, sendPrompt]);
 
+  useEffect(() => {
+    if (!open) return;
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [open, messages, loading]);
+
   return (
     <div className={`fixed right-3 sm:right-4 z-[80] ${priorityDock ? "top-4" : "bottom-[max(0.75rem,env(safe-area-inset-bottom))] max-[420px]:bottom-[max(0.5rem,env(safe-area-inset-bottom))]"}`}>
       {open && (
@@ -299,7 +305,7 @@ export function SiteNavigatorWidget() {
             </button>
           </div>
 
-          <div className="max-h-[52vh] space-y-2 overflow-y-auto px-3 py-3">
+          <div className="max-h-[52vh] space-y-2 overflow-y-auto px-3 py-3" role="log" aria-live="polite" aria-relevant="additions text">
             {messages.map((msg) => (
               <div key={msg.id} className={msg.role === "user" ? "text-right" : "text-left"}>
                 <div
@@ -334,8 +340,9 @@ export function SiteNavigatorWidget() {
             ))}
 
             {loading && (
-              <div className="text-xs text-cyan-200/70">Thinking…</div>
+              <div className="text-xs text-cyan-200/70" aria-live="polite">Thinking…</div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="border-t border-cyan-500/20 px-3 py-2">
@@ -359,7 +366,7 @@ export function SiteNavigatorWidget() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && canSend) {
+                  if (event.key === "Enter" && !event.shiftKey && canSend) {
                     event.preventDefault();
                     void sendPrompt(input);
                   }

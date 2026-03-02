@@ -389,6 +389,12 @@ function resolveSlashShortcut(input: string) {
   if (command === "/risk") {
     return `Run a risk analysis with probability, impact, mitigation, and invalidation criteria.${tail ? ` Context: ${tail}` : ""}`;
   }
+  if (command === "/parabolic") {
+    return `Build a high-momentum scenario map with bullish/base/bear cases, trigger levels, position sizing guardrails, and strict failure conditions.${tail ? ` Context: ${tail}` : ""}`;
+  }
+  if (command === "/odinsignal") {
+    return `Generate an ODIN signal brief with bias, confidence, catalyst stack, scenario probabilities, invalidation, and one actionable operator instruction.${tail ? ` Context: ${tail}` : ""}`;
+  }
   if (command === "/content") {
     return `Generate content assets: headline, hook, body draft, CTA, and 3 variants.${tail ? ` Context: ${tail}` : ""}`;
   }

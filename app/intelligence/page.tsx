@@ -13,6 +13,7 @@ import {
     BookOpen,
     Bot,
     CandlestickChart,
+    Crosshair,
     Newspaper,
     Radar,
 } from "lucide-react";
@@ -41,6 +42,7 @@ export default async function IntelligenceHubPage() {
             { label: "Flow Tape", href: "/intelligence/flow" },
             { label: "Dark Pool", href: "/intelligence/dark-pool" },
             { label: "Crypto Flow", href: "/intelligence/crypto-flow" },
+            { label: "Probability", href: "/intelligence/probability" },
             { label: "Watchlists", href: "/intelligence/watchlist" },
             { label: "Ops Metrics", href: "/intelligence/ops" },
             { label: "Content Studio", href: "/intelligence/content" },
@@ -115,6 +117,12 @@ export default async function IntelligenceHubPage() {
               description="Generate YouTube + Discord daily briefs directly from intelligence feeds."
               href="/intelligence/content"
               icon={<Bot className="w-5 h-5" />}
+            />
+            <IntelligenceRouteCard
+              title="Probability Engine"
+              description="Calibrated long/short probabilities blending macro catalysts, microstructure flow, and pattern drivers."
+              href="/intelligence/probability"
+              icon={<Crosshair className="w-5 h-5" />}
             />
             <IntelligenceRouteCard
               title="Watchlist Alerts"

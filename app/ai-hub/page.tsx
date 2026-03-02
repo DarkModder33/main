@@ -36,7 +36,7 @@ export const metadata = createPageMetadata({
 export default function AIHubPage() {
   const progressSteps = [
     {
-      id: "ai-chat",
+      id: "ai-chat-stream",
       label: "AI Chat",
       nextAction: "Ask for a one-goal, one-week action plan with clear daily tasks.",
     },
@@ -85,13 +85,13 @@ export default function AIHubPage() {
 
           <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="#ai-chat"
+              href="#ai-chat-stream"
               className="rounded-xl border border-emerald-300/40 bg-emerald-500/20 px-5 py-2 text-sm font-semibold text-emerald-50 transition hover:-translate-y-0.5 hover:bg-emerald-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/80"
             >
               Start in AI Chat
             </Link>
             <Link
-              href="/ai-hub?starter=new-user-setup#ai-chat"
+              href="/ai-hub?starter=new-user-setup#ai-chat-stream"
               className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-sm font-semibold text-zinc-100 transition hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-300/70"
             >
               Launch New User Setup
@@ -116,21 +116,21 @@ export default function AIHubPage() {
             title="I&apos;m new"
             description="Start with a guided onboarding flow and get your first objective set in seconds."
             cta="Start New User Setup"
-            href="/ai-hub?starter=new-user-setup#ai-chat"
+            href="/ai-hub?starter=new-user-setup#ai-chat-stream"
             tone="emerald"
           />
           <QuickStartCard
             title="I need a plan"
             description="Generate a risk-aware execution plan with clear steps and milestones."
             cta="Launch First Trade Plan"
-            href="/ai-hub?starter=first-trade-plan#ai-chat"
+            href="/ai-hub?starter=first-trade-plan#ai-chat-stream"
             tone="yellow"
           />
           <QuickStartCard
             title="I need growth assets"
             description="Generate text + visuals for posts, pages, and campaigns from one objective."
             cta="Launch Content Engine"
-            href="/ai-hub?starter=content-engine#ai-chat"
+            href="/ai-hub?starter=content-engine#ai-chat-stream"
             tone="cyan"
           />
         </div>
@@ -162,7 +162,7 @@ export default function AIHubPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Fast Navigation</p>
             <div className="flex flex-wrap gap-2">
-              <Link href="#ai-chat" className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-100 transition motion-safe:hover:-translate-y-0.5 hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">AI Chat</Link>
+              <Link href="#ai-chat-stream" className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-100 transition motion-safe:hover:-translate-y-0.5 hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70">AI Chat</Link>
               <Link href="#text-generator" className="rounded-full border border-yellow-400/25 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold text-yellow-100 transition motion-safe:hover:-translate-y-0.5 hover:bg-yellow-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/70">Text</Link>
               <Link href="#image-generator" className="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-100 transition motion-safe:hover:-translate-y-0.5 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">Image</Link>
               <Link href="#ai-autopilot" className="rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1 text-[11px] font-semibold text-fuchsia-100 transition motion-safe:hover:-translate-y-0.5 hover:bg-fuchsia-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-300/70">Autopilot</Link>
@@ -200,7 +200,7 @@ export default function AIHubPage() {
             ].map((prompt) => (
               <Link
                 key={prompt}
-                href="#ai-chat"
+                href="#ai-chat-stream"
                 className="rounded-lg border border-emerald-400/25 bg-black/25 px-3 py-2 text-[11px] text-emerald-100/90 hover:bg-black/35 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/70"
                 title={prompt}
               >
@@ -519,13 +519,13 @@ export default function AIHubPage() {
         <div className="fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 mx-auto w-[min(620px,calc(100%-1rem))] rounded-xl border border-white/15 bg-black/85 supports-[backdrop-filter]:bg-black/70 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur md:hidden">
           <div className="flex items-center gap-2">
             <Link
-              href="#ai-chat"
+              href="#ai-chat-stream"
               className="flex-1 rounded-lg border border-emerald-300/35 bg-emerald-500/20 px-3 py-2.5 text-center text-xs font-semibold text-emerald-50"
             >
               Open AI Chat
             </Link>
             <Link
-              href="/ai-hub?starter=new-user-setup#ai-chat"
+              href="/ai-hub?starter=new-user-setup#ai-chat-stream"
               className="flex-1 rounded-lg border border-white/20 bg-white/10 px-3 py-2.5 text-center text-xs font-semibold text-zinc-100"
             >
               New User Setup
