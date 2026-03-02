@@ -87,6 +87,9 @@ export interface ExperimentRampEvent {
   bayesianLiftPoints: number;
   bayesianUncertaintyPoints: number;
   regretPressurePoints: number;
+  routeIntentLiftPoints: number;
+  routeValueDelta: number;
+  routeSignalCoverage: number;
   driftScore: number;
   shortDriftScore: number;
   mediumDriftScore: number;
@@ -482,6 +485,9 @@ function readRampLog(): ExperimentRampEvent[] {
         typeof item.bayesianLiftPoints === "number" &&
         typeof item.bayesianUncertaintyPoints === "number" &&
         typeof item.regretPressurePoints === "number" &&
+        typeof item.routeIntentLiftPoints === "number" &&
+        typeof item.routeValueDelta === "number" &&
+        typeof item.routeSignalCoverage === "number" &&
         typeof item.driftScore === "number" &&
         typeof item.shortDriftScore === "number" &&
         typeof item.mediumDriftScore === "number" &&
@@ -2259,6 +2265,34 @@ function scoreRampOpportunity(decision: ExperimentDecisionSummary): number {
   );
 }
 
+function summarizeRouteIntent(entry?: ExperimentRollupEntry): {
+  routeGoalCount: number;
+  intentDensity: number;
+  averageGoalValue: number;
+} {
+  if (!entry) {
+    return {
+      routeGoalCount: 0,
+      intentDensity: 0,
+      averageGoalValue: 0,
+    };
+  }
+
+  const routeGoalCount = Object.entries(entry.goalsByAction).reduce((acc, [action, count]) => {
+    if (!action.includes(":route_")) {
+      return acc;
+    }
+
+    return acc + Math.max(0, count);
+  }, 0);
+
+  return {
+    routeGoalCount,
+    intentDensity: entry.exposureCount > 0 ? routeGoalCount / entry.exposureCount : 0,
+    averageGoalValue: entry.goalCount > 0 ? entry.weightedGoalValue / entry.goalCount : 0,
+  };
+}
+
 function computeBayesianAllocatorSignals(
   experiment: ExperimentName,
   snapshot: ExperimentRollupSnapshot,
@@ -2269,6 +2303,9 @@ function computeBayesianAllocatorSignals(
   bayesianLiftPoints: number;
   bayesianUncertaintyPoints: number;
   regretPressurePoints: number;
+  routeIntentLiftPoints: number;
+  routeValueDelta: number;
+  routeSignalCoverage: number;
 } {
   const byVariant = snapshot[experiment] ?? {};
   const control = byVariant.control;
@@ -2306,16 +2343,32 @@ function computeBayesianAllocatorSignals(
 
   const confidenceFactor = Math.max(0.45, Math.min(1.25, 1.2 - bayesianUncertaintyPoints / 15));
   const baseOpportunity = scoreRampOpportunity(decision);
+
+  const controlRouteIntent = summarizeRouteIntent(control);
+  const acceleratedRouteIntent = summarizeRouteIntent(accelerated);
+  const routeIntentLiftPoints = (acceleratedRouteIntent.intentDensity - controlRouteIntent.intentDensity) * 100;
+  const routeValueDelta = acceleratedRouteIntent.averageGoalValue - controlRouteIntent.averageGoalValue;
+  const routeSignalCoverage =
+    (acceleratedRouteIntent.routeGoalCount + controlRouteIntent.routeGoalCount) /
+    Math.max(1, acceleratedGoals + controlGoals);
+  const qualitySignalWeight = Math.max(0.2, Math.min(1, routeSignalCoverage));
+  const routeQualityAdjustment =
+    routeIntentLiftPoints * 0.12 * qualitySignalWeight + routeValueDelta * 0.18 * qualitySignalWeight;
+
   const weightedOpportunityScore =
     baseOpportunity * confidenceFactor +
     regretPressurePoints * 0.6 +
-    Math.max(0, bayesianLiftPoints) * 0.2;
+    Math.max(0, bayesianLiftPoints) * 0.2 +
+    routeQualityAdjustment;
 
   return {
     weightedOpportunityScore,
     bayesianLiftPoints,
     bayesianUncertaintyPoints,
     regretPressurePoints,
+    routeIntentLiftPoints,
+    routeValueDelta,
+    routeSignalCoverage,
   };
 }
 
@@ -2362,6 +2415,9 @@ export function runExperimentRampAutopilot(
     bayesianLiftPoints: number;
     bayesianUncertaintyPoints: number;
     regretPressurePoints: number;
+    routeIntentLiftPoints: number;
+    routeValueDelta: number;
+    routeSignalCoverage: number;
   }
 
   const candidates: RampCandidate[] = [];
@@ -2466,6 +2522,9 @@ export function runExperimentRampAutopilot(
       bayesianLiftPoints: bayesianSignals.bayesianLiftPoints,
       bayesianUncertaintyPoints: bayesianSignals.bayesianUncertaintyPoints,
       regretPressurePoints: bayesianSignals.regretPressurePoints,
+      routeIntentLiftPoints: bayesianSignals.routeIntentLiftPoints,
+      routeValueDelta: bayesianSignals.routeValueDelta,
+      routeSignalCoverage: bayesianSignals.routeSignalCoverage,
     });
   });
 
@@ -2553,6 +2612,9 @@ export function runExperimentRampAutopilot(
         bayesianLiftPoints: Number(candidate.bayesianLiftPoints.toFixed(3)),
         bayesianUncertaintyPoints: Number(candidate.bayesianUncertaintyPoints.toFixed(3)),
         regretPressurePoints: Number(candidate.regretPressurePoints.toFixed(3)),
+        routeIntentLiftPoints: Number(candidate.routeIntentLiftPoints.toFixed(3)),
+        routeValueDelta: Number(candidate.routeValueDelta.toFixed(3)),
+        routeSignalCoverage: Number(candidate.routeSignalCoverage.toFixed(3)),
         driftScore: driftState.driftScore,
         shortDriftScore: driftState.shortDriftScore,
         mediumDriftScore: driftState.mediumDriftScore,
@@ -2562,7 +2624,7 @@ export function runExperimentRampAutopilot(
         shockIntensity: Number(shockIntensity.toFixed(3)),
         recommendation: candidate.decision.recommendation,
         confidence: candidate.decision.confidence,
-        rationale: `${candidate.decision.rationale} ${candidate.strideRationale} Velocity window ${velocityWindowUsedAfter}/${candidate.velocityWindowBudget} points used. Portfolio window ${portfolioUsed}/${portfolioBudget} points used. Fairness adjusted score ${candidate.adjustedOpportunityScore.toFixed(2)} (weighted ${candidate.opportunityScore.toFixed(2)}, recent ${candidate.recentPortfolioActions}, boost ${candidate.fairnessBoostApplied ? "on" : "off"}). Bayesian lift ${candidate.bayesianLiftPoints.toFixed(2)} pts, uncertainty ${candidate.bayesianUncertaintyPoints.toFixed(2)} pts, regret ${candidate.regretPressurePoints.toFixed(2)} pts. Drift fused ${driftState.driftScore.toFixed(2)} [S ${driftState.shortDriftScore.toFixed(2)} · M ${driftState.mediumDriftScore.toFixed(2)} · L ${driftState.longDriftScore.toFixed(2)}] · phase ${driftState.phase} · shock ${driftState.shockMode ? "on" : "off"}.`,
+        rationale: `${candidate.decision.rationale} ${candidate.strideRationale} Velocity window ${velocityWindowUsedAfter}/${candidate.velocityWindowBudget} points used. Portfolio window ${portfolioUsed}/${portfolioBudget} points used. Fairness adjusted score ${candidate.adjustedOpportunityScore.toFixed(2)} (weighted ${candidate.opportunityScore.toFixed(2)}, recent ${candidate.recentPortfolioActions}, boost ${candidate.fairnessBoostApplied ? "on" : "off"}). Bayesian lift ${candidate.bayesianLiftPoints.toFixed(2)} pts, uncertainty ${candidate.bayesianUncertaintyPoints.toFixed(2)} pts, regret ${candidate.regretPressurePoints.toFixed(2)} pts. Route intent lift ${candidate.routeIntentLiftPoints.toFixed(2)} pts, value Δ ${candidate.routeValueDelta.toFixed(2)}, coverage ${(candidate.routeSignalCoverage * 100).toFixed(0)}%. Drift fused ${driftState.driftScore.toFixed(2)} [S ${driftState.shortDriftScore.toFixed(2)} · M ${driftState.mediumDriftScore.toFixed(2)} · L ${driftState.longDriftScore.toFixed(2)}] · phase ${driftState.phase} · shock ${driftState.shockMode ? "on" : "off"}.`,
         timestamp,
       };
 
