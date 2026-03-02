@@ -758,6 +758,9 @@ export function ExperimentReadoutPanel() {
                     bayes lift {entry.bayesianLiftPoints.toFixed(2)} pts · uncertainty {entry.bayesianUncertaintyPoints.toFixed(2)} · regret {entry.regretPressurePoints.toFixed(2)}
                   </div>
                   <div className="text-[10px] text-zinc-500">
+                    route lift {entry.routeIntentLiftPoints.toFixed(2)} pts · value Δ {entry.routeValueDelta.toFixed(2)} · coverage {(entry.routeSignalCoverage * 100).toFixed(0)}%
+                  </div>
+                  <div className="text-[10px] text-zinc-500">
                     drift {entry.driftScore.toFixed(2)} · shock {entry.shockMode ? "on" : "off"}
                   </div>
                   <div className="text-[10px] text-zinc-500">
