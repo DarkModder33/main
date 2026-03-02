@@ -62,6 +62,15 @@ export interface ExperimentRampEvent {
   timestamp: string;
 }
 
+export interface ExperimentPolicySwitchEvent {
+  previousProfile: ExperimentPolicyProfile;
+  nextProfile: ExperimentPolicyProfile;
+  reason: string;
+  timestamp: string;
+  meanAbsDeltaCvrPoints: number;
+  sufficientCoverage: number;
+}
+
 const EXPERIMENT_VARIANTS: Record<ExperimentName, readonly ExperimentVariant[]> = {
   home_hero_primary_cta: ["control", "accelerated"],
   landing_hero_primary_cta: ["control", "accelerated"],
@@ -74,6 +83,10 @@ const EXP_ROLLUP_STORAGE_KEY = "thx-exp-rollup";
 const EXP_GUARDRAIL_LOG_KEY = "thx-exp-guardrail-log";
 const EXP_RAMP_LOG_KEY = "thx-exp-ramp-log";
 const EXP_RAMP_META_KEY = "thx-exp-ramp-meta";
+const EXP_POLICY_PROFILE_KEY = "thx-exp-policy-profile";
+const EXP_POLICY_AUTOSWITCH_KEY = "thx-exp-policy-autoswitch-enabled";
+const EXP_POLICY_SWITCH_LOG_KEY = "thx-exp-policy-switch-log";
+const EXP_POLICY_META_KEY = "thx-exp-policy-meta";
 const EXP_VISITOR_ID_KEY = "thx-exp-visitor-id";
 const EXPERIMENT_NAMES = Object.keys(EXPERIMENT_VARIANTS) as ExperimentName[];
 const RAMP_STEPS = [10, 25, 50, 75, 100] as const;
@@ -286,6 +299,91 @@ function writeRampLog(events: ExperimentRampEvent[]) {
 function appendRampEvent(eventEntry: ExperimentRampEvent) {
   const existing = readRampLog();
   writeRampLog([eventEntry, ...existing]);
+}
+
+function readPolicySwitchLog(): ExperimentPolicySwitchEvent[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem(EXP_POLICY_SWITCH_LOG_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter((item): item is ExperimentPolicySwitchEvent => {
+      return (
+        isObjectRecord(item) &&
+        typeof item.previousProfile === "string" &&
+        typeof item.nextProfile === "string" &&
+        typeof item.reason === "string" &&
+        typeof item.timestamp === "string" &&
+        typeof item.meanAbsDeltaCvrPoints === "number" &&
+        typeof item.sufficientCoverage === "number"
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+function writePolicySwitchLog(events: ExperimentPolicySwitchEvent[]) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(EXP_POLICY_SWITCH_LOG_KEY, JSON.stringify(events.slice(0, 20)));
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+function appendPolicySwitchEvent(eventEntry: ExperimentPolicySwitchEvent) {
+  const existing = readPolicySwitchLog();
+  writePolicySwitchLog([eventEntry, ...existing]);
+}
+
+function readPolicyMeta(): { lastSwitchAt?: string } {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem(EXP_POLICY_META_KEY);
+    if (!raw) {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!isObjectRecord(parsed)) {
+      return {};
+    }
+
+    return {
+      lastSwitchAt: typeof parsed.lastSwitchAt === "string" ? parsed.lastSwitchAt : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function writePolicyMeta(meta: { lastSwitchAt?: string }) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_META_KEY, JSON.stringify(meta));
+  } catch {
+    // Ignore storage failures.
+  }
 }
 
 function readRampMeta(): Partial<Record<ExperimentName, string>> {
@@ -790,6 +888,158 @@ export function clearExperimentRampEvents() {
   } catch {
     // Ignore storage failures.
   }
+}
+
+export function getExperimentPolicyProfile(): ExperimentPolicyProfile {
+  if (typeof window === "undefined") {
+    return "balanced";
+  }
+
+  try {
+    const raw = window.localStorage.getItem(EXP_POLICY_PROFILE_KEY);
+    if (raw && isExperimentPolicyProfile(raw)) {
+      return raw;
+    }
+  } catch {
+    // Ignore storage failures.
+  }
+
+  return "balanced";
+}
+
+export function setExperimentPolicyProfile(profile: ExperimentPolicyProfile, source: "manual" | "auto" = "manual") {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_PROFILE_KEY, profile);
+  } catch {
+    // Ignore storage failures.
+  }
+
+  event({
+    action: "experiment_set_policy_profile",
+    category: "experiments",
+    label: `${source}:${profile}`,
+    value: 1,
+  });
+}
+
+export function getExperimentPolicyAutoswitchEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(EXP_POLICY_AUTOSWITCH_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setExperimentPolicyAutoswitchEnabled(enabled: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EXP_POLICY_AUTOSWITCH_KEY, enabled ? "1" : "0");
+  } catch {
+    // Ignore storage failures.
+  }
+
+  event({
+    action: "experiment_policy_autoswitch_toggle",
+    category: "experiments",
+    label: enabled ? "on" : "off",
+    value: enabled ? 1 : 0,
+  });
+}
+
+export function listExperimentPolicySwitchEvents(): ExperimentPolicySwitchEvent[] {
+  return readPolicySwitchLog();
+}
+
+export function clearExperimentPolicySwitchEvents() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(EXP_POLICY_SWITCH_LOG_KEY);
+  } catch {
+    // Ignore storage failures.
+  }
+}
+
+export function runExperimentPolicyAutoswitch(
+  snapshot: ExperimentRollupSnapshot,
+  options?: { cooldownMs?: number },
+): ExperimentPolicySwitchEvent | null {
+  const decisions = EXPERIMENT_NAMES.map((experiment) =>
+    evaluateExperimentDecision(experiment, snapshot, { profile: "balanced" }),
+  );
+
+  const sufficientDecisions = decisions.filter((decision) => decision.recommendation !== "insufficient_data");
+  const sufficientCoverage = decisions.length > 0 ? sufficientDecisions.length / decisions.length : 0;
+  const meanAbsDeltaCvrPoints =
+    sufficientDecisions.length > 0
+      ? sufficientDecisions.reduce((acc, decision) => acc + Math.abs(decision.deltaCvrPoints), 0) /
+        sufficientDecisions.length
+      : 0;
+
+  let nextProfile: ExperimentPolicyProfile = "balanced";
+  let reason = "Data is mixed; balanced mode remains optimal.";
+
+  if (sufficientCoverage < 0.5) {
+    nextProfile = "conservative";
+    reason = "Coverage is low; prioritize safety until sample depth improves.";
+  } else if (meanAbsDeltaCvrPoints >= 3) {
+    nextProfile = "aggressive";
+    reason = "Large directional deltas detected; accelerate exploitation.";
+  } else if (meanAbsDeltaCvrPoints <= 1.0) {
+    nextProfile = "conservative";
+    reason = "Signal is weak; hold a conservative profile.";
+  }
+
+  const currentProfile = getExperimentPolicyProfile();
+  if (currentProfile === nextProfile) {
+    return null;
+  }
+
+  const cooldownMs = options?.cooldownMs ?? 5 * 60 * 1000;
+  const meta = readPolicyMeta();
+  const lastSwitchMs = meta.lastSwitchAt ? Date.parse(meta.lastSwitchAt) : 0;
+  const now = Date.now();
+
+  if (lastSwitchMs && Number.isFinite(lastSwitchMs) && now - lastSwitchMs < cooldownMs) {
+    return null;
+  }
+
+  setExperimentPolicyProfile(nextProfile, "auto");
+  const timestamp = new Date().toISOString();
+  writePolicyMeta({ lastSwitchAt: timestamp });
+
+  const switchEvent: ExperimentPolicySwitchEvent = {
+    previousProfile: currentProfile,
+    nextProfile,
+    reason,
+    timestamp,
+    meanAbsDeltaCvrPoints,
+    sufficientCoverage,
+  };
+
+  appendPolicySwitchEvent(switchEvent);
+
+  event({
+    action: "experiment_policy_autoswitch",
+    category: "experiments",
+    label: `${currentProfile}->${nextProfile}`,
+    value: Math.round(meanAbsDeltaCvrPoints * 100),
+  });
+
+  return switchEvent;
 }
 
 export function applyExperimentRecommendation(

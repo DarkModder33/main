@@ -2,6 +2,7 @@
 
 import {
   applyExperimentRecommendation,
+  clearExperimentPolicySwitchEvents,
   clearExperimentSessionRollup,
   clearAssignedExperimentVariant,
   clearExperimentGuardrailEvents,
@@ -9,16 +10,21 @@ import {
   clearExperimentRolloutTarget,
   EXPERIMENT_POLICY_PROFILES,
   evaluateExperimentDecision,
+  getExperimentPolicyAutoswitchEnabled,
+  getExperimentPolicyProfile,
   getExperimentPolicySettings,
   getExperimentSessionRollup,
-  isExperimentPolicyProfile,
   listExperimentGuardrailEvents,
+  listExperimentPolicySwitchEvents,
   listExperimentRampEvents,
   listExperimentRolloutTargets,
   listExperimentNames,
   listAssignedExperimentVariants,
+  runExperimentPolicyAutoswitch,
   runExperimentGuardrailAutoRollback,
   runExperimentRampAutopilot,
+  setExperimentPolicyAutoswitchEnabled,
+  setExperimentPolicyProfile,
   setExperimentRolloutTarget,
   setAssignedExperimentVariant,
   type ExperimentPolicyProfile,
@@ -30,6 +36,7 @@ const MIN_STRONG_SAMPLE = 25;
 
 interface ReadoutState {
   enabled: boolean;
+  policyAutoswitchEnabled: boolean;
   guardrailsEnabled: boolean;
   rampAutopilotEnabled: boolean;
   policyProfile: ExperimentPolicyProfile;
@@ -37,13 +44,13 @@ interface ReadoutState {
   rollout: ReturnType<typeof listExperimentRolloutTargets>;
   rollup: ReturnType<typeof getExperimentSessionRollup>;
   guardrailEvents: ReturnType<typeof listExperimentGuardrailEvents>;
+  policySwitchEvents: ReturnType<typeof listExperimentPolicySwitchEvents>;
   rampEvents: ReturnType<typeof listExperimentRampEvents>;
 }
 
 const DEBUG_STORAGE_KEY = "thx-exp-debug";
 const GUARDRAILS_STORAGE_KEY = "thx-exp-guardrails-enabled";
 const RAMP_AUTOPILOT_STORAGE_KEY = "thx-exp-ramp-autopilot-enabled";
-const POLICY_PROFILE_STORAGE_KEY = "thx-exp-policy-profile";
 
 function getDebugEnabledFromUrl(): boolean {
   if (typeof window === "undefined") {
@@ -79,6 +86,7 @@ function resolveDebugEnabled(): boolean {
 export function ExperimentReadoutPanel() {
   const [state, setState] = useState<ReadoutState>({
     enabled: false,
+    policyAutoswitchEnabled: false,
     guardrailsEnabled: false,
     rampAutopilotEnabled: false,
     policyProfile: "balanced",
@@ -86,6 +94,7 @@ export function ExperimentReadoutPanel() {
     rollout: {},
     rollup: {},
     guardrailEvents: [],
+    policySwitchEvents: [],
     rampEvents: [],
   });
 
@@ -100,12 +109,16 @@ export function ExperimentReadoutPanel() {
         typeof window !== "undefined" && window.localStorage.getItem(GUARDRAILS_STORAGE_KEY) === "1";
       const rampAutopilotEnabled =
         typeof window !== "undefined" && window.localStorage.getItem(RAMP_AUTOPILOT_STORAGE_KEY) === "1";
-      const rawProfile =
-        typeof window !== "undefined" ? window.localStorage.getItem(POLICY_PROFILE_STORAGE_KEY) : null;
-      const policyProfile: ExperimentPolicyProfile =
-        rawProfile && isExperimentPolicyProfile(rawProfile) ? rawProfile : "balanced";
+      const policyAutoswitchEnabled = getExperimentPolicyAutoswitchEnabled();
+      const currentPolicyProfile = getExperimentPolicyProfile();
 
       const rollupSnapshot = getExperimentSessionRollup();
+
+      if (policyAutoswitchEnabled) {
+        runExperimentPolicyAutoswitch(rollupSnapshot);
+      }
+
+      const policyProfile = getExperimentPolicyProfile();
 
       if (guardrailsEnabled) {
         runExperimentGuardrailAutoRollback(rollupSnapshot, { clearCurrentAssignment: true, profile: policyProfile });
@@ -117,6 +130,7 @@ export function ExperimentReadoutPanel() {
 
       setState({
         enabled,
+        policyAutoswitchEnabled,
         guardrailsEnabled,
         rampAutopilotEnabled,
         policyProfile,
@@ -124,6 +138,7 @@ export function ExperimentReadoutPanel() {
         rollout: listExperimentRolloutTargets(),
         rollup: rollupSnapshot,
         guardrailEvents: listExperimentGuardrailEvents(),
+        policySwitchEvents: listExperimentPolicySwitchEvents(),
         rampEvents: listExperimentRampEvents(),
       });
     };
@@ -147,11 +162,14 @@ export function ExperimentReadoutPanel() {
       typeof window !== "undefined" && window.localStorage.getItem(GUARDRAILS_STORAGE_KEY) === "1";
     const rampAutopilotEnabled =
       typeof window !== "undefined" && window.localStorage.getItem(RAMP_AUTOPILOT_STORAGE_KEY) === "1";
-    const rawProfile =
-      typeof window !== "undefined" ? window.localStorage.getItem(POLICY_PROFILE_STORAGE_KEY) : null;
-    const policyProfile: ExperimentPolicyProfile =
-      rawProfile && isExperimentPolicyProfile(rawProfile) ? rawProfile : "balanced";
+    const policyAutoswitchEnabled = getExperimentPolicyAutoswitchEnabled();
     const rollupSnapshot = getExperimentSessionRollup();
+
+    if (policyAutoswitchEnabled) {
+      runExperimentPolicyAutoswitch(rollupSnapshot);
+    }
+
+    const policyProfile = getExperimentPolicyProfile();
 
     if (guardrailsEnabled) {
       runExperimentGuardrailAutoRollback(rollupSnapshot, { clearCurrentAssignment: true, profile: policyProfile });
@@ -163,6 +181,7 @@ export function ExperimentReadoutPanel() {
 
     setState((previous) => ({
       ...previous,
+      policyAutoswitchEnabled,
       guardrailsEnabled,
       rampAutopilotEnabled,
       policyProfile,
@@ -170,6 +189,7 @@ export function ExperimentReadoutPanel() {
       rollout: listExperimentRolloutTargets(),
       rollup: rollupSnapshot,
       guardrailEvents: listExperimentGuardrailEvents(),
+      policySwitchEvents: listExperimentPolicySwitchEvents(),
       rampEvents: listExperimentRampEvents(),
     }));
   };
@@ -221,8 +241,10 @@ export function ExperimentReadoutPanel() {
                 assigned: state.assigned,
                 rollout: state.rollout,
                 profile: state.policyProfile,
+                policyAutoswitchEnabled: state.policyAutoswitchEnabled,
                 rollup: state.rollup,
                 guardrailEvents: state.guardrailEvents,
+                policySwitchEvents: state.policySwitchEvents,
                 rampEvents: state.rampEvents,
               };
 
@@ -256,6 +278,24 @@ export function ExperimentReadoutPanel() {
       <div className="space-y-3 overflow-y-auto p-3">
         <section>
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Policy Profile</p>
+          <div className="mb-1 flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                const nextEnabled = !state.policyAutoswitchEnabled;
+                setExperimentPolicyAutoswitchEnabled(nextEnabled);
+                setState((previous) => ({ ...previous, policyAutoswitchEnabled: nextEnabled }));
+                refreshReadout();
+              }}
+              className={`rounded border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                state.policyAutoswitchEnabled
+                  ? "border-fuchsia-400/40 text-fuchsia-200"
+                  : "border-white/15 text-zinc-400 hover:text-white"
+              }`}
+            >
+              autoswitch {state.policyAutoswitchEnabled ? "on" : "off"}
+            </button>
+          </div>
           <div className="flex flex-wrap gap-1">
             {EXPERIMENT_POLICY_PROFILES.map((profile) => {
               const selected = state.policyProfile === profile;
@@ -264,9 +304,7 @@ export function ExperimentReadoutPanel() {
                   key={profile}
                   type="button"
                   onClick={() => {
-                    if (typeof window !== "undefined") {
-                      window.localStorage.setItem(POLICY_PROFILE_STORAGE_KEY, profile);
-                    }
+                    setExperimentPolicyProfile(profile, "manual");
                     setState((previous) => ({ ...previous, policyProfile: profile }));
                     refreshReadout();
                   }}
@@ -285,6 +323,37 @@ export function ExperimentReadoutPanel() {
             min sample {getExperimentPolicySettings(state.policyProfile).minRequiredPerVariant} ·
             Δ threshold {getExperimentPolicySettings(state.policyProfile).minDeltaPoints.toFixed(1)} pts
           </p>
+        </section>
+
+        <section>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Policy Feed</p>
+            <button
+              type="button"
+              onClick={() => {
+                clearExperimentPolicySwitchEvents();
+                refreshReadout();
+              }}
+              className="rounded border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 hover:text-white"
+            >
+              clear
+            </button>
+          </div>
+          <div className="space-y-1">
+            {state.policySwitchEvents.length === 0 ? (
+              <p className="text-xs text-zinc-500">No policy switches triggered.</p>
+            ) : (
+              state.policySwitchEvents.slice(0, 5).map((entry) => (
+                <div key={`${entry.timestamp}:${entry.previousProfile}:${entry.nextProfile}`} className="rounded border border-white/10 bg-black/30 px-2 py-1">
+                  <div className="flex items-center justify-between text-[10px] text-zinc-300">
+                    <span>{entry.previousProfile} → {entry.nextProfile}</span>
+                    <span>coverage {(entry.sufficientCoverage * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-500">{new Date(entry.timestamp).toLocaleTimeString()}</div>
+                </div>
+              ))
+            )}
+          </div>
         </section>
 
         <section>
