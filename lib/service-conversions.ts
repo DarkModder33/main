@@ -31,7 +31,13 @@ export type ServiceConversionId =
   | "open_social_telegram"
   | "open_social_discord"
   | "open_affiliate_tools"
-  | "donate_cashapp";
+  | "donate_cashapp"
+  | "open_ai_advanced"
+  | "open_ai_simple"
+  | "open_ai_chat"
+  | "open_service_catalog"
+  | "open_lesson_packages"
+  | "open_lesson_studio";
 
 type FunnelStage = "awareness" | "consideration" | "intent";
 
@@ -40,6 +46,12 @@ interface ConversionMeta {
   label: string;
   value: number;
   stage: FunnelStage;
+}
+
+export interface ConversionContext {
+  placement?: string;
+  variant?: string;
+  audience?: "new" | "returning" | "all";
 }
 
 export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMeta> = {
@@ -229,15 +241,53 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
     value: 5,
     stage: "intent",
   },
+  open_ai_advanced: {
+    action: "open_ai_advanced",
+    label: "ai_advanced_mode",
+    value: 3,
+    stage: "consideration",
+  },
+  open_ai_simple: {
+    action: "open_ai_simple",
+    label: "ai_simple_mode",
+    value: 2,
+    stage: "consideration",
+  },
+  open_ai_chat: {
+    action: "open_ai_chat",
+    label: "ai_chat_focus",
+    value: 3,
+    stage: "consideration",
+  },
+  open_service_catalog: {
+    action: "open_service_catalog",
+    label: "services_catalog",
+    value: 2,
+    stage: "consideration",
+  },
+  open_lesson_packages: {
+    action: "open_lesson_packages",
+    label: "lesson_packages",
+    value: 3,
+    stage: "consideration",
+  },
+  open_lesson_studio: {
+    action: "open_lesson_studio",
+    label: "lesson_studio",
+    value: 4,
+    stage: "intent",
+  },
 };
 
-export function trackServiceConversion(id: ServiceConversionId, surface: string) {
+export function trackServiceConversion(id: ServiceConversionId, surface: string, context?: ConversionContext) {
   const conversion = SERVICE_CONVERSION_EVENTS[id];
+  const contextSegments = [context?.placement, context?.variant, context?.audience].filter(Boolean).join(":");
+  const label = `${conversion.label}:${surface}:${conversion.stage}${contextSegments ? `:${contextSegments}` : ""}`;
 
   event({
     action: conversion.action,
     category: "service_conversion",
-    label: `${conversion.label}:${surface}:${conversion.stage}`,
+    label,
     value: conversion.value,
   });
 

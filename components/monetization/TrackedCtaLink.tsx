@@ -1,6 +1,6 @@
 "use client";
 
-import { trackServiceConversion, type ServiceConversionId } from "@/lib/service-conversions";
+import { trackServiceConversion, type ConversionContext, type ServiceConversionId } from "@/lib/service-conversions";
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
 
@@ -15,6 +15,7 @@ interface TrackedCtaLinkProps {
   target?: string;
   ariaLabel?: string;
   title?: string;
+  conversionContext?: ConversionContext;
 }
 
 export function TrackedCtaLink({
@@ -28,6 +29,7 @@ export function TrackedCtaLink({
   target,
   ariaLabel,
   title,
+  conversionContext,
 }: TrackedCtaLinkProps) {
   const isExternal =
     external ||
@@ -40,7 +42,7 @@ export function TrackedCtaLink({
     rel ?? (computedTarget === "_blank" ? "noopener noreferrer" : undefined);
 
   const handleClick = (_event: MouseEvent<HTMLAnchorElement>) => {
-    trackServiceConversion(conversionId, surface);
+    trackServiceConversion(conversionId, surface, conversionContext);
   };
 
   if (isExternal) {
