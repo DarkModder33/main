@@ -49,7 +49,7 @@ export default function DevHubPage() {
             icon={<KeyRound className="h-4 w-4" />}
             title="Auth + API Keys"
             description="Set up credentials, validate secrets, and keep least-privilege defaults for production safety."
-            href="/settings"
+            href="/account"
             cta="Open settings"
           />
           <DevCard
@@ -63,14 +63,14 @@ export default function DevHubPage() {
             icon={<Webhook className="h-4 w-4" />}
             title="Webhook Flows"
             description="Design event-driven workflows for notifications, strategy triggers, and post-processing jobs."
-            href="/docs"
+            href="/dev-hub#api-key-helper"
             cta="View docs"
           />
           <DevCard
             icon={<TerminalSquare className="h-4 w-4" />}
             title="Preflight Checks"
             description="Run lint, type-check, and deployment checks before shipping changes to preview or production."
-            href="/docs"
+            href="/dev-hub#api-key-helper"
             cta="Deployment guide"
           />
           <DevCard
@@ -82,7 +82,7 @@ export default function DevHubPage() {
           />
         </div>
 
-        <div className="mt-8 rounded-2xl border border-emerald-500/25 bg-emerald-600/10 p-5 sm:p-6">
+        <div id="api-key-helper" className="mt-8 rounded-2xl border border-emerald-500/25 bg-emerald-600/10 p-5 sm:p-6">
           <h2 className="text-lg font-bold text-emerald-100">API key helper (soft-gated)</h2>
           <p className="mt-1 text-xs text-emerald-100/80">
             You can explore routes without all credentials. Production deploy should only proceed after required keys are set.

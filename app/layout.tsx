@@ -1,6 +1,7 @@
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -136,6 +137,12 @@ export default function RootLayout({
         )}
       </head>
       <body className={`${inter.className} bg-black antialiased`}>
+        <a
+          href="#global-main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:rounded-lg focus:border focus:border-cyan-300/70 focus:bg-black focus:px-3 focus:py-2 focus:text-xs focus:font-semibold focus:uppercase focus:tracking-wider focus:text-cyan-100"
+        >
+          Skip to content
+        </a>
         <AuthProvider>
           <ServiceWorkerCleanup />
           <CinematicFxLayer />
@@ -143,27 +150,31 @@ export default function RootLayout({
           <HyperboreaIntroOverlay />
           <ChainSessionProvider>
             <WalletProvider>
-              <nav id="global-top-nav" className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5">
+              <nav
+                id="global-top-nav"
+                aria-label="Primary"
+                className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5"
+              >
                 <MarketTicker />
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                   <div className="text-xl font-black tracking-tighter cursor-none">
                     <GlitchText text="TRADEHAX" />
                   </div>
                   <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
-                    <a
+                    <Link
                       href="/ai-hub"
                       className="rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 py-1 text-cyan-200 hover:bg-cyan-500/25 hover:text-white transition-colors uppercase"
                     >
                       AI Hub
-                    </a>
-                    <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
-                    <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
-                    <a href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</a>
-                    <a href="/billing" className="hover:text-white transition-colors uppercase">Billing</a>
-                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
-                    <a href="/games" className="hover:text-white transition-colors uppercase">Games</a>
+                    </Link>
+                    <Link href="/about" className="hover:text-white transition-colors uppercase">About</Link>
+                    <Link href="/music" className="hover:text-white transition-colors uppercase">Music</Link>
+                    <Link href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</Link>
+                    <Link href="/billing" className="hover:text-white transition-colors uppercase">Billing</Link>
+                    <Link href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</Link>
+                    <Link href="/games" className="hover:text-white transition-colors uppercase">Games</Link>
                     <a href={scheduleLinks.guitarLessons} className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
-                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Staking</a>
+                    <Link href="/tokenomics" className="hover:text-white transition-colors uppercase">Staking</Link>
                   </div>
                   <div className="hidden md:block">
                     <ConnectWalletBtn />
@@ -171,11 +182,11 @@ export default function RootLayout({
                   <MobileMenu />
                 </div>
               </nav>
-              <div id="global-page-shell" className="bg-cyber-grid pt-28">
+              <main id="global-main-content" role="main" className="bg-cyber-grid pt-28">
                 <PageTransition>
                   {children}
                 </PageTransition>
-              </div>
+              </main>
               <a
                 href="/ai-hub"
                 aria-label="Open AI Hub quick launch"

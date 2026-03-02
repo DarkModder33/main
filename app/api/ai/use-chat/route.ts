@@ -66,6 +66,14 @@ type QualitySummary = {
 
 type SloProfile = "latency" | "balanced" | "quality";
 
+type SlashCommandId = "plan" | "risk" | "parabolic" | "odinsignal";
+
+type SlashCommandResolution = {
+  command: SlashCommandId | null;
+  argument: string;
+  prompt: string;
+};
+
 function parseSloProfile(value: unknown): SloProfile {
   if (value === "latency" || value === "quality" || value === "balanced") {
     return value;
@@ -144,6 +152,59 @@ function resolveLastUserPrompt(messages: Array<{ role: ChatRole; content: string
     }
   }
   return "";
+}
+
+function resolveSlashCommandPrompt(input: string): SlashCommandResolution {
+  const trimmed = sanitizePlainText(input, 4_000).trim();
+  if (!trimmed.startsWith("/")) {
+    return {
+      command: null,
+      argument: "",
+      prompt: trimmed,
+    };
+  }
+
+  const [rawCommand, ...rest] = trimmed.slice(1).split(" ");
+  const command = sanitizePlainText(rawCommand, 40).toLowerCase();
+  const argument = sanitizePlainText(rest.join(" "), 1_200).trim();
+
+  if (command === "plan") {
+    return {
+      command: "plan",
+      argument,
+      prompt: `Create an execution plan with objective, milestones, timeline, risk controls, and one immediate next action.${argument ? ` Context: ${argument}` : ""}`,
+    };
+  }
+
+  if (command === "risk") {
+    return {
+      command: "risk",
+      argument,
+      prompt: `Run a risk analysis with probabilities, downside impact, mitigation checklist, invalidation points, and capital preservation rules.${argument ? ` Context: ${argument}` : ""}`,
+    };
+  }
+
+  if (command === "parabolic") {
+    return {
+      command: "parabolic",
+      argument,
+      prompt: `Build a high-momentum scenario map with bullish/base/bear cases, trigger levels, position sizing guardrails, and strict failure conditions.${argument ? ` Context: ${argument}` : ""}`,
+    };
+  }
+
+  if (command === "odinsignal") {
+    return {
+      command: "odinsignal",
+      argument,
+      prompt: `Generate an ODIN signal brief with bias, confidence, catalyst stack, scenario probabilities, invalidation, and one actionable operator instruction.${argument ? ` Context: ${argument}` : ""}`,
+    };
+  }
+
+  return {
+    command: null,
+    argument,
+    prompt: trimmed,
+  };
 }
 
 function serializeContext(context: unknown) {
@@ -451,7 +512,9 @@ export async function POST(request: NextRequest) {
     const userId = await resolveRequestUserId(request);
     const sloProfile = parseSloProfile(body.sloProfile);
     const normalizedMessages = normalizeConversation(body.messages);
-    const userPrompt = resolveLastUserPrompt(normalizedMessages);
+    const rawUserPrompt = resolveLastUserPrompt(normalizedMessages);
+    const slashResolution = resolveSlashCommandPrompt(rawUserPrompt);
+    const userPrompt = slashResolution.prompt;
 
     if (!userPrompt) {
       return NextResponse.json(
@@ -843,6 +906,7 @@ export async function POST(request: NextRequest) {
             status: "streaming",
             userId,
             model: effectiveModel,
+            slashCommand: slashResolution.command,
             preset: preset.id,
             sloProfile,
             sloTargetLatencyMs: tunedSlo.targetLatencyMs,
@@ -1042,6 +1106,7 @@ export async function POST(request: NextRequest) {
             status: "complete",
             userId,
             model: effectiveModel,
+            slashCommand: slashResolution.command,
             preset: preset.id,
             sloProfile,
             sloTargetLatencyMs: tunedSlo.targetLatencyMs,

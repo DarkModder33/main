@@ -18,9 +18,10 @@
     "hooks:install": "node ./scripts/install-hooks.js",
     "deploy:build": "npm run clean && npm run build",
     "check:vercel": "node ./scripts/check-deploy-config.js --vercel",
+    "check:links": "node ./scripts/validate-internal-links.js",
     "check:dns": "node ./scripts/check-deploy-config.js --dns",
     "pipeline:quality": "npm run lint && npm run type-check",
-    "pipeline:local": "npm run pipeline:quality && npm run build",
+    "pipeline:local": "npm run pipeline:quality && npm run check:links && npm run build",
     "pipeline:alpha": "npm run alpha:preflight && npm run pipeline:quality",
     "pipeline:deploy-checks": "node ./scripts/check-deploy-config.js && npm run snow:env:check",
     "pipeline:ci": "node ./scripts/run-pipeline-ci.js",
@@ -77,7 +78,8 @@
     "ide:sync:deploy-ready": "node ./scripts/ide-sync-pipeline.js --install --build --namecheap --strict-namecheap",
     "deploy:launch": "node ./scripts/launch-website-deploy.js",
     "deploy:launch:dry-run": "node ./scripts/launch-website-deploy.js --dry-run",
-    "deploy:launch:no-watch": "node ./scripts/launch-website-deploy.js --no-watch"
+    "deploy:launch:no-watch": "node ./scripts/launch-website-deploy.js --no-watch",
+    "launch:readiness": "npm run check:links && npm run pipeline:quality && npm run check:vercel && npm run snow:env:check"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.107",

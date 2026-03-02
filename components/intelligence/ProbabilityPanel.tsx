@@ -99,14 +99,74 @@ type PolicySwitchesResponse = {
     warmupMinMatches: number;
     updatedAt: string;
   };
+  recommendation?: {
+    profileKey: string;
+    horizon: "scalp" | "intraday" | "swing";
+    recommendedPreset: "balanced" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+    rawRecommendedPreset: "balanced" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+    confidence: number;
+    rawConfidence: number;
+    stabilized: boolean;
+    locked: boolean;
+    lockSecondsRemaining: number;
+    switched: boolean;
+    switchedCount: number;
+    minConfidenceEdge: number;
+    overrideActive: boolean;
+    overrideSecondsRemaining: number;
+    reason: string;
+    metrics: {
+      matchedOutcomes: number;
+      volatility: number;
+      hitRateDispersion: number;
+      warmupActive: boolean;
+      warmupMatchesRemaining: number;
+    };
+  };
+  integrity?: {
+    profileKey: string;
+    horizon: "scalp" | "intraday" | "swing" | "all";
+    generatedAt: string;
+    status: "healthy" | "watch" | "critical";
+    summary: {
+      selectorStates: number;
+      switchEvents: number;
+      selectorConfigs: number;
+      recommendationStates: number;
+      recommendationOverrides: number;
+      staleOverrides: number;
+      invalidStateTimestamps: number;
+      highChurnEvents24h: number;
+    };
+    issues: Array<{
+      id: string;
+      severity: "warning" | "critical";
+      detail: string;
+    }>;
+  };
+
+  integrityTrend?: {
+    profileKey: string;
+    horizon: "scalp" | "intraday" | "swing" | "all";
+    windowHours: number;
+    generatedAt: string;
+    points: Array<{
+      bucketStart: string;
+      switchEvents: number;
+      highImpactEvents: number;
+      overrideEvents: number;
+      score: number;
+      status: "healthy" | "watch" | "critical";
+    }>;
+  };
   events: Array<{
     id: string;
     profileKey: string;
     horizon: "scalp" | "intraday" | "swing";
-    decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch";
-    previousPolicy?: "conservative" | "balanced" | "aggressive";
-    recommendedPolicy: "conservative" | "balanced" | "aggressive";
-    appliedPolicy: "conservative" | "balanced" | "aggressive";
+    decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch" | "override_set" | "override_clear" | "override_expire";
+    previousPolicy?: "conservative" | "balanced" | "aggressive" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+    recommendedPolicy: "conservative" | "balanced" | "aggressive" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+    appliedPolicy: "conservative" | "balanced" | "aggressive" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
     basis: "attribution" | "health";
     confidence: number;
     scoreEdge: number;
@@ -122,6 +182,8 @@ type PolicySwitchesResponse = {
     occurredAt: string;
   }>;
 };
+
+type TimelineDecision = PolicySwitchesResponse["events"][number]["decision"];
 
 function toPercent(value: number) {
   return `${(value * 100).toFixed(1)}%`;
@@ -177,6 +239,31 @@ function recommendationPriorityClass(priority: "low" | "medium" | "high") {
   return "border-cyan-400/30 bg-cyan-500/10 text-cyan-100";
 }
 
+const decisionLegend: Array<{
+  decision: TimelineDecision;
+  label: string;
+  detail: string;
+}> = [
+  { decision: "initialize", label: "Initialize", detail: "Bootstraps selector memory for the horizon." },
+  { decision: "stay", label: "Stay", detail: "Recommendation confirms current policy state." },
+  { decision: "hold", label: "Hold", detail: "Lock window active; switch deferred." },
+  { decision: "warmup", label: "Warm-up", detail: "Awaiting enough matched outcomes before switching." },
+  { decision: "reject", label: "Reject", detail: "Candidate failed edge/confidence thresholds." },
+  { decision: "switch", label: "Switch", detail: "Policy changed to a new profile." },
+  { decision: "override_set", label: "Override Set", detail: "Manual recommendation lock was enabled." },
+  { decision: "override_clear", label: "Override Clear", detail: "Manual recommendation lock was removed." },
+  { decision: "override_expire", label: "Override Expire", detail: "Manual recommendation lock expired naturally." },
+];
+
+const allTimelineDecisions = decisionLegend.map((row) => row.decision);
+
+function decisionChipClass(decision: TimelineDecision) {
+  if (decision === "switch") return "border-cyan-300/30 bg-cyan-500/10 text-cyan-100";
+  if (decision === "reject" || decision === "hold") return "border-amber-300/30 bg-amber-500/10 text-amber-100";
+  if (decision.startsWith("override")) return "border-violet-300/30 bg-violet-500/10 text-violet-100";
+  if (decision === "warmup") return "border-sky-300/30 bg-sky-500/10 text-sky-100";
+  return "border-white/20 bg-white/10 text-white/85";
+}
 export function ProbabilityPanel() {
   const [symbol, setSymbol] = useState("NVDA");
   const [horizon, setHorizon] = useState<"scalp" | "intraday" | "swing">("intraday");
@@ -197,7 +284,14 @@ export function ProbabilityPanel() {
   const [presetting, setPresetting] = useState(false);
   const [preset, setPreset] = useState<"balanced" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable">("balanced");
   const [presetScope, setPresetScope] = useState<"global" | "scalp" | "intraday" | "swing">("global");
+  const [lockRecommendation, setLockRecommendation] = useState(true);
+  const [overrideMinutes, setOverrideMinutes] = useState(90);
   const [activeConfig, setActiveConfig] = useState<PolicySwitchesResponse["config"] | null>(null);
+  const [presetRecommendation, setPresetRecommendation] = useState<PolicySwitchesResponse["recommendation"] | null>(null);
+  const [integrity, setIntegrity] = useState<PolicySwitchesResponse["integrity"] | null>(null);
+  const [integrityTrend, setIntegrityTrend] = useState<PolicySwitchesResponse["integrityTrend"] | null>(null);
+  const [remediating, setRemediating] = useState(false);
+  const [timelineDecisionFilters, setTimelineDecisionFilters] = useState<TimelineDecision[]>(allTimelineDecisions);
 
   const singleQuery = useMemo(() => {
     const params = new URLSearchParams();
@@ -267,6 +361,9 @@ export function ProbabilityPanel() {
       setPolicyAnalytics(policyPayload.analytics || null);
       setSwitchEvents(switchesPayload.events || []);
       setActiveConfig(switchesPayload.config || null);
+      setPresetRecommendation(switchesPayload.recommendation || null);
+      setIntegrity(switchesPayload.integrity || null);
+      setIntegrityTrend(switchesPayload.integrityTrend || null);
       setGeneratedAt(singlePayload.generatedAt || topPayload.generatedAt || "");
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Unable to load probability data.");
@@ -275,6 +372,97 @@ export function ProbabilityPanel() {
     }
   };
 
+  const runAutoRemediation = async () => {
+    setRemediating(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/intelligence/probability/policy/switches`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "remediate",
+          profileKey: policyProfileKey,
+          horizon,
+        }),
+      });
+
+      const payload = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Unable to run auto-remediation.");
+      }
+
+      await load();
+    } catch (remediationError) {
+      setError(remediationError instanceof Error ? remediationError.message : "Unable to run auto-remediation.");
+    } finally {
+      setRemediating(false);
+    }
+  };
+
+  const timelineDecisionCounts = useMemo(() => {
+    const counts = new Map<TimelineDecision, number>();
+    for (const event of switchEvents) {
+      counts.set(event.decision, (counts.get(event.decision) || 0) + 1);
+    }
+    return counts;
+  }, [switchEvents]);
+
+  const filteredSwitchEvents = useMemo(
+    () => switchEvents.filter((event) => timelineDecisionFilters.includes(event.decision)),
+    [switchEvents, timelineDecisionFilters],
+  );
+
+  const integritySparkline = useMemo(() => {
+    const points = integrityTrend?.points || [];
+    if (points.length === 0) {
+      return {
+        polyline: "",
+        maxScore: 100,
+        minScore: 0,
+        latest: 0,
+      };
+    }
+
+    const width = 100;
+    const height = 28;
+    const scores = points.map((point) => point.score);
+    const maxScore = Math.max(...scores, 100);
+    const minScore = Math.min(...scores, 0);
+    const range = Math.max(1, maxScore - minScore);
+
+    const polyline = points
+      .map((point, index) => {
+        const x = points.length === 1 ? width : (index / (points.length - 1)) * width;
+        const y = height - ((point.score - minScore) / range) * height;
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+      })
+      .join(" ");
+
+    return {
+      polyline,
+      maxScore,
+      minScore,
+      latest: points[points.length - 1]?.score || 0,
+    };
+  }, [integrityTrend]);
+
+  const toggleTimelineDecisionFilter = (decision: TimelineDecision) => {
+    setTimelineDecisionFilters((current) => {
+      if (current.includes(decision)) {
+        if (current.length === 1) {
+          return current;
+        }
+        return current.filter((item) => item !== decision);
+      }
+      return [...current, decision];
+    });
+  };
   const resetSelector = async (clearEvents: boolean) => {
     setResetting(true);
     setError("");
@@ -309,22 +497,46 @@ export function ProbabilityPanel() {
     }
   };
 
-  const applyPreset = async (clearPreset: boolean) => {
+  const applyPreset = async (
+    clearPreset: boolean,
+    override?: {
+      preset?: "balanced" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+      scope?: "global" | "scalp" | "intraday" | "swing";
+      clearRecommendationOverride?: boolean;
+    },
+  ) => {
     setPresetting(true);
     setError("");
     try {
+      const payloadBody: {
+        action: "preset";
+        profileKey: string;
+        horizon: "global" | "scalp" | "intraday" | "swing";
+        clearPreset: boolean;
+        lockRecommendation: boolean;
+        overrideMinutes: number;
+        clearRecommendationOverride: boolean;
+        preset?: "balanced" | "stabilize" | "discovery" | "scalp_tight" | "swing_stable";
+      } = {
+        action: "preset",
+        profileKey: policyProfileKey,
+        horizon: override?.scope || presetScope,
+        clearPreset,
+        lockRecommendation,
+        overrideMinutes,
+        clearRecommendationOverride: Boolean(override?.clearRecommendationOverride),
+      };
+
+      if (!(override?.clearRecommendationOverride && !clearPreset && !override?.preset)) {
+        payloadBody.preset = override?.preset || preset;
+      }
+
       const response = await fetch(`/api/intelligence/probability/policy/switches`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({
-          action: "preset",
-          profileKey: policyProfileKey,
-          horizon: presetScope,
-          preset,
-          clearPreset,
-        }),
+        body: JSON.stringify(payloadBody),
       });
 
       const payload = (await response.json()) as {
@@ -346,7 +558,6 @@ export function ProbabilityPanel() {
 
   useEffect(() => {
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [singleQuery, topQuery]);
 
   return (
@@ -573,11 +784,129 @@ export function ProbabilityPanel() {
                     {presetting ? "Clearing..." : "Clear Preset"}
                   </button>
                 </div>
+                <label className="text-[11px] text-[#8ea8be] flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={lockRecommendation}
+                    onChange={(event) => setLockRecommendation(event.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-black/40"
+                  />
+                  Lock recommendation after apply
+                </label>
+                <label className="text-[11px] text-[#8ea8be]">
+                  Override Minutes
+                  <input
+                    type="number"
+                    min={5}
+                    max={1440}
+                    value={overrideMinutes}
+                    onChange={(event) => setOverrideMinutes(Math.max(5, Math.min(1440, Number.parseInt(event.target.value || "90", 10) || 90)))}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-xs text-white"
+                  />
+                </label>
               </div>
               {activeConfig ? (
                 <p className="mt-2 text-[11px] text-white/75">
                   Active preset <span className="uppercase">{activeConfig.preset}</span> · hold {activeConfig.holdMinutes}m · edge {activeConfig.minSwitchEdge.toFixed(3)} · conf {toPercent(activeConfig.minSwitchConfidence)} · warmup {activeConfig.warmupMinMatches}
                 </p>
+              ) : null}
+              {integrity ? (
+                <div className="mt-2 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-[11px] text-white/85">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 uppercase">Integrity {integrity.status}</span>
+                    <span>states {integrity.summary.selectorStates}</span>
+                    <span>events {integrity.summary.switchEvents}</span>
+                    <span>overrides {integrity.summary.recommendationOverrides}</span>
+                    <span>stale {integrity.summary.staleOverrides}</span>
+                    <span>churn24h {integrity.summary.highChurnEvents24h}</span>
+                    <button
+                      type="button"
+                      onClick={() => void runAutoRemediation()}
+                      disabled={remediating || loading || presetting || resetting}
+                      className="ml-auto rounded-full border border-emerald-300/30 bg-emerald-500/15 px-2.5 py-0.5 text-[11px] text-emerald-100 disabled:opacity-60"
+                    >
+                      {remediating ? "Remediating..." : "Auto-Remediate"}
+                    </button>
+                  </div>
+                  {integrityTrend && integrityTrend.points.length > 0 ? (
+                    <div className="mt-2 rounded-lg border border-white/10 bg-black/30 p-2">
+                      <div className="flex items-center justify-between gap-2 text-[10px] text-[#9bb2c7]">
+                        <span>Integrity Trend (24h)</span>
+                        <span>latest {integritySparkline.latest.toFixed(0)}</span>
+                      </div>
+                      <svg viewBox="0 0 100 28" className="mt-1 h-9 w-full">
+                        <polyline
+                          fill="none"
+                          stroke="rgba(34,211,238,0.85)"
+                          strokeWidth="1.8"
+                          points={integritySparkline.polyline}
+                        />
+                      </svg>
+                      <div className="mt-1 flex items-center justify-between text-[10px] text-[#8ea8be]">
+                        <span>min {integritySparkline.minScore.toFixed(0)}</span>
+                        <span>max {integritySparkline.maxScore.toFixed(0)}</span>
+                      </div>
+                    </div>
+                  ) : null}
+                  {integrity.issues.length > 0 ? (
+                    <ul className="mt-1 list-disc pl-4 text-[11px] text-white/80">
+                      {integrity.issues.map((issue) => (
+                        <li key={issue.id}>
+                          [{issue.severity}] {issue.detail}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-emerald-200/90">No integrity issues detected.</p>
+                  )}
+                </div>
+              ) : null}
+              {presetRecommendation ? (
+                <div className="mt-2 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-[11px] text-cyan-100">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 uppercase">Suggested {presetRecommendation.recommendedPreset}</span>
+                    <span>conf {toPercent(presetRecommendation.confidence)}</span>
+                    <span>n {presetRecommendation.metrics.matchedOutcomes}</span>
+                    <span>vol {presetRecommendation.metrics.volatility.toFixed(3)}</span>
+                    <span>hitσ {presetRecommendation.metrics.hitRateDispersion.toFixed(3)}</span>
+                    <span>{presetRecommendation.stabilized ? "stable" : "raw"}</span>
+                    <span>{presetRecommendation.locked ? `lock ${presetRecommendation.lockSecondsRemaining}s` : "lock open"}</span>
+                    <span>{presetRecommendation.overrideActive ? `override ${presetRecommendation.overrideSecondsRemaining}s` : "no override"}</span>
+                    <span>switches {presetRecommendation.switchedCount}</span>
+                    {presetRecommendation.recommendedPreset !== presetRecommendation.rawRecommendedPreset ? (
+                      <span>candidate {presetRecommendation.rawRecommendedPreset}</span>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void applyPreset(false, {
+                          preset: presetRecommendation.recommendedPreset,
+                          scope: presetRecommendation.horizon,
+                        })
+                      }
+                      disabled={presetting || loading}
+                      className="ml-auto rounded-full border border-cyan-300/35 bg-cyan-400/20 px-2.5 py-0.5 text-[11px] text-cyan-50 disabled:opacity-60"
+                    >
+                      Apply Suggested
+                    </button>
+                    {presetRecommendation.overrideActive ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void applyPreset(false, {
+                            scope: presetRecommendation.horizon,
+                            clearRecommendationOverride: true,
+                          })
+                        }
+                        disabled={presetting || loading}
+                        className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-[11px] text-white/90 disabled:opacity-60"
+                      >
+                        Clear Override
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-cyan-100/85">{presetRecommendation.reason}</p>
+                </div>
               ) : null}
             </div>
           ) : null}
@@ -821,12 +1150,49 @@ export function ProbabilityPanel() {
       {switchEvents.length > 0 ? (
         <div className="mt-6">
           <h4 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#8ea8be]">Auto Policy Switch Timeline</h4>
+          <div className="mt-2 rounded-xl border border-white/10 bg-black/25 p-2 text-[11px]">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#8ea8be]">Filter Decisions</p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {decisionLegend.map((entry) => {
+                const active = timelineDecisionFilters.includes(entry.decision);
+                const count = timelineDecisionCounts.get(entry.decision) || 0;
+                return (
+                  <button
+                    key={entry.decision}
+                    type="button"
+                    onClick={() => toggleTimelineDecisionFilter(entry.decision)}
+                    className={`rounded-full border px-2 py-0.5 text-[10px] transition ${decisionChipClass(entry.decision)} ${active ? "opacity-100" : "opacity-45"}`}
+                    title={entry.detail}
+                  >
+                    {entry.label} ({count})
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setTimelineDecisionFilters(allTimelineDecisions)}
+                className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] text-white/90"
+              >
+                Show All
+              </button>
+            </div>
+            <div className="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+              {decisionLegend.map((entry) => (
+                <div key={`legend-${entry.decision}`} className="flex items-start gap-2 text-[10px] text-[#9bb2c7]">
+                  <span className={`mt-0.5 inline-block h-2.5 w-2.5 rounded-full ${decisionChipClass(entry.decision).includes("cyan") ? "bg-cyan-300" : decisionChipClass(entry.decision).includes("amber") ? "bg-amber-300" : decisionChipClass(entry.decision).includes("violet") ? "bg-violet-300" : decisionChipClass(entry.decision).includes("sky") ? "bg-sky-300" : "bg-slate-300"}`} />
+                  <span>
+                    <span className="font-semibold text-white/90">{entry.label}:</span> {entry.detail}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="mt-2 grid gap-2">
-            {switchEvents.map((event) => (
+            {filteredSwitchEvents.map((event) => (
               <div key={event.id} className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/85">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-white/10 px-2 py-0.5 uppercase">{event.horizon}</span>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 uppercase">{event.decision}</span>
+                  <span className={`rounded-full border px-2 py-0.5 uppercase ${decisionChipClass(event.decision)}`}>{event.decision}</span>
                   <span>{event.previousPolicy ? `${event.previousPolicy} → ` : ""}{event.appliedPolicy}</span>
                   <span>rec {event.recommendedPolicy}</span>
                   <span>basis {event.basis}</span>
@@ -840,6 +1206,11 @@ export function ProbabilityPanel() {
                 <p className="mt-1 text-[11px] text-[#9bb2c7]">{event.reason}</p>
               </div>
             ))}
+            {filteredSwitchEvents.length === 0 ? (
+              <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-[#9bb2c7]">
+                No timeline events match the selected decision chips.
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

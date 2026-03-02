@@ -1,9 +1,15 @@
 import {
+  getAutoSelectorIntegrityReport,
+  getAutoSelectorIntegrityTrend,
   clearAutoSelectorPreset,
+  clearPresetRecommendationOverride,
   listAutoPolicySwitchEvents,
   normalizePolicyProfileKey,
+  recommendAutoSelectorPreset,
   resolveAutoSelectorConfig,
   resetAutoPolicySelector,
+  runAutoSelectorAutoRemediation,
+  setPresetRecommendationOverride,
   setAutoSelectorPreset,
   type AutoSelectorPreset,
 } from "@/lib/intelligence/probability-policy-store";
@@ -11,12 +17,15 @@ import { enforceRateLimit, enforceTrustedOrigin, isJsonContentType, sanitizePlai
 import { NextRequest, NextResponse } from "next/server";
 
 type SwitchesMutationRequest = {
-  action?: "reset" | "preset";
+  action?: "reset" | "preset" | "remediate";
   profileKey?: string;
   horizon?: "scalp" | "intraday" | "swing" | "global";
   clearEvents?: boolean;
   preset?: AutoSelectorPreset;
   clearPreset?: boolean;
+  overrideMinutes?: number;
+  lockRecommendation?: boolean;
+  clearRecommendationOverride?: boolean;
 };
 
 function parseProfileKey(value: unknown) {
@@ -53,6 +62,12 @@ function parseLimit(value: unknown) {
   return Math.min(200, Math.max(1, parsed));
 }
 
+function parseOverrideMinutes(value: unknown) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed)) return 90;
+  return Math.min(24 * 60, Math.max(5, parsed));
+}
+
 export async function GET(request: NextRequest) {
   const originBlock = enforceTrustedOrigin(request);
   if (originBlock) {
@@ -86,6 +101,19 @@ export async function GET(request: NextRequest) {
       config: resolveAutoSelectorConfig({
         profileKey,
         horizon: horizon || "intraday",
+      }),
+      recommendation: recommendAutoSelectorPreset({
+        profileKey,
+        horizon: horizon || "intraday",
+      }),
+      integrity: getAutoSelectorIntegrityReport({
+        profileKey,
+        horizon,
+      }),
+      integrityTrend: getAutoSelectorIntegrityTrend({
+        profileKey,
+        horizon,
+        windowHours: 24,
       }),
       generatedAt: new Date().toISOString(),
     },
@@ -123,13 +151,32 @@ export async function POST(request: NextRequest) {
 
     if (action === "preset") {
       const configHorizon = parseConfigHorizon(body.horizon) || "global";
+      const shouldMutatePreset = body.clearPreset || body.preset != null;
+
       if (body.clearPreset) {
         clearAutoSelectorPreset({ profileKey, horizon: configHorizon });
-      } else {
+      } else if (shouldMutatePreset) {
         setAutoSelectorPreset({
           profileKey,
           horizon: configHorizon,
           preset: parsePreset(body.preset),
+        });
+
+        const lockRecommendation = body.lockRecommendation !== false;
+        if (lockRecommendation) {
+          setPresetRecommendationOverride({
+            profileKey,
+            horizon: configHorizon,
+            preset: parsePreset(body.preset),
+            holdMinutes: parseOverrideMinutes(body.overrideMinutes),
+          });
+        }
+      }
+
+      if (body.clearRecommendationOverride) {
+        clearPresetRecommendationOverride({
+          profileKey,
+          horizon: configHorizon,
         });
       }
 
@@ -140,6 +187,19 @@ export async function POST(request: NextRequest) {
           config: resolveAutoSelectorConfig({
             profileKey,
             horizon: configHorizon === "global" ? "intraday" : configHorizon,
+          }),
+          recommendation: recommendAutoSelectorPreset({
+            profileKey,
+            horizon: horizon || "intraday",
+          }),
+          integrity: getAutoSelectorIntegrityReport({
+            profileKey,
+            horizon,
+          }),
+          integrityTrend: getAutoSelectorIntegrityTrend({
+            profileKey,
+            horizon,
+            windowHours: 24,
           }),
           events: listAutoPolicySwitchEvents({
             profileKey,
@@ -153,11 +213,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (action === "remediate") {
+      const remediation = runAutoSelectorAutoRemediation({
+        profileKey,
+        horizon,
+      });
+
+      return NextResponse.json(
+        {
+          ok: true,
+          action,
+          remediation,
+          events: listAutoPolicySwitchEvents({
+            profileKey,
+            horizon,
+            limit: 18,
+          }),
+          config: resolveAutoSelectorConfig({
+            profileKey,
+            horizon: horizon || "intraday",
+          }),
+          recommendation: recommendAutoSelectorPreset({
+            profileKey,
+            horizon: horizon || "intraday",
+          }),
+          integrity: getAutoSelectorIntegrityReport({
+            profileKey,
+            horizon,
+          }),
+          integrityTrend: getAutoSelectorIntegrityTrend({
+            profileKey,
+            horizon,
+            windowHours: 24,
+          }),
+        },
+        {
+          headers: rateLimit.headers,
+        },
+      );
+    }
+
     if (action !== "reset") {
       return NextResponse.json(
         {
           ok: false,
-          error: "Unsupported action. Expected 'reset' or 'preset'.",
+          error: "Unsupported action. Expected 'reset', 'preset', or 'remediate'.",
         },
         {
           status: 400,
@@ -185,6 +285,19 @@ export async function POST(request: NextRequest) {
         config: resolveAutoSelectorConfig({
           profileKey,
           horizon: horizon || "intraday",
+        }),
+        recommendation: recommendAutoSelectorPreset({
+          profileKey,
+          horizon: horizon || "intraday",
+        }),
+        integrity: getAutoSelectorIntegrityReport({
+          profileKey,
+          horizon,
+        }),
+        integrityTrend: getAutoSelectorIntegrityTrend({
+          profileKey,
+          horizon,
+          windowHours: 24,
         }),
       },
       {

@@ -30,6 +30,26 @@ type PolicyStore = {
   autoSelectorState: Map<string, AutoSelectorStateRecord>;
   autoSwitchEvents: AutoPolicySwitchEventRecord[];
   autoSelectorConfig: Map<string, AutoSelectorConfigRecord>;
+  presetRecommendationState: Map<string, PresetRecommendationStateRecord>;
+  presetRecommendationOverride: Map<string, PresetRecommendationOverrideRecord>;
+};
+
+type PresetRecommendationStateRecord = {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing";
+  recommendedPreset: AutoSelectorPreset;
+  confidence: number;
+  holdUntil: string;
+  switchedCount: number;
+  updatedAt: string;
+};
+
+type PresetRecommendationOverrideRecord = {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing" | "global";
+  preset: AutoSelectorPreset;
+  holdUntil: string;
+  createdAt: string;
 };
 
 type AutoSelectorConfigRecord = {
@@ -61,10 +81,10 @@ type AutoPolicySwitchEventRecord = {
   id: string;
   profileKey: string;
   horizon: "scalp" | "intraday" | "swing";
-  decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch";
-  previousPolicy?: PersistedPolicy;
-  recommendedPolicy: PersistedPolicy;
-  appliedPolicy: PersistedPolicy;
+  decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch" | "override_set" | "override_clear" | "override_expire";
+  previousPolicy?: PersistedPolicy | AutoSelectorPreset;
+  recommendedPolicy: PersistedPolicy | AutoSelectorPreset;
+  appliedPolicy: PersistedPolicy | AutoSelectorPreset;
   basis: "attribution" | "health";
   confidence: number;
   scoreEdge: number;
@@ -176,10 +196,10 @@ export type AutoPolicySwitchEvent = {
   id: string;
   profileKey: string;
   horizon: "scalp" | "intraday" | "swing";
-  decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch";
-  previousPolicy?: PersistedPolicy;
-  recommendedPolicy: PersistedPolicy;
-  appliedPolicy: PersistedPolicy;
+  decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch" | "override_set" | "override_clear" | "override_expire";
+  previousPolicy?: PersistedPolicy | AutoSelectorPreset;
+  recommendedPolicy: PersistedPolicy | AutoSelectorPreset;
+  appliedPolicy: PersistedPolicy | AutoSelectorPreset;
   basis: "attribution" | "health";
   confidence: number;
   scoreEdge: number;
@@ -211,6 +231,83 @@ export type AutoSelectorConfig = {
   minSwitchConfidence: number;
   warmupMinMatches: number;
   updatedAt: string;
+};
+
+export type AutoSelectorPresetRecommendation = {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing";
+  recommendedPreset: AutoSelectorPreset;
+  rawRecommendedPreset: AutoSelectorPreset;
+  confidence: number;
+  rawConfidence: number;
+  stabilized: boolean;
+  locked: boolean;
+  lockSecondsRemaining: number;
+  switched: boolean;
+  switchedCount: number;
+  minConfidenceEdge: number;
+  overrideActive: boolean;
+  overrideSecondsRemaining: number;
+  reason: string;
+  metrics: {
+    matchedOutcomes: number;
+    volatility: number;
+    hitRateDispersion: number;
+    warmupActive: boolean;
+    warmupMatchesRemaining: number;
+  };
+};
+
+export type AutoSelectorIntegrityTrendPoint = {
+  bucketStart: string;
+  switchEvents: number;
+  highImpactEvents: number;
+  overrideEvents: number;
+  score: number;
+  status: "healthy" | "watch" | "critical";
+};
+
+export type AutoSelectorIntegrityTrend = {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing" | "all";
+  windowHours: number;
+  generatedAt: string;
+  points: AutoSelectorIntegrityTrendPoint[];
+};
+
+export type AutoSelectorAutoRemediation = {
+  ok: true;
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing" | "all";
+  generatedAt: string;
+  actions: {
+    expiredOverridesRemoved: number;
+    selectorStatesCleared: number;
+    configsNormalized: number;
+  };
+  integrity: AutoSelectorIntegrityReport;
+};
+
+export type AutoSelectorIntegrityReport = {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing" | "all";
+  generatedAt: string;
+  status: "healthy" | "watch" | "critical";
+  summary: {
+    selectorStates: number;
+    switchEvents: number;
+    selectorConfigs: number;
+    recommendationStates: number;
+    recommendationOverrides: number;
+    staleOverrides: number;
+    invalidStateTimestamps: number;
+    highChurnEvents24h: number;
+  };
+  issues: Array<{
+    id: string;
+    severity: "warning" | "critical";
+    detail: string;
+  }>;
 };
 
 function nowIso() {
@@ -313,8 +410,61 @@ function toSelectorStateKey(profileKey: string, horizon: "scalp" | "intraday" | 
   return `${profileKey}:${horizon}`;
 }
 
+function toPresetRecommendationKey(profileKey: string, horizon: "scalp" | "intraday" | "swing") {
+  return `${profileKey}:${horizon}`;
+}
+
+function toPresetOverrideKey(profileKey: string, horizon: "scalp" | "intraday" | "swing" | "global") {
+  return `${profileKey}:${horizon}`;
+}
+
+function getRecommendationHoldMinutes(horizon: "scalp" | "intraday" | "swing") {
+  if (horizon === "scalp") return 20;
+  if (horizon === "swing") return 240;
+  return 75;
+}
+
+function getRecommendationSwitchEdge(horizon: "scalp" | "intraday" | "swing") {
+  if (horizon === "scalp") return 0.08;
+  if (horizon === "swing") return 0.06;
+  return 0.07;
+}
+
 function toSwitchEventId() {
   return `pps_${Math.random().toString(36).slice(2, 10)}_${Date.now().toString(36)}`;
+}
+
+function pushAutoSwitchEvent(input: {
+  profileKey: string;
+  horizon: "scalp" | "intraday" | "swing";
+  decision: "initialize" | "stay" | "hold" | "warmup" | "reject" | "switch" | "override_set" | "override_clear" | "override_expire";
+  previousPolicy?: PersistedPolicy | AutoSelectorPreset;
+  recommendedPolicy: PersistedPolicy | AutoSelectorPreset;
+  appliedPolicy: PersistedPolicy | AutoSelectorPreset;
+  basis: "attribution" | "health";
+  confidence: number;
+  scoreEdge: number;
+  minSwitchEdge: number;
+  minSwitchConfidence: number;
+  volatility: number;
+  hitRateDispersion: number;
+  warmupActive: boolean;
+  warmupMinMatches: number;
+  warmupMatchesGained: number;
+  warmupMatchesRemaining: number;
+  reason: string;
+}) {
+  const store = getStore();
+  const row: AutoPolicySwitchEventRecord = {
+    id: toSwitchEventId(),
+    occurredAt: nowIso(),
+    ...input,
+  };
+  store.autoSwitchEvents.push(row);
+  if (store.autoSwitchEvents.length > 5_000) {
+    store.autoSwitchEvents.splice(0, store.autoSwitchEvents.length - 5_000);
+  }
+  return row;
 }
 
 function getDynamicSwitchThresholds(input: {
@@ -419,6 +569,8 @@ function getStore() {
       autoSelectorState: new Map(),
       autoSwitchEvents: [],
       autoSelectorConfig: new Map(),
+      presetRecommendationState: new Map(),
+      presetRecommendationOverride: new Map(),
     };
   }
 
@@ -801,18 +953,7 @@ export function applyAutoPolicyHysteresis(input: {
   const warmupMatchesRemaining = Math.max(0, warmupMinMatches - warmupMatchesGained);
   const warmupActive = warmupMatchesRemaining > 0;
 
-  const pushEvent = (event: Omit<AutoPolicySwitchEventRecord, "id" | "occurredAt">) => {
-    const row: AutoPolicySwitchEventRecord = {
-      id: toSwitchEventId(),
-      occurredAt: new Date(now).toISOString(),
-      ...event,
-    };
-    store.autoSwitchEvents.push(row);
-    if (store.autoSwitchEvents.length > 5_000) {
-      store.autoSwitchEvents.splice(0, store.autoSwitchEvents.length - 5_000);
-    }
-    return row;
-  };
+  const pushEvent = (event: Omit<AutoPolicySwitchEventRecord, "id" | "occurredAt">) => pushAutoSwitchEvent(event);
 
   const upsertState = (nextPolicy: PersistedPolicy, switchCount: number, resetWarmup: boolean) => {
     const nextWarmupBaseline = resetWarmup
@@ -1240,5 +1381,626 @@ export function resolveAutoSelectorConfig(input?: {
     minSwitchConfidence: 0.45,
     warmupMinMatches: getDefaultWarmupMatches(horizon),
     updatedAt: nowIso(),
+  };
+}
+
+export function recommendAutoSelectorPreset(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing";
+}): AutoSelectorPresetRecommendation {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  cleanupExpiredRecommendationOverrides({ profileKey });
+  const horizon = input?.horizon || "intraday";
+  const analytics = getPolicyAnalytics({ profileKey });
+
+  const horizonRows = analytics.attribution.byAppliedPolicyAndHorizon
+    .filter((row) => row.horizon === horizon && row.matchedOutcomes > 0);
+  const matchedOutcomes = horizonRows.reduce((acc, row) => acc + row.matchedOutcomes, 0);
+  const volatility = horizonRows.length > 1
+    ? Number.parseFloat(stddev(horizonRows.map((row) => row.avgRealizedReturnPct)).toFixed(4))
+    : 0;
+  const hitRateDispersion = horizonRows.length > 1
+    ? Number.parseFloat(stddev(horizonRows.map((row) => row.hitRate)).toFixed(4))
+    : 0;
+
+  const state = analytics.autoSelectorStates.find((row) => row.horizon === horizon);
+  const warmupActive = Boolean(state?.warmupActive);
+  const warmupMatchesRemaining = state?.warmupMatchesRemaining || 0;
+
+  const buildBase = (candidate: {
+    recommendedPreset: AutoSelectorPreset;
+    confidence: number;
+    reason: string;
+  }) => ({
+    profileKey,
+    horizon,
+    recommendedPreset: candidate.recommendedPreset,
+    rawRecommendedPreset: candidate.recommendedPreset,
+    confidence: Number.parseFloat(candidate.confidence.toFixed(4)),
+    rawConfidence: Number.parseFloat(candidate.confidence.toFixed(4)),
+    stabilized: false,
+    locked: false,
+    lockSecondsRemaining: 0,
+    switched: false,
+    switchedCount: 0,
+    minConfidenceEdge: getRecommendationSwitchEdge(horizon),
+    overrideActive: false,
+    overrideSecondsRemaining: 0,
+    reason: candidate.reason,
+    metrics: {
+      matchedOutcomes,
+      volatility,
+      hitRateDispersion,
+      warmupActive,
+      warmupMatchesRemaining,
+    },
+  });
+
+  let base: AutoSelectorPresetRecommendation;
+
+  if (warmupActive || matchedOutcomes < 6) {
+    base = buildBase({
+      recommendedPreset: "stabilize",
+      confidence: 0.86,
+      reason: "Sample depth is still warming up; a stabilization preset reduces premature policy churn.",
+    });
+  } else if (horizon === "scalp" && volatility >= 1.05) {
+    base = buildBase({
+      recommendedPreset: "scalp_tight",
+      confidence: clamp(0.62 + volatility * 0.11, 0.62, 0.94),
+      reason: "Scalp regime is volatile; tighter scalp guardrails improve switch quality.",
+    });
+  } else if (horizon === "swing" && volatility >= 1.15) {
+    base = buildBase({
+      recommendedPreset: "swing_stable",
+      confidence: clamp(0.65 + volatility * 0.1, 0.65, 0.95),
+      reason: "Swing regime is broad and noisy; longer holds and stronger confirmation are recommended.",
+    });
+  } else if (volatility <= 0.55 && hitRateDispersion >= 0.11 && matchedOutcomes >= 12) {
+    base = buildBase({
+      recommendedPreset: "discovery",
+      confidence: clamp(0.6 + hitRateDispersion * 1.2, 0.6, 0.92),
+      reason: "Regime is relatively calm with meaningful policy separation; discovery can accelerate adaptation.",
+    });
+  } else {
+    base = buildBase({
+      recommendedPreset: "balanced",
+      confidence: 0.7,
+      reason: "Current regime appears mixed; balanced remains the most robust default.",
+    });
+  }
+
+  const key = toPresetRecommendationKey(profileKey, horizon);
+  const overrideSpecific = store.presetRecommendationOverride.get(toPresetOverrideKey(profileKey, horizon));
+  const overrideGlobal = store.presetRecommendationOverride.get(toPresetOverrideKey(profileKey, "global"));
+  const override = overrideSpecific || overrideGlobal;
+  const now = Date.now();
+
+  if (override) {
+    const overrideUntilMs = Date.parse(override.holdUntil);
+    if (overrideUntilMs > now) {
+      const overrideSecondsRemaining = Math.max(0, Math.ceil((overrideUntilMs - now) / 1000));
+      return {
+        ...base,
+        recommendedPreset: override.preset,
+        stabilized: true,
+        locked: true,
+        lockSecondsRemaining: overrideSecondsRemaining,
+        switched: false,
+        switchedCount: (store.presetRecommendationState.get(key)?.switchedCount || 0),
+        minConfidenceEdge: getRecommendationSwitchEdge(horizon),
+        overrideActive: true,
+        overrideSecondsRemaining,
+        reason: `${base.reason} Manual override is active for ${overrideSecondsRemaining}s, honoring ${override.preset}.`,
+      };
+    }
+
+    store.presetRecommendationOverride.delete(toPresetOverrideKey(profileKey, override.horizon));
+    pushAutoSwitchEvent({
+      profileKey,
+      horizon,
+      decision: "override_expire",
+      previousPolicy: override.preset,
+      recommendedPolicy: base.rawRecommendedPreset === "balanced" ? "balanced" : base.rawRecommendedPreset,
+      appliedPolicy: base.rawRecommendedPreset === "balanced" ? "balanced" : base.rawRecommendedPreset,
+      basis: "health",
+      confidence: base.rawConfidence,
+      scoreEdge: 0,
+      minSwitchEdge: getRecommendationSwitchEdge(horizon),
+      minSwitchConfidence: 0,
+      volatility,
+      hitRateDispersion,
+      warmupActive,
+      warmupMinMatches: state?.warmupMinMatches || 0,
+      warmupMatchesGained: state?.warmupMatchesGained || 0,
+      warmupMatchesRemaining,
+      reason: `Manual recommendation override expired for ${override.horizon}.`,
+    });
+  }
+
+  const previous = store.presetRecommendationState.get(key);
+  const holdMinutes = getRecommendationHoldMinutes(horizon);
+  const holdMs = holdMinutes * 60_000;
+  const minConfidenceEdge = getRecommendationSwitchEdge(horizon);
+
+  if (!previous) {
+    store.presetRecommendationState.set(key, {
+      profileKey,
+      horizon,
+      recommendedPreset: base.recommendedPreset,
+      confidence: base.confidence,
+      holdUntil: new Date(now + holdMs).toISOString(),
+      switchedCount: 0,
+      updatedAt: new Date(now).toISOString(),
+    });
+    return {
+      ...base,
+      minConfidenceEdge,
+      overrideActive: false,
+      overrideSecondsRemaining: 0,
+      reason: `${base.reason} Initialized recommendation memory for ${horizon}.`,
+    };
+  }
+
+  const lockUntilMs = Date.parse(previous.holdUntil) || now;
+  const locked = lockUntilMs > now;
+  const lockSecondsRemaining = Math.max(0, Math.ceil((lockUntilMs - now) / 1000));
+
+  if (base.recommendedPreset === previous.recommendedPreset) {
+    store.presetRecommendationState.set(key, {
+      ...previous,
+      confidence: base.confidence,
+      holdUntil: new Date(now + holdMs).toISOString(),
+      updatedAt: new Date(now).toISOString(),
+    });
+    return {
+      ...base,
+      stabilized: true,
+      locked,
+      lockSecondsRemaining,
+      switched: false,
+      switchedCount: previous.switchedCount,
+      minConfidenceEdge,
+      overrideActive: false,
+      overrideSecondsRemaining: 0,
+      reason: `${base.reason} Recommendation unchanged; stability window refreshed.`,
+    };
+  }
+
+  const confidenceEdge = base.confidence - previous.confidence;
+  if (locked || confidenceEdge < minConfidenceEdge) {
+    return {
+      ...base,
+      recommendedPreset: previous.recommendedPreset,
+      confidence: previous.confidence,
+      stabilized: true,
+      locked,
+      lockSecondsRemaining,
+      switched: false,
+      switchedCount: previous.switchedCount,
+      minConfidenceEdge,
+      overrideActive: false,
+      overrideSecondsRemaining: 0,
+      reason: locked
+        ? `${base.reason} Candidate preset held for stability (${lockSecondsRemaining}s remaining).`
+        : `${base.reason} Candidate preset deferred: confidence edge ${confidenceEdge.toFixed(3)} is below threshold ${minConfidenceEdge.toFixed(3)}.`,
+    };
+  }
+
+  store.presetRecommendationState.set(key, {
+    profileKey,
+    horizon,
+    recommendedPreset: base.recommendedPreset,
+    confidence: base.confidence,
+    holdUntil: new Date(now + holdMs).toISOString(),
+    switchedCount: previous.switchedCount + 1,
+    updatedAt: new Date(now).toISOString(),
+  });
+
+  return {
+    ...base,
+    stabilized: true,
+    locked: false,
+    lockSecondsRemaining: 0,
+    switched: true,
+    switchedCount: previous.switchedCount + 1,
+    minConfidenceEdge,
+    overrideActive: false,
+    overrideSecondsRemaining: 0,
+    reason: `${base.reason} Recommendation switched ${previous.recommendedPreset} → ${base.recommendedPreset}.`,
+  };
+}
+
+export function setPresetRecommendationOverride(input: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing" | "global";
+  preset: AutoSelectorPreset;
+  holdMinutes?: number;
+}) {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input.profileKey || "default");
+  const horizon = input.horizon || "global";
+  const holdMinutes = Math.max(5, Math.floor(input.holdMinutes ?? 90));
+  const now = Date.now();
+
+  const row: PresetRecommendationOverrideRecord = {
+    profileKey,
+    horizon,
+    preset: normalizePreset(input.preset),
+    holdUntil: new Date(now + holdMinutes * 60_000).toISOString(),
+    createdAt: new Date(now).toISOString(),
+  };
+
+  store.presetRecommendationOverride.set(toPresetOverrideKey(profileKey, horizon), row);
+
+  const eventHorizon: "scalp" | "intraday" | "swing" = horizon === "global" ? "intraday" : horizon;
+  pushAutoSwitchEvent({
+    profileKey,
+    horizon: eventHorizon,
+    decision: "override_set",
+    previousPolicy: undefined,
+    recommendedPolicy: row.preset,
+    appliedPolicy: row.preset,
+    basis: "health",
+    confidence: 1,
+    scoreEdge: 0,
+    minSwitchEdge: 0,
+    minSwitchConfidence: 0,
+    volatility: 0,
+    hitRateDispersion: 0,
+    warmupActive: false,
+    warmupMinMatches: 0,
+    warmupMatchesGained: 0,
+    warmupMatchesRemaining: 0,
+    reason: `Manual recommendation override set to ${row.preset} for ${horizon} (${holdMinutes}m).`,
+  });
+
+  return row;
+}
+
+export function clearPresetRecommendationOverride(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing" | "global";
+}) {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const horizon = input?.horizon || "global";
+  const existing = store.presetRecommendationOverride.get(toPresetOverrideKey(profileKey, horizon));
+  store.presetRecommendationOverride.delete(toPresetOverrideKey(profileKey, horizon));
+
+  if (existing) {
+    const eventHorizon: "scalp" | "intraday" | "swing" = horizon === "global" ? "intraday" : horizon;
+    pushAutoSwitchEvent({
+      profileKey,
+      horizon: eventHorizon,
+      decision: "override_clear",
+      previousPolicy: existing.preset,
+      recommendedPolicy: existing.preset,
+      appliedPolicy: existing.preset,
+      basis: "health",
+      confidence: 1,
+      scoreEdge: 0,
+      minSwitchEdge: 0,
+      minSwitchConfidence: 0,
+      volatility: 0,
+      hitRateDispersion: 0,
+      warmupActive: false,
+      warmupMinMatches: 0,
+      warmupMatchesGained: 0,
+      warmupMatchesRemaining: 0,
+      reason: `Manual recommendation override cleared for ${horizon}.`,
+    });
+  }
+}
+
+export function cleanupExpiredRecommendationOverrides(input?: {
+  profileKey?: string;
+}) {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const now = Date.now();
+  const rows = Array.from(store.presetRecommendationOverride.values()).filter((row) => row.profileKey === profileKey);
+
+  let removed = 0;
+  for (const row of rows) {
+    const expiresAt = Date.parse(row.holdUntil);
+    if (!Number.isFinite(expiresAt) || expiresAt <= now) {
+      store.presetRecommendationOverride.delete(toPresetOverrideKey(row.profileKey, row.horizon));
+      removed += 1;
+      const eventHorizon: "scalp" | "intraday" | "swing" = row.horizon === "global" ? "intraday" : row.horizon;
+      pushAutoSwitchEvent({
+        profileKey: row.profileKey,
+        horizon: eventHorizon,
+        decision: "override_expire",
+        previousPolicy: row.preset,
+        recommendedPolicy: row.preset,
+        appliedPolicy: row.preset,
+        basis: "health",
+        confidence: 1,
+        scoreEdge: 0,
+        minSwitchEdge: 0,
+        minSwitchConfidence: 0,
+        volatility: 0,
+        hitRateDispersion: 0,
+        warmupActive: false,
+        warmupMinMatches: 0,
+        warmupMatchesGained: 0,
+        warmupMatchesRemaining: 0,
+        reason: `Expired recommendation override was cleaned up for ${row.horizon}.`,
+      });
+    }
+  }
+
+  return {
+    profileKey,
+    removed,
+    generatedAt: nowIso(),
+  };
+}
+
+export function getAutoSelectorIntegrityReport(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing";
+}): AutoSelectorIntegrityReport {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const horizon = input?.horizon;
+  const now = Date.now();
+
+  const selectorStates = Array.from(store.autoSelectorState.values())
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon : true));
+
+  const switchEvents = store.autoSwitchEvents
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon : true));
+
+  const selectorConfigs = Array.from(store.autoSelectorConfig.values())
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon || row.horizon === "global" : true));
+
+  const recommendationStates = Array.from(store.presetRecommendationState.values())
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon : true));
+
+  const recommendationOverrides = Array.from(store.presetRecommendationOverride.values())
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon || row.horizon === "global" : true));
+
+  const invalidStateTimestamps = selectorStates.filter((row) => Number.isNaN(Date.parse(row.holdUntil))).length;
+  const staleOverrides = recommendationOverrides.filter((row) => {
+    const expiresAt = Date.parse(row.holdUntil);
+    return !Number.isFinite(expiresAt) || expiresAt <= now;
+  }).length;
+
+  const highChurnEvents24h = switchEvents.filter((row) => {
+    const occurredAt = Date.parse(row.occurredAt);
+    return Number.isFinite(occurredAt) && now - occurredAt <= 24 * 60 * 60 * 1000;
+  }).filter((row) => row.decision === "switch" || row.decision === "override_set" || row.decision === "override_clear").length;
+
+  const issues: AutoSelectorIntegrityReport["issues"] = [];
+  if (invalidStateTimestamps > 0) {
+    issues.push({
+      id: "invalid_state_timestamps",
+      severity: "critical",
+      detail: `${invalidStateTimestamps} selector states have invalid holdUntil timestamps.`,
+    });
+  }
+  if (staleOverrides > 0) {
+    issues.push({
+      id: "stale_overrides",
+      severity: staleOverrides >= 3 ? "critical" : "warning",
+      detail: `${staleOverrides} recommendation overrides are stale and should be cleaned.`,
+    });
+  }
+  if (highChurnEvents24h >= 40) {
+    issues.push({
+      id: "high_churn_24h",
+      severity: highChurnEvents24h >= 70 ? "critical" : "warning",
+      detail: `Observed ${highChurnEvents24h} high-impact switch/override events in 24h (possible instability).`,
+    });
+  }
+
+  const status: AutoSelectorIntegrityReport["status"] = issues.some((item) => item.severity === "critical")
+    ? "critical"
+    : issues.length > 0
+      ? "watch"
+      : "healthy";
+
+  return {
+    profileKey,
+    horizon: horizon || "all",
+    generatedAt: nowIso(),
+    status,
+    summary: {
+      selectorStates: selectorStates.length,
+      switchEvents: switchEvents.length,
+      selectorConfigs: selectorConfigs.length,
+      recommendationStates: recommendationStates.length,
+      recommendationOverrides: recommendationOverrides.length,
+      staleOverrides,
+      invalidStateTimestamps,
+      highChurnEvents24h,
+    },
+    issues,
+  };
+}
+
+function normalizeSelectorConfigRow(row: AutoSelectorConfigRecord): AutoSelectorConfigRecord {
+  const normalizedPreset = normalizePreset(row.preset);
+  const normalizedHorizon = row.horizon === "global" ? "global" : row.horizon;
+  const baseline = toPresetConfig({
+    preset: normalizedPreset,
+    horizon: normalizedHorizon,
+  });
+
+  return {
+    ...row,
+    preset: normalizedPreset,
+    holdMinutes: Math.max(5, Math.floor(Number(row.holdMinutes) || baseline.holdMinutes)),
+    minSwitchEdge: Number.parseFloat(clamp(Number(row.minSwitchEdge) || baseline.minSwitchEdge, 0.005, 0.3).toFixed(4)),
+    minSwitchConfidence: Number.parseFloat(clamp(Number(row.minSwitchConfidence) || baseline.minSwitchConfidence, 0.05, 0.99).toFixed(4)),
+    warmupMinMatches: Math.max(0, Math.floor(Number(row.warmupMinMatches) || baseline.warmupMinMatches)),
+    updatedAt: nowIso(),
+  };
+}
+
+export function normalizeAutoSelectorConfigs(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing";
+}) {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const horizon = input?.horizon;
+
+  const entries = Array.from(store.autoSelectorConfig.entries()).filter(([, row]) => {
+    if (row.profileKey !== profileKey) return false;
+    if (!horizon) return true;
+    return row.horizon === horizon || row.horizon === "global";
+  });
+
+  let normalized = 0;
+  for (const [key, row] of entries) {
+    const next = normalizeSelectorConfigRow(row);
+    const changed = next.preset !== row.preset
+      || next.holdMinutes !== row.holdMinutes
+      || next.minSwitchEdge !== row.minSwitchEdge
+      || next.minSwitchConfidence !== row.minSwitchConfidence
+      || next.warmupMinMatches !== row.warmupMinMatches;
+
+    if (changed) {
+      store.autoSelectorConfig.set(key, next);
+      normalized += 1;
+    }
+  }
+
+  return {
+    profileKey,
+    horizon: horizon || "all",
+    normalized,
+    generatedAt: nowIso(),
+  };
+}
+
+export function getAutoSelectorIntegrityTrend(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing";
+  windowHours?: number;
+}): AutoSelectorIntegrityTrend {
+  const store = getStore();
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const horizon = input?.horizon;
+  const windowHours = Math.max(6, Math.min(72, Math.floor(input?.windowHours ?? 24)));
+
+  const now = Date.now();
+  const hourMs = 60 * 60 * 1000;
+  const fromMs = now - windowHours * hourMs;
+
+  const buckets = new Map<number, {
+    switchEvents: number;
+    highImpactEvents: number;
+    overrideEvents: number;
+  }>();
+
+  for (let i = 0; i < windowHours; i += 1) {
+    const bucketStart = fromMs + i * hourMs;
+    const normalizedBucket = Math.floor(bucketStart / hourMs) * hourMs;
+    buckets.set(normalizedBucket, {
+      switchEvents: 0,
+      highImpactEvents: 0,
+      overrideEvents: 0,
+    });
+  }
+
+  const rows = store.autoSwitchEvents
+    .filter((row) => row.profileKey === profileKey)
+    .filter((row) => (horizon ? row.horizon === horizon : true));
+
+  for (const row of rows) {
+    const occurredAtMs = Date.parse(row.occurredAt);
+    if (!Number.isFinite(occurredAtMs) || occurredAtMs < fromMs || occurredAtMs > now) {
+      continue;
+    }
+    const bucketStart = Math.floor(occurredAtMs / hourMs) * hourMs;
+    const bucket = buckets.get(bucketStart);
+    if (!bucket) continue;
+
+    bucket.switchEvents += 1;
+
+    const isHighImpact = row.decision === "switch"
+      || row.decision === "override_set"
+      || row.decision === "override_clear"
+      || row.decision === "override_expire";
+    if (isHighImpact) {
+      bucket.highImpactEvents += 1;
+    }
+
+    if (row.decision === "override_set" || row.decision === "override_clear" || row.decision === "override_expire") {
+      bucket.overrideEvents += 1;
+    }
+  }
+
+  const points = Array.from(buckets.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([bucketStart, bucket]) => {
+      const score = Math.max(0, 100 - bucket.switchEvents * 2 - bucket.highImpactEvents * 4 - bucket.overrideEvents * 2);
+      const status: AutoSelectorIntegrityTrendPoint["status"] = score >= 85
+        ? "healthy"
+        : score >= 65
+          ? "watch"
+          : "critical";
+      return {
+        bucketStart: new Date(bucketStart).toISOString(),
+        switchEvents: bucket.switchEvents,
+        highImpactEvents: bucket.highImpactEvents,
+        overrideEvents: bucket.overrideEvents,
+        score,
+        status,
+      };
+    });
+
+  return {
+    profileKey,
+    horizon: horizon || "all",
+    windowHours,
+    generatedAt: nowIso(),
+    points,
+  };
+}
+
+export function runAutoSelectorAutoRemediation(input?: {
+  profileKey?: string;
+  horizon?: "scalp" | "intraday" | "swing";
+}): AutoSelectorAutoRemediation {
+  const profileKey = normalizePolicyProfileKey(input?.profileKey || "default");
+  const horizon = input?.horizon;
+
+  const cleanup = cleanupExpiredRecommendationOverrides({ profileKey });
+  const reset = resetAutoPolicySelector({
+    profileKey,
+    horizon,
+    clearEvents: false,
+  });
+  const normalized = normalizeAutoSelectorConfigs({
+    profileKey,
+    horizon,
+  });
+  const integrity = getAutoSelectorIntegrityReport({
+    profileKey,
+    horizon,
+  });
+
+  return {
+    ok: true,
+    profileKey,
+    horizon: horizon || "all",
+    generatedAt: nowIso(),
+    actions: {
+      expiredOverridesRemoved: cleanup.removed,
+      selectorStatesCleared: reset.clearedStates,
+      configsNormalized: normalized.normalized,
+    },
+    integrity,
   };
 }
