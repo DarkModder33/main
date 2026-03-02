@@ -59,6 +59,9 @@ export interface ExperimentRampEvent {
   experiment: ExperimentName;
   previousRollout: number;
   nextRollout: number;
+  stepSize: number;
+  stride: number;
+  profile: ExperimentPolicyProfile;
   recommendation: ExperimentDecisionSummary["recommendation"];
   confidence: ExperimentDecisionSummary["confidence"];
   rationale: string;
@@ -347,6 +350,9 @@ function readRampLog(): ExperimentRampEvent[] {
         typeof item.experiment === "string" &&
         typeof item.previousRollout === "number" &&
         typeof item.nextRollout === "number" &&
+        typeof item.stepSize === "number" &&
+        typeof item.stride === "number" &&
+        typeof item.profile === "string" &&
         typeof item.recommendation === "string" &&
         typeof item.confidence === "string" &&
         typeof item.rationale === "string" &&
@@ -765,6 +771,112 @@ function getPreviousRampTarget(current: number): number | null {
     }
   }
   return null;
+}
+
+function getRampIndex(current: number): number {
+  return RAMP_STEPS.findIndex((step) => step === current);
+}
+
+function getRampTargetByStride(
+  current: number,
+  direction: "up" | "down",
+  stride: number,
+): number | null {
+  const currentIndex = getRampIndex(current);
+  if (currentIndex < 0) {
+    return null;
+  }
+
+  const moveBy = Math.max(1, Math.round(stride));
+  const nextIndex =
+    direction === "up"
+      ? Math.min(RAMP_STEPS.length - 1, currentIndex + moveBy)
+      : Math.max(0, currentIndex - moveBy);
+
+  if (nextIndex === currentIndex) {
+    return null;
+  }
+
+  return RAMP_STEPS[nextIndex] ?? null;
+}
+
+function resolveRampStride(
+  decision: ExperimentDecisionSummary,
+  profile: ExperimentPolicyProfile,
+  regime: ExperimentPolicyRegimeState | null,
+  adaptive: ExperimentPolicyAdaptiveState | null,
+): {
+  stride: number;
+  rationale: string;
+} {
+  let score = 1;
+  const reasons: string[] = ["base stride 1"];
+
+  if (decision.confidence === "high") {
+    score += 0.75;
+    reasons.push("high confidence");
+  } else if (decision.confidence === "medium") {
+    score += 0.35;
+    reasons.push("medium confidence");
+  }
+
+  const z = Math.abs(decision.zScore);
+  if (z >= 3) {
+    score += 0.55;
+    reasons.push("very strong z-score");
+  } else if (z >= 2.2) {
+    score += 0.25;
+    reasons.push("strong z-score");
+  }
+
+  const absDelta = Math.abs(decision.deltaCvrPoints);
+  if (absDelta >= 3) {
+    score += 0.4;
+    reasons.push("large CVR delta");
+  } else if (absDelta < 1.2) {
+    score -= 0.2;
+    reasons.push("small CVR delta");
+  }
+
+  if (profile === "aggressive") {
+    score += 0.3;
+    reasons.push("aggressive profile");
+  } else if (profile === "conservative") {
+    score -= 0.3;
+    reasons.push("conservative profile");
+  }
+
+  if (regime) {
+    if (regime.smoothedCoverage >= 0.72) {
+      score += 0.3;
+      reasons.push("high regime coverage");
+    } else if (regime.smoothedCoverage <= 0.5) {
+      score -= 0.25;
+      reasons.push("limited regime coverage");
+    }
+
+    if (regime.smoothedAbsDeltaCvrPoints >= 3.2) {
+      score += 0.3;
+      reasons.push("strong regime signal");
+    }
+  }
+
+  if (getExperimentPolicyAdaptiveEnabled() && adaptive) {
+    if (adaptive.sensitivity >= 1.08) {
+      score += 0.2;
+      reasons.push("adaptive sensitivity boost");
+    }
+    if (adaptive.stability >= 1.18) {
+      score -= 0.2;
+      reasons.push("adaptive stability brake");
+    }
+  }
+
+  const stride = Math.max(1, Math.min(3, Math.round(score)));
+  return {
+    stride,
+    rationale: `Ramp stride ${stride} (${reasons.join(", ")}).`,
+  };
 }
 
 function computeConversionRate(entry?: ExperimentRollupEntry): number {
@@ -1640,6 +1752,8 @@ export function runExperimentRampAutopilot(
   const now = Date.now();
   const meta = readRampMeta();
   const actions: ExperimentRampEvent[] = [];
+  const regime = getExperimentPolicyRegimeState();
+  const adaptive = getExperimentPolicyAdaptiveState();
 
   EXPERIMENT_NAMES.forEach((experiment) => {
     const rolloutTarget = getExperimentRolloutTarget(experiment);
@@ -1656,12 +1770,17 @@ export function runExperimentRampAutopilot(
     }
 
     let nextRollout: number | null = null;
+    let rampStride = 1;
+    let rampStrideRationale = "Ramp stride 1 (default).";
 
     if (
       decision.recommendation === "promote_accelerated" &&
       (decision.confidence === "medium" || decision.confidence === "high")
     ) {
-      nextRollout = getNextRampTarget(rolloutTarget);
+      const strideDecision = resolveRampStride(decision, profile, regime, adaptive);
+      rampStride = strideDecision.stride;
+      rampStrideRationale = strideDecision.rationale;
+      nextRollout = getRampTargetByStride(rolloutTarget, "up", rampStride) ?? getNextRampTarget(rolloutTarget);
     }
 
     if (
@@ -1669,7 +1788,11 @@ export function runExperimentRampAutopilot(
       (decision.confidence === "medium" || decision.confidence === "high") &&
       nextRollout === null
     ) {
-      const previousTarget = getPreviousRampTarget(rolloutTarget);
+      const strideDecision = resolveRampStride(decision, profile, regime, adaptive);
+      rampStride = Math.max(1, Math.min(2, strideDecision.stride));
+      rampStrideRationale = `${strideDecision.rationale} Rollback stride capped for safety.`;
+      const previousTarget =
+        getRampTargetByStride(rolloutTarget, "down", rampStride) ?? getPreviousRampTarget(rolloutTarget);
       if (previousTarget !== null && previousTarget >= 25) {
         nextRollout = previousTarget;
       }
@@ -1686,14 +1809,18 @@ export function runExperimentRampAutopilot(
 
     const timestamp = new Date().toISOString();
     meta[experiment] = timestamp;
+    const stepSize = Math.abs(nextRollout - rolloutTarget);
 
     const rampEvent: ExperimentRampEvent = {
       experiment,
       previousRollout: rolloutTarget,
       nextRollout,
+      stepSize,
+      stride: rampStride,
+      profile,
       recommendation: decision.recommendation,
       confidence: decision.confidence,
-      rationale: decision.rationale,
+      rationale: `${decision.rationale} ${rampStrideRationale}`,
       timestamp,
     };
 

@@ -691,6 +691,10 @@ export function ExperimentReadoutPanel() {
                     <span>{entry.experiment}</span>
                     <span>{entry.previousRollout}% → {entry.nextRollout}%</span>
                   </div>
+                  <div className="text-[10px] text-zinc-500">
+                    step {entry.stepSize}% · stride {entry.stride} · {entry.profile}
+                  </div>
+                  <div className="text-[10px] text-zinc-500">{entry.rationale}</div>
                   <div className="text-[10px] text-zinc-500">{new Date(entry.timestamp).toLocaleTimeString()}</div>
                 </div>
               ))
