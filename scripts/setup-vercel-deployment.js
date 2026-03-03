@@ -36,7 +36,8 @@ function logSection(title) {
 
 class VercelDeploymentAutomation {
   constructor() {
-    this.projectId = 'prj_LDmkGrAq06c1DJcH98BeN6GYhZpW';
+    this.vercelScope = process.env.VERCEL_SCOPE || 'hackavelliz';
+    this.vercelProjectName = process.env.VERCEL_PROJECT_NAME || 'main';
     this.cwd = process.cwd();
   }
 
@@ -179,7 +180,7 @@ echo "3. Monitor logs: vercel logs"
         title: 'Configure Vercel environment',
         actions: [
           'Go to: https://vercel.com/dashboard',
-          'Select project: tradehax',
+          `Select project: ${this.vercelScope}/${this.vercelProjectName}`,
           'Settings → Environment Variables',
           'Add: HF_API_TOKEN (secret, keep private)',
           'Add: HF_MODEL_ID = mistralai/Mistral-7B-Instruct-v0.1',

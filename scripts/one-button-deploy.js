@@ -11,6 +11,8 @@ const skipSocialCheck = args.has("--skip-social-check");
 const dryRun = args.has("--dry-run");
 const strictSocialCheck = args.has("--strict-social-check");
 const strictDnsCheck = args.has("--strict-dns");
+const vercelScope = process.env.VERCEL_SCOPE || "hackavelliz";
+const vercelProjectName = process.env.VERCEL_PROJECT_NAME || "main";
 
 const npmExecPath = process.env.npm_execpath;
 const nodeExecPath = process.execPath;
@@ -36,30 +38,47 @@ function runNpm(label, npmArgs) {
   run(label, npmCmd, npmArgs);
 }
 
+function runVercelCli(label, vercelArgs) {
+  const npmArgs = ["exec", "--yes", "vercel@latest", "--", ...vercelArgs];
+  if (npmExecPath) {
+    run(label, nodeExecPath, [npmExecPath, ...npmArgs]);
+    return;
+  }
+  run(label, npmCmd, npmArgs);
+}
+
+function ensureVercelProjectLink() {
+  const linkArgs = [
+    "link",
+    "--yes",
+    "--scope",
+    vercelScope,
+    "--project",
+    vercelProjectName,
+  ];
+
+  const token = process.env.VERCEL_TOKEN;
+  if (token) {
+    linkArgs.push("--token", token);
+  }
+
+  runVercelCli(`Link Vercel project (${vercelScope}/${vercelProjectName})`, linkArgs);
+}
+
 function runDeploy() {
-  const deployArgs = ["exec", "--yes", "vercel@latest", "--"];
+  const deployArgs = ["deploy"];
   if (isProd) {
     deployArgs.push("--prod");
   }
-  deployArgs.push("--yes");
+  deployArgs.push("--yes", "--scope", vercelScope);
 
   const token = process.env.VERCEL_TOKEN;
   if (token) {
     deployArgs.push("--token", token);
   }
 
-  if (npmExecPath) {
-    run(
-      isProd ? "Deploy to Vercel production" : "Deploy to Vercel preview",
-      nodeExecPath,
-      [npmExecPath, ...deployArgs],
-    );
-    return;
-  }
-
-  run(
+  runVercelCli(
     isProd ? "Deploy to Vercel production" : "Deploy to Vercel preview",
-    npmCmd,
     deployArgs,
   );
 }
@@ -98,6 +117,7 @@ function runDeploy() {
   if (dryRun) {
     process.stdout.write("\nℹ️  Dry run enabled. Skipping Vercel deployment call.\n");
   } else {
+    ensureVercelProjectLink();
     runDeploy();
   }
 
