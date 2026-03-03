@@ -75,7 +75,10 @@
     "ide:sync:deploy-ready": "node ./scripts/ide-sync-pipeline.js --install --build --namecheap --strict-namecheap",
     "deploy:launch": "node ./scripts/launch-website-deploy.js",
     "deploy:launch:dry-run": "node ./scripts/launch-website-deploy.js --dry-run",
-    "deploy:launch:no-watch": "node ./scripts/launch-website-deploy.js --no-watch"
+    "deploy:launch:no-watch": "node ./scripts/launch-website-deploy.js --no-watch",
+    "api:contracts": "node ./scripts/verify-api-contracts.js",
+    "api:handshake": "node ./scripts/api-handshake-smoke.js",
+    "api:verify": "npm run api:contracts && npm run api:handshake"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
