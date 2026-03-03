@@ -597,7 +597,7 @@ export function listCreditPacks() {
 }
 
 /**
- * Web3 Token Integration (Solana)
+ * Web3 Token Integration
  * Deducts $HAX tokens for high-performance requests.
  */
 export async function deductTokens(walletAddress: string, amount: number) {
@@ -609,7 +609,7 @@ export async function deductTokens(walletAddress: string, amount: number) {
   // 3. Return TX for signing
 
   return {
-    txId: "0x_REAL_SOLANA_TX_ID_PROTOTYPE",
+    txId: "0x_NETWORK_TX_ID_PROTOTYPE",
     mint: HAX_TOKEN_CONFIG.MINT_ADDRESS,
     status: "pending_signature"
   };

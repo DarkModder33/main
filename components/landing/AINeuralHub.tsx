@@ -45,7 +45,7 @@ import {
     getLocalNeuralVault,
 } from "@/lib/ai/site-neural-memory";
 import { HAX_TOKEN_CONFIG } from "@/lib/trading/hax-token";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@/lib/wallet-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Bookmark,
@@ -216,7 +216,7 @@ interface SocialOpsSnapshot {
 }
 
 const FREE_USAGE_LIMIT = 3;
-const PAYMENT_AMOUNT_SOL = 0.05;
+const PAYMENT_AMOUNT_NETWORK = 0.05;
 const PAYMENT_AMOUNT_HAX = 100;
 const TREASURY_WALLET = "6v6iK8kS1DqXhP9P8s7W6zX5B9Q4p7L3k2j1i0h9g8f7";
 
@@ -563,11 +563,13 @@ export const AINeuralHub = () => {
   const [datasetNotes, setDatasetNotes] = useState("");
   const [behaviorLabel, setBehaviorLabel] = useState("early-session confidence pattern");
   const [behaviorObservation, setBehaviorObservation] = useState("");
-  const [tickerBehaviorSymbol, setTickerBehaviorSymbol] = useState("SOL");
+  const [tickerBehaviorSymbol, setTickerBehaviorSymbol] = useState("THX");
   const [tickerBehaviorPattern, setTickerBehaviorPattern] = useState("");
   const [learningEnvironmentName, setLearningEnvironmentName] = useState("macro event drill");
   const [learningEnvironmentHypothesis, setLearningEnvironmentHypothesis] = useState("");
-  const { connected, publicKey, sendTransaction } = useWallet();
+  const { status, address } = useWallet();
+  const connected = status === "CONNECTED";
+  const publicKey = address;
   const { neuralVaultCount, refreshNeuralVaultCount } = useNeuralVaultCount(getLocalNeuralVault);
 
   useCorePreferences({
@@ -739,7 +741,7 @@ export const AINeuralHub = () => {
     if (!connected || !publicKey) return;
     setIsPaying(true);
     try {
-      // Logic for actual SOL transfer would go here
+      // Logic for actual network transfer would go here
       // For now we mock success after a delay to show UI flow
       await new Promise(r => setTimeout(r, 2000));
 
@@ -1929,7 +1931,7 @@ export const AINeuralHub = () => {
                     </div>
                     <h3 className="text-3xl font-black text-white mb-4 italic uppercase tracking-tighter">Neural Limit Reached</h3>
                     <p className="text-zinc-400 max-w-sm mb-10 text-sm leading-relaxed">
-                      Your 3 free neural sessions have been consumed. To continue accessing uncensored AI models and real-time market pickers, settle a micro-transaction of <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_HAX} $HAX</span> or <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_SOL} SOL</span>.
+                      Your 3 free neural sessions have been consumed. To continue accessing uncensored AI models and real-time market pickers, settle a micro-transaction of <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_HAX} $HAX</span> or <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_NETWORK} network gas credits</span>.
                     </p>
                     <div className="flex flex-col gap-4 w-full max-w-md">
                       {!connected ? (
@@ -1946,7 +1948,7 @@ export const AINeuralHub = () => {
                             {isPaying ? (
                               <>
                                 <RotateCw className="w-4 h-4 animate-spin" />
-                                Verifying_On_Chain...
+                                Verifying_Network_Settlement...
                               </>
                             ) : (
                               <>
@@ -1961,17 +1963,17 @@ export const AINeuralHub = () => {
                             className="w-full px-8 py-4 bg-zinc-900 border border-white/10 text-white font-black rounded-2xl text-xs hover:border-cyan-500/50 transition-all uppercase italic flex items-center justify-center gap-2"
                           >
                             <Zap className="w-4 h-4" />
-                            Alternative:_{PAYMENT_AMOUNT_SOL}_SOL
+                            Alternative:_{PAYMENT_AMOUNT_NETWORK}_Gas_Credits
                           </button>
                         </>
                       )}
                       <a
-                        href={`https://jup.ag/swap/SOL-${HAX_TOKEN_CONFIG.SYMBOL}`}
+                        href="/pricing"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black rounded-2xl text-[10px] hover:bg-emerald-500/20 transition-all uppercase italic text-center"
                       >
-                        Buy_$HAX_on_DEX
+                        Get_$HAX_Access
                       </a>
                     </div>
                     <p className="mt-8 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Secure_SSL_Encrypted_Handshake</p>

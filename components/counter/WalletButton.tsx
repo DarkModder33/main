@@ -6,54 +6,40 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useWallet } from "@/lib/wallet-provider";
 
 import React from "react";
-import dynamic from "next/dynamic";
-
-// Nextjs hydration error fix
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
-    ),
-  {
-    ssr: false,
-    loading: () => {
-      return (
-        <div
-          className="bg-black border border-gray-800 rounded-md animate-pulse flex items-center"
-          style={{
-            width: "173.47px",
-            height: "48px",
-            padding: "0 12px",
-            gap: "8px",
-          }}
-        >
-          <div
-            className="rounded-full bg-green-400/30"
-            style={{ width: "24px", height: "24px" }}
-          ></div>
-          <div
-            className="h-4 bg-white/10 rounded-sm"
-            style={{ width: "100px" }}
-          ></div>
-        </div>
-      );
-    },
-  }
-);
 
 export function WalletButton() {
+  const { status, address, connect, disconnect } = useWallet();
+
+  const button =
+    status === "CONNECTED" ? (
+      <button
+        type="button"
+        onClick={disconnect}
+        className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200"
+      >
+        {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Connected"}
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={connect}
+        className="rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100"
+      >
+        {status === "CONNECTING" ? "Connecting..." : "Connect Wallet"}
+      </button>
+    );
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="inline-block">
-            <WalletMultiButton />
-          </div>
+          <div className="inline-block">{button}</div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Devnet Only</p>
+          <p>TradeHax wallet gateway</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

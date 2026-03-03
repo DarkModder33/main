@@ -220,13 +220,13 @@ export const COMPOSER_QUICK_ACTIONS: Array<{
 ];
 
 export const PREDICTIVE_QUERY_SNIPPETS = [
-  "Forecast SOL trend for next 24h with bullish and bearish scenarios.",
+  "Forecast core L1 trend for next 24h with bullish and bearish scenarios.",
   "Build a risk-managed BTC scalp checklist with invalidation rules.",
   "Compare portfolio drawdown risk if market drops 8% this week.",
   "Generate a concise macro watchlist with priority signals.",
   "Simulate a 3-asset rebalance using low-volatility allocation.",
   "Create entry, stop-loss, and take-profit ranges for ETH swing setup.",
-  "Summarize social sentiment impact on top 5 Solana ecosystem tokens.",
+  "Summarize social sentiment impact on top 5 ecosystem tokens.",
   "Create a daily trading journal template with risk scoring.",
 ];
 
@@ -235,7 +235,7 @@ export const COMMUNITY_FEED: CommunityPost[] = [
     id: "feed-1",
     handle: "@quant_helix",
     channel: "Market Pulse",
-    content: "SOL volume breakout forming. Watching 4H structure + funding divergence before entries.",
+    content: "L1 volume breakout forming. Watching 4H structure + funding divergence before entries.",
     timeAgo: "2m",
     likes: 41,
     replies: 9,

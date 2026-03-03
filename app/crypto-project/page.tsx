@@ -13,9 +13,9 @@ import {
 export const metadata = createPageMetadata({
   title: "Crypto and Web3 Project | TradeHax AI",
   description:
-    "Explore TradeHax AI Web3 progress, including wallet onboarding, NFT utility planning, and product roadmap updates.",
+    "Explore TradeHax AI Web3 progress, including wallet onboarding, NFT utility planning, and product roadmap updates across chain-agnostic infrastructure.",
   path: "/crypto-project",
-  keywords: ["web3 project", "solana onboarding", "nft utility roadmap", "crypto product updates"],
+  keywords: ["web3 project", "wallet onboarding", "nft utility roadmap", "crypto product updates"],
 });
 
 const features = [
@@ -46,7 +46,7 @@ export default function CryptoProjectPage() {
     <div className="min-h-screen">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
-          <span className="theme-kicker mb-3">Solana Project Hub</span>
+          <span className="theme-kicker mb-3">Web3 Project Hub</span>
           <h1 className="theme-title text-3xl sm:text-4xl font-bold mb-4">
             Hyperborea NFT and Utility Roadmap
           </h1>

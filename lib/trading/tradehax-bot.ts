@@ -3,8 +3,9 @@
  * Solana-based automated trading with AI signals
  */
 
-import { Connection, PublicKey, Keypair } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+export interface TradingConnection {
+  endpoint?: string;
+}
 
 export interface TradeSignal {
   symbol: string;
@@ -31,9 +32,9 @@ export interface TradeBot {
 }
 
 export interface BotConfig {
-  connection: Connection;
-  wallet: Keypair;
-  program?: Program;
+  connection: TradingConnection;
+  wallet: { address: string };
+  program?: unknown;
   slippageTolerance: number; // 0.5-5%
   gasLimit?: number;
   maxTradeSize: number; // in SOL

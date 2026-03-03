@@ -9,6 +9,7 @@
     "start:cpanel": "node ./server.js",
     "lint": "eslint . --ignore-pattern next-env.d.ts",
     "lint:fix": "eslint . --fix --ignore-pattern next-env.d.ts",
+    "pretype-check": "rimraf .next/types .next/dev/types",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "clean": "rimraf .next out node_modules/.cache",

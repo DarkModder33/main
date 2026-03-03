@@ -3,12 +3,16 @@
  * Supports: Raydium, Orca, Marinade
  */
 
-import { Connection, PublicKey } from "@solana/web3.js";
+export type AssetId = string;
+
+export interface DexConnection {
+  endpoint?: string;
+}
 
 export interface DexPool {
-  address: PublicKey;
-  tokenA: PublicKey;
-  tokenB: PublicKey;
+  address: AssetId;
+  tokenA: AssetId;
+  tokenB: AssetId;
   reserveA: number;
   reserveB: number;
   fee: number;
@@ -23,15 +27,11 @@ export interface SwapQuote {
 }
 
 class SolanaDexIntegration {
-  private connection: Connection;
-  private readonly RAYDIUM_PROGRAM_ID = new PublicKey(
-    "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1xf",
-  );
-  private readonly ORCA_PROGRAM_ID = new PublicKey(
-    "DjVE6JNiSrG3jLMD1QHCLu9DGavkWhy2JRiNrRkMmJ2j",
-  );
+  private connection: DexConnection;
+  private readonly RAYDIUM_PROGRAM_ID = "RAYDIUM";
+  private readonly ORCA_PROGRAM_ID = "ORCA";
 
-  constructor(connection: Connection) {
+  constructor(connection: DexConnection) {
     this.connection = connection;
   }
 
@@ -39,14 +39,14 @@ class SolanaDexIntegration {
    * Get price from Raydium pool
    */
   async getRaydiumPrice(
-    tokenAMint: PublicKey,
-    tokenBMint: PublicKey,
+    tokenAMint: AssetId,
+    tokenBMint: AssetId,
   ): Promise<number> {
     try {
       // TODO: Query Raydium pool for price
       // This requires reading pool data from on-chain
       console.log(
-        `[Raydium] Getting price: ${tokenAMint.toString()} / ${tokenBMint.toString()}`,
+        `[Raydium] Getting price: ${tokenAMint} / ${tokenBMint}`,
       );
       return 0; // Placeholder
     } catch (error) {
@@ -59,13 +59,13 @@ class SolanaDexIntegration {
    * Get price from Orca pool
    */
   async getOrcaPrice(
-    tokenAMint: PublicKey,
-    tokenBMint: PublicKey,
+    tokenAMint: AssetId,
+    tokenBMint: AssetId,
   ): Promise<number> {
     try {
       // TODO: Query Orca pool for price
       console.log(
-        `[Orca] Getting price: ${tokenAMint.toString()} / ${tokenBMint.toString()}`,
+        `[Orca] Getting price: ${tokenAMint} / ${tokenBMint}`,
       );
       return 0; // Placeholder
     } catch (error) {
@@ -79,12 +79,12 @@ class SolanaDexIntegration {
    * This handles the initialization of a new market and pool for $HAX
    */
   async initializeLiquidityPool(
-    tokenAMint: PublicKey,
-    tokenBMint: PublicKey,
+    tokenAMint: AssetId,
+    tokenBMint: AssetId,
     initialLiquiditySOL: number
   ): Promise<{ poolAddress: string; txId: string }> {
     try {
-      console.log(`[DEX] Initializing Raydium Pool for ${tokenAMint.toString()}`);
+      console.log(`[DEX] Initializing liquidity pool for ${tokenAMint}`);
       
       // 1. Create OpenBook Market (required for Raydium V4)
       // 2. Initialize Liquidity Pool
@@ -108,7 +108,7 @@ class SolanaDexIntegration {
   /**
    * Get best price across all DEXs
    */
-  async getBestPrice(tokenAMint: PublicKey, tokenBMint: PublicKey): Promise<{
+  async getBestPrice(tokenAMint: AssetId, tokenBMint: AssetId): Promise<{
     price: number;
     source: "raydium" | "orca" | "marinade";
   }> {
@@ -128,8 +128,8 @@ class SolanaDexIntegration {
    * Get swap quote
    */
   async getSwapQuote(
-    inputMint: PublicKey,
-    outputMint: PublicKey,
+    inputMint: AssetId,
+    outputMint: AssetId,
     inputAmount: number,
   ): Promise<SwapQuote> {
     try {
@@ -154,15 +154,15 @@ class SolanaDexIntegration {
    * Execute swap on DEX
    */
   async executeSwap(
-    inputMint: PublicKey,
-    outputMint: PublicKey,
+    inputMint: AssetId,
+    outputMint: AssetId,
     inputAmount: number,
     minOutputAmount: number,
   ): Promise<string> {
     try {
       // TODO: Build and send swap transaction
       console.log(
-        `[DEX] Executing swap: ${inputAmount} ${inputMint.toString()} -> ${outputMint.toString()}`,
+        `[DEX] Executing swap: ${inputAmount} ${inputMint} -> ${outputMint}`,
       );
 
       // Placeholder: would return transaction signature

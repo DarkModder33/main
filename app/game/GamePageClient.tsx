@@ -18,6 +18,7 @@ import {
   stripSensitiveLeaderboardFields,
   UTILITY_POINTS_PER_TOKEN_UNIT,
 } from "@/lib/game/session-utils";
+import { useWallet } from "@/lib/wallet-provider";
 import type {
     ArtifactCollectionEvent,
     GameRunSummary,
@@ -25,7 +26,6 @@ import type {
     HyperboreaLevelDefinition,
 } from "@/lib/game/level-types";
 import { isHyperboreaLevelDefinition } from "@/lib/game/level-types";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Gamepad2,
@@ -81,9 +81,10 @@ export default function GamePage() {
   const [showControlCoach, setShowControlCoach] = useState(false);
   const [playerAlias, setPlayerAlias] = useState("Guest");
   const pressedControlsRef = useRef<Set<Exclude<ControlAction, "use">>>(new Set());
-  const { connected: walletConnected, publicKey } = useWallet();
+  const { status, address } = useWallet();
+  const walletConnected = status === "CONNECTED";
   const { data: session } = useSession();
-  const walletAddress = publicKey?.toBase58();
+  const walletAddress = address ?? undefined;
 
   const topArtifacts = useMemo(() => artifactFeed.slice(0, 3), [artifactFeed]);
   const oauthProvider = useMemo(() => {

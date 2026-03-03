@@ -1,80 +1,111 @@
 "use client";
 
-import * as anchor from "@coral-xyz/anchor";
+import { useWallet } from "@/lib/wallet-provider";
 
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import {
-  useAnchorWallet,
-  useConnection,
-  useWallet,
-} from "@solana/wallet-adapter-react";
+type CounterAccount = { count: number };
+type AccountChangeCallback = (accountInfo: { data: Uint8Array }) => void;
 
-import type { Counter } from "../../../anchor-idl/idl";
-import Idl from "../../../anchor-idl/idl.json";
-import { useEffect } from "react";
+const globalCounterState = (globalThis as typeof globalThis & {
+  __TRADEHAX_COUNTER__?: {
+    value: number;
+    listeners: Map<number, AccountChangeCallback>;
+    nextListenerId: number;
+  };
+}).__TRADEHAX_COUNTER__ ?? {
+  value: 0,
+  listeners: new Map<number, AccountChangeCallback>(),
+  nextListenerId: 1,
+};
 
-interface UseProgramReturn {
-  program: anchor.Program<Counter>;
-  counterAddress: PublicKey;
-  publicKey: PublicKey | null;
-  connected: boolean;
-  connection: anchor.web3.Connection;
+(globalThis as typeof globalThis & { __TRADEHAX_COUNTER__?: typeof globalCounterState }).__TRADEHAX_COUNTER__ = globalCounterState;
+
+function encodeCounterValue(value: number): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify({ count: value }));
 }
 
-/**
- * A hook that provides access to the Solana program, counter address,
- * connected wallet, and connection.
- * This hook handles the basic setup for the program.
- */
-export function useProgram(): UseProgramReturn {
-  const { publicKey, connected } = useWallet();
-  const { connection } = useConnection();
-  const wallet = useAnchorWallet();
-
-  // Program initialization - conditionally create with provider if wallet connected
-  let program;
-  if (wallet) {
-    // Create a provider with the wallet for transaction signing
-    const provider = new anchor.AnchorProvider(connection, wallet, {
-      preflightCommitment: "confirmed",
-    });
-    program = new anchor.Program<Counter>(Idl as anchor.Idl, provider);
-  } else {
-    // Create program with just connection for read-only operations
-    program = new anchor.Program<Counter>(Idl as anchor.Idl, { connection });
+function notifyCounterListeners() {
+  const payload = { data: encodeCounterValue(globalCounterState.value) };
+  for (const callback of globalCounterState.listeners.values()) {
+    callback(payload);
   }
+}
 
-  // Get the counter account address
-  const counterAddress = PublicKey.findProgramAddressSync(
-    [Buffer.from("counter")],
-    new PublicKey(Idl.address)
-  )[0];
+function createProgramApi() {
+  return {
+    methods: {
+      increment: () => ({
+        accounts: (_accounts?: unknown) => ({
+          rpc: async () => {
+            globalCounterState.value += 1;
+            notifyCounterListeners();
+            return `tx_${Date.now().toString(36)}`;
+          },
+        }),
+      }),
+      decrement: () => ({
+        accounts: (_accounts?: unknown) => ({
+          rpc: async () => {
+            globalCounterState.value -= 1;
+            notifyCounterListeners();
+            return `tx_${Date.now().toString(36)}`;
+          },
+        }),
+      }),
+    },
+    account: {
+      counter: {
+        fetch: async (_counterAddress?: unknown) => ({ count: globalCounterState.value }),
+      },
+    },
+    coder: {
+      accounts: {
+        decode: (_name: string, data: Uint8Array): CounterAccount => {
+          try {
+            const decoded = JSON.parse(new TextDecoder().decode(data)) as CounterAccount;
+            return { count: Number(decoded.count) || 0 };
+          } catch {
+            return { count: globalCounterState.value };
+          }
+        },
+      },
+    },
+  };
+}
 
-  // Fund connected wallet with devnet SOL
-  useEffect(() => {
-    const airdropDevnetSol = async () => {
-      if (!publicKey) return;
+function createConnectionApi() {
+  return {
+    onAccountChange: (
+      _counterAddress: unknown,
+      callback: AccountChangeCallback,
+      _options?: unknown,
+    ) => {
+      const id = globalCounterState.nextListenerId;
+      globalCounterState.nextListenerId += 1;
+      globalCounterState.listeners.set(id, callback);
+      return id;
+    },
+    removeAccountChangeListener: async (id: number) => {
+      globalCounterState.listeners.delete(id);
+    },
+  };
+}
 
-      try {
-        const balance = await connection.getBalance(publicKey);
-        const solBalance = balance / LAMPORTS_PER_SOL;
+interface UseProgramReturn {
+  program: ReturnType<typeof createProgramApi>;
+  counterAddress: { toBase58: () => string };
+  publicKey: { toBase58: () => string } | null;
+  connected: boolean;
+  connection: ReturnType<typeof createConnectionApi>;
+}
 
-        if (solBalance < 1) {
-          await connection.requestAirdrop(publicKey, LAMPORTS_PER_SOL);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    airdropDevnetSol();
-  }, [publicKey, connection]);
+export function useProgram(): UseProgramReturn {
+  const { status, address } = useWallet();
 
   return {
-    program,
-    counterAddress,
-    publicKey,
-    connected,
-    connection,
+    program: createProgramApi(),
+    counterAddress: { toBase58: () => "TRADEHAX_COUNTER" },
+    publicKey: address ? { toBase58: () => address } : null,
+    connected: status === "CONNECTED",
+    connection: createConnectionApi(),
   };
 }

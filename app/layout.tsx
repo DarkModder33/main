@@ -39,16 +39,16 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TradeHax AI | Digital Services, Repair, Music Lessons, and Web3",
-  description: "Professional services for websites, apps, device repair, music lessons, and Web3 consulting for local and remote clients.",
+  title: "TradeHax AI | Digital Services, Repair, Music Lessons, and AI Finance",
+  description: "Professional services for websites, apps, device repair, music lessons, and AI finance consulting for local and remote clients.",
   keywords: [
     "web development philadelphia",
     "app development services",
     "computer repair philadelphia",
     "cell phone repair south jersey",
     "online guitar lessons",
-    "solana development services",
-    "blockchain consulting",
+    "l2 development services",
+    "token infrastructure consulting",
     "website design for small business",
     "device repair",
     "guitar lessons",
@@ -64,8 +64,8 @@ export const metadata: Metadata = {
     canonical: siteConfig.primarySiteUrl,
   },
   openGraph: {
-    title: "TradeHax AI | Digital Services, Repair, Music Lessons, and Web3",
-    description: "Customer-first services for websites, apps, device repair, music lessons, and Web3 consulting for local and remote clients.",
+    title: "TradeHax AI | Digital Services, Repair, Music Lessons, and AI Finance",
+    description: "Customer-first services for websites, apps, device repair, music lessons, and AI finance consulting for local and remote clients.",
     url: siteConfig.primarySiteUrl,
     siteName: "TradeHax AI",
     locale: "en_US",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "TradeHax AI services for web development, repair, music, and Web3",
+        alt: "TradeHax AI services for web development, repair, music, and AI finance",
       },
     ],
   },
@@ -194,7 +194,7 @@ export default function RootLayout({
               <div className="col-span-1 md:col-span-2">
                 <div className="text-2xl font-black tracking-tighter mb-4">TRADEHAX</div>
                 <p className="text-zinc-500 text-sm max-w-xs leading-relaxed">
-                  The future of automated trading and decentralized gaming on Solana.
+                  The future of automated trading and decentralized gaming on a chain-agnostic infrastructure.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <a
