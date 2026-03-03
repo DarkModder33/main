@@ -1,6 +1,4 @@
 import { BillingConsole } from "@/components/monetization/BillingConsole";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -15,7 +13,6 @@ export const metadata: Metadata = createPageMetadata({
 export default function BillingPage() {
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Revenue Engine</span>
@@ -27,7 +24,6 @@ export default function BillingPage() {
 
         <BillingConsole />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

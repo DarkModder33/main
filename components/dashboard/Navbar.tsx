@@ -4,14 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { WalletButton } from "@/components/counter/WalletButton";
 import { Menu, X } from "lucide-react";
-import type { NavLink } from "@/types";
+import { dashboardNavLinks } from "@/lib/navigation";
 
-const navLinks: NavLink[] = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/todos", label: "Tasks" },
-  { href: "/dashboard", label: "Analytics" },
-  { href: "/dashboard", label: "Settings" },
-];
+const navLinks = dashboardNavLinks;
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

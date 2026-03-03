@@ -1,0 +1,37 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "tradehax-link-audit",
+          "informationUri": "https://github.com/DarkModder33/main",
+          "rules": [
+            {
+              "id": "broken-internal-link",
+              "name": "Broken Internal Link",
+              "shortDescription": {
+                "text": "Internal link points to a missing route/path."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "missing-anchor-target",
+              "name": "Missing Anchor Target",
+              "shortDescription": {
+                "text": "Anchor link points to an id that does not exist."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            }
+          ]
+        }
+      },
+      "results": []
+    }
+  ]
+}

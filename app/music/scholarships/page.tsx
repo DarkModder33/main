@@ -1,7 +1,5 @@
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, Award, Clock, Coins, Target, Trophy, Users, Vote } from 'lucide-react';
 import Link from 'next/link';
@@ -22,8 +20,6 @@ export const metadata = createPageMetadata({
 export default function ScholarshipsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
         <Link
@@ -213,8 +209,6 @@ export default function ScholarshipsPage() {
           <AdSenseBlock adSlot="scholarships-bottom" adFormat="horizontal" />
         </div>
       </main>
-
-      <ShamrockFooter />
     </div>
   );
 }

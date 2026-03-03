@@ -1,5 +1,3 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { GamesHubClient } from "./GamesHubClient";
 
@@ -14,7 +12,6 @@ export const metadata = createPageMetadata({
 export default function GamesHubPage() {
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Arcade Layer</span>
@@ -25,7 +22,6 @@ export default function GamesHubPage() {
         </section>
         <GamesHubClient />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

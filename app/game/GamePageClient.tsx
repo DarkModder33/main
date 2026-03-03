@@ -7,11 +7,17 @@ import { HyperboreaGame } from "@/components/game/HyperboreaGame";
 import { NFTMintPanel } from "@/components/game/NFTMintPanel";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { PremiumUpgrade } from "@/components/monetization/PremiumUpgrade";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { trackEvent } from "@/lib/analytics";
 import type { LeaderboardEntry, LeaderboardSubmission } from "@/lib/game/leaderboard-types";
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
+import {
+  createSessionId,
+  formatElapsed,
+  LEADERBOARD_STORAGE_KEY,
+  sortLeaderboard,
+  stripSensitiveLeaderboardFields,
+  UTILITY_POINTS_PER_TOKEN_UNIT,
+} from "@/lib/game/session-utils";
 import type {
     ArtifactCollectionEvent,
     GameRunSummary,
@@ -39,36 +45,6 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ControlAction = "forward" | "backward" | "turn_left" | "turn_right" | "use";
-
-const stripSensitiveLeaderboardFields = (entry: LeaderboardEntry): LeaderboardEntry => {
-  const { oauthProvider, oauthUserId, ...rest } = entry;
-  return {
-    ...(rest as LeaderboardEntry),
-    oauthProvider: undefined,
-    oauthUserId: undefined,
-  };
-};
-
-function createSessionId() {
-  return `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-const LEADERBOARD_STORAGE_KEY = "hyperborea_leaderboard_v1";
-const UTILITY_POINTS_PER_TOKEN_UNIT = 25;
-
-function formatElapsed(seconds: number) {
-  const safeSeconds = Math.max(0, Math.floor(seconds));
-  const mins = Math.floor(safeSeconds / 60);
-  const secs = safeSeconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
-function sortLeaderboard(entries: LeaderboardEntry[]) {
-  entries.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime();
-  });
-}
 
 export default function GamePage() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -1396,8 +1372,6 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-12">
@@ -1762,8 +1736,6 @@ export default function GamePage() {
           <AdSenseBlock adSlot="game-bottom" adFormat="horizontal" />
         </div>
       </main>
-
-      <ShamrockFooter />
     </div>
   );
 }

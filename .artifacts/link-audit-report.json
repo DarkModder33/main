@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "generatedAt": "2026-03-02T02:26:17.472Z",
+  "mode": "standard",
+  "changedMode": false,
+  "baseRef": null,
+  "changedFallbackReason": null,
+  "scannedFiles": 306,
+  "indexedRoutes": 49,
+  "totals": {
+    "brokenLinks": 0,
+    "missingAnchors": 0
+  },
+  "brokenLinks": [],
+  "missingAnchors": []
+}

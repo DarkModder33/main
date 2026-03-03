@@ -1,6 +1,4 @@
 import { InvestorAcademyExperience } from "@/components/education/InvestorAcademyExperience";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { investorAcademyModules } from "@/lib/investor-academy/modules";
 import { createPageMetadata } from "@/lib/seo";
 import { ActivitySquare, BarChart3, Radar } from "lucide-react";
@@ -24,7 +22,6 @@ export const metadata = createPageMetadata({
 export default function InvestorAcademyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
         <section className="rounded-2xl border border-[#355070] bg-[#07111f] p-6 sm:p-8">
           <p className="text-xs uppercase tracking-[0.2em] text-cyan-300/80">Web5 Learning Layer</p>
@@ -78,7 +75,6 @@ export default function InvestorAcademyPage() {
 
         <InvestorAcademyExperience modules={investorAcademyModules} />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

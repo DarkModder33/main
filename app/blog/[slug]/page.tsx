@@ -1,5 +1,3 @@
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { AdSenseBlock, InContentAd } from '@/components/monetization/AdSenseBlock';
 import { PremiumBanner } from '@/components/monetization/PremiumUpgrade';
 import { EmailCapture } from '@/components/EmailCapture';
@@ -52,8 +50,6 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
-      
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="mb-12">
           <div className="mb-6">
@@ -111,8 +107,6 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
           </div>
         </div>
       </main>
-
-      <ShamrockFooter />
     </div>
   );
 }

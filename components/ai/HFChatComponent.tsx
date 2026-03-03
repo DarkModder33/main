@@ -52,6 +52,7 @@ import type {
   LlmPresetId,
   Message,
   PipelineMemory,
+  PromptCategory,
   ResponseStyle,
 } from "@/components/ai/hfchat-types";
 import {

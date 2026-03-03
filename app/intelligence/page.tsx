@@ -1,8 +1,6 @@
 import { IntelligenceMetricCard } from "@/components/intelligence/IntelligenceMetricCard";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { IntelligenceRouteCard } from "@/components/intelligence/IntelligenceRouteCard";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { formatCompactUsd } from "@/lib/intelligence/format";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { createPageMetadata } from "@/lib/seo";
@@ -31,7 +29,6 @@ export default async function IntelligenceHubPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <IntelligencePageShell
           kicker="Institutional Terminal"
@@ -131,7 +128,6 @@ export default async function IntelligenceHubPage() {
           </section>
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

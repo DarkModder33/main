@@ -19,9 +19,11 @@ import { PageTransition } from "@/components/ui/PageTransition";
 import { ServiceWorkerCleanup } from "@/components/ui/ServiceWorkerCleanup";
 import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
+import { globalTopNavLinks } from "@/lib/navigation";
 import { getLocalBusinessJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { WalletProvider } from "@/lib/wallet-provider";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -150,20 +152,18 @@ export default function RootLayout({
                     <GlitchText text="TRADEHAX" />
                   </div>
                   <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
-                    <a
-                      href="/ai-hub"
-                      className="rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 py-1 text-cyan-200 hover:bg-cyan-500/25 hover:text-white transition-colors uppercase"
-                    >
-                      AI Hub
-                    </a>
-                    <a href="/about" className="hover:text-white transition-colors uppercase">About</a>
-                    <a href="/music" className="hover:text-white transition-colors uppercase">Music</a>
-                    <a href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</a>
-                    <a href="/billing" className="hover:text-white transition-colors uppercase">Billing</a>
-                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</a>
-                    <a href="/games" className="hover:text-white transition-colors uppercase">Games</a>
-                    <a href={scheduleLinks.guitarLessons} className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
-                    <a href="/tokenomics" className="hover:text-white transition-colors uppercase">Staking</a>
+                    {globalTopNavLinks.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={item.emphasized
+                          ? "rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 py-1 text-cyan-200 hover:bg-cyan-500/25 hover:text-white transition-colors uppercase"
+                          : "hover:text-white transition-colors uppercase"
+                        }
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
                   </div>
                   <div className="hidden md:block">
                     <ConnectWalletBtn />

@@ -1,3 +1,5 @@
-import LoginPage from "../login/page";
+import { redirect } from "next/navigation";
 
-export default LoginPage;
+export default function PortalPage() {
+	redirect("/login");
+}

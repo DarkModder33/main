@@ -1,5 +1,3 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { Code2, KeyRound, Route, ShieldCheck, TerminalSquare, Webhook } from "lucide-react";
 import Link from "next/link";
@@ -15,8 +13,6 @@ export const metadata = createPageMetadata({
 export default function DevHubPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-gray-950 via-black to-gray-950">
-      <ShamrockHeader />
-
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-indigo-500/25 bg-indigo-600/10 p-6 sm:p-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-indigo-300/30 bg-black/25 px-3 py-1 text-xs font-semibold text-indigo-100">
@@ -118,8 +114,6 @@ export default function DevHubPage() {
           </div>
         </div>
       </main>
-
-      <ShamrockFooter />
     </div>
   );
 }

@@ -4,8 +4,6 @@ import { BookingCalendar } from '@/components/music/BookingCalendar';
 import { InstagramReelEmbed } from '@/components/music/InstagramReelEmbed';
 import { LessonCard } from '@/components/music/LessonCard';
 import { LessonStudioEmbed } from '@/components/music/LessonStudioEmbed';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, ArrowRight, BrainCircuit, Calendar, CheckCircle2, CreditCard, Gem, Shield, Sparkles, Swords, TrendingUp, Trophy, UserRound, Users, Video } from 'lucide-react';
 import Link from 'next/link';
@@ -31,8 +29,6 @@ export const metadata = createPageMetadata({
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-[#071017] to-black">
-      <ShamrockHeader />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
         <Link
@@ -451,8 +447,6 @@ export default function LessonsPage() {
           <AdSenseBlock adSlot="lessons-bottom" adFormat="horizontal" />
         </div>
       </main>
-
-      <ShamrockFooter />
     </div>
   );
 }

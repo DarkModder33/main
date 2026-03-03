@@ -2,8 +2,6 @@ import { EmailCapture } from "@/components/EmailCapture";
 import { ActionRail } from "@/components/monetization/ActionRail";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -143,7 +141,6 @@ export default function ServicesPage() {
       <Script id="services-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
         {JSON.stringify(servicesPageJsonLd)}
       </Script>
-      <ShamrockHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
@@ -479,7 +476,6 @@ export default function ServicesPage() {
         </section>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

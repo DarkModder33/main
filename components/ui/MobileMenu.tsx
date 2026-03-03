@@ -1,5 +1,5 @@
 "use client";
-import { scheduleLinks } from '@/lib/booking';
+import { mobileMenuLinks } from '@/lib/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -7,16 +7,6 @@ export const MobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
-
-  const navLinks = [
-    { name: "AI Hub", href: "/ai-hub", icon: "🤖" },
-    { name: "About", href: "/about", icon: "🛰️" },
-    { name: "Music", href: "/music", icon: "🎸" },
-    { name: "Tokenomics", href: "/tokenomics", icon: "🪙" },
-    { name: "Games", href: "/game", icon: "🎮" },
-    { name: "Spades", href: "/spades", icon: "♠️" },
-    { name: "Lessons", href: scheduleLinks.guitarLessons, icon: "📚" },
-  ];
 
   return (
     <div className="md:hidden">
@@ -56,9 +46,9 @@ export const MobileMenu = () => {
           </div>
 
           <nav className="flex flex-col gap-6">
-            {navLinks.map((link, i) => (
+            {mobileMenuLinks.map((link) => (
               <Link
-                key={i}
+                key={link.href}
                 href={link.href}
                 onClick={toggleMenu}
                 className="group relative rounded-xl border border-white/10 bg-white/[0.03] hover:bg-cyan-500/10 hover:border-cyan-400/30 transition-all motion-reduce:transition-none"

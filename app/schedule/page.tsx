@@ -1,6 +1,4 @@
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { bookingLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -216,7 +214,6 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
       <Script id="schedule-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
         {JSON.stringify(schedulePageJsonLd)}
       </Script>
-      <ShamrockHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Service Booking</span>
@@ -420,7 +417,6 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

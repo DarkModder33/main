@@ -67,6 +67,8 @@
     "trading:cadence:run": "node ./scripts/run-trading-signal-cadence.mjs",
     "repo:status": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/repo-status.ps1",
     "repo:sync-mirror": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-mirror-from-canonical.ps1",
+    "legacy:check": "node ./scripts/legacy-guardrails-check.js",
+    "legacy:check:strict": "node ./scripts/legacy-guardrails-check.js --strict",
     "ide:sync": "node ./scripts/ide-sync-pipeline.js",
     "ide:sync:full": "node ./scripts/ide-sync-pipeline.js --install --build --namecheap",
     "ide:sync:deploy-ready": "node ./scripts/ide-sync-pipeline.js --install --build --namecheap --strict-namecheap",

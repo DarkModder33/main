@@ -43,12 +43,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/spades`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.88,
-    },
-    {
       url: `${baseUrl}/game`,
       lastModified: now,
       changeFrequency: 'daily',

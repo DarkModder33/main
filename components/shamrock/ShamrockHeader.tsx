@@ -1,45 +1,22 @@
 'use client';
 
 import { ChevronDown, Menu, Wallet, X } from 'lucide-react';
+import { focusedShamrockNavigation, shamrockNavigation, type AppNavItem } from '@/lib/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-interface NavItem {
-  name: string;
-  href: string;
-  submenu?: Array<{ name: string; href: string }>;
+interface ShamrockHeaderProps {
+  variant?: "default" | "focused";
 }
 
-const navigation: NavItem[] = [
-  { name: 'Home', href: '/' },
-  { name: 'Crypto Project', href: '/crypto-project' },
-  { name: 'Schedule', href: '/schedule' },
-  { name: 'Pricing', href: '/pricing' },
-  { name: 'Services', href: '/services' },
-  { name: 'About', href: '/about' },
-  {
-    name: 'Ecosystem',
-    href: '/dashboard',
-    submenu: [
-      { name: 'Intelligence Hub', href: '/intelligence' },
-      { name: 'Investor Academy', href: '/investor-academy' },
-      { name: 'Trading Dashboard', href: '/dashboard' },
-      { name: 'Hyperborea Game', href: '/game' },
-      { name: 'Music Platform', href: '/music' },
-      { name: 'Share Preview', href: '/preview' },
-      { name: 'Portfolio', href: '/portfolio' },
-      { name: 'Blog', href: '/blog' },
-    ],
-  },
-];
-
-export function ShamrockHeader() {
+export function ShamrockHeader({ variant = "default" }: ShamrockHeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const navItems: AppNavItem[] = variant === "focused" ? focusedShamrockNavigation : shamrockNavigation;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,7 +72,7 @@ export function ShamrockHeader() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
-            {navigation.map((item) => {
+            {navItems.map((item) => {
               const isActive =
                 pathname === item.href ||
                 pathname.startsWith(item.href + '/');
@@ -194,7 +171,7 @@ export function ShamrockHeader() {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 space-y-1 border-t border-[#4f678e]/35 animate-slide-up-fade">
-            {navigation.map((item) => {
+            {navItems.map((item) => {
               const isActive =
                 pathname === item.href ||
                 pathname.startsWith(item.href + '/');
