@@ -20,26 +20,26 @@ const allocation = [
 
 export default function TokenomicsPage() {
   return (
-    <main className="min-h-screen bg-black py-20 px-6 font-sans relative overflow-hidden">
+    <main className="min-h-screen bg-black px-4 py-14 sm:px-6 sm:py-20 font-sans relative overflow-hidden">
       <div className="absolute inset-0 bg-cyber-grid opacity-10 pointer-events-none" />
       
       <div className="container mx-auto max-w-6xl relative z-10">
-        <Link href="/" className="text-zinc-500 hover:text-white font-mono mb-12 inline-block transition-colors">
+        <Link href="/" className="text-xs sm:text-sm text-zinc-500 hover:text-white font-mono mb-10 sm:mb-12 inline-block transition-colors">
           &lt; RETURN_TO_SYSTEM
         </Link>
 
         {/* Header Section */}
-        <header className="mb-20">
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 uppercase italic">
+        <header className="mb-14 sm:mb-20">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl leading-tight font-black text-white tracking-tighter mb-5 sm:mb-6 uppercase italic break-words">
             <GlitchText text="$HAX_TOKENOMICS" />
           </h1>
-          <p className="text-zinc-400 text-xl max-w-3xl leading-relaxed">
+          <p className="text-zinc-400 text-base sm:text-xl max-w-3xl leading-relaxed">
             The $HAX token is the multi-chain backbone of the TradeHax ecosystem, facilitating AI-driven insights, gaming rewards, and governance across all integrated networks.
           </p>
         </header>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-14 sm:mb-20">
           {stats.map((stat, i) => (
             <div key={i} className="p-6 bg-zinc-900/50 border border-white/5 rounded-xl neon-border-hover transition-all group">
               <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-2 group-hover:text-cyan-500 transition-colors">{stat.label}</p>
@@ -49,18 +49,18 @@ export default function TokenomicsPage() {
         </div>
 
         {/* Allocation Visualizer */}
-        <div className="space-y-12 mb-32">
-          <div className="flex justify-between items-end">
-             <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter">Neural_Allocation_Map</h2>
+        <div className="space-y-8 sm:space-y-12 mb-20 sm:mb-32">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-end">
+             <h2 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter">Neural_Allocation_Map</h2>
              <span className="text-xs font-mono text-zinc-600 tracking-widest uppercase italic">SYSCAP_V_01</span>
           </div>
           <NeuralDataVis />
         </div>
 
         {/* Breakdown & Utility */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 mb-32 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 mb-20 sm:mb-32 items-start">
           <div>
-            <h2 className="text-3xl font-black text-white mb-8 tracking-tight italic uppercase">Supply_Distribution</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-6 sm:mb-8 tracking-tight italic uppercase">Supply_Distribution</h2>
             <div className="space-y-6">
               {allocation.map((item, i) => (
                 <div key={i}>
@@ -79,7 +79,7 @@ export default function TokenomicsPage() {
             </div>
           </div>
           
-          <div className="p-10 glass-panel rounded-[2.5rem] border border-cyan-500/10">
+          <div className="p-6 sm:p-10 glass-panel rounded-3xl sm:rounded-[2.5rem] border border-cyan-500/10">
             <h2 className="text-2xl font-black text-white mb-6 italic uppercase tracking-tighter text-cyan-500">Emission_Logic</h2>
             <p className="text-zinc-500 text-sm leading-relaxed mb-6 italic">
               TradeHax employs a deflationary emission schedule. Staked liquidity is locked for 90-day intervals, providing consistent pressure against market volatility. 40% of all platform fees are automatically burned.
@@ -92,18 +92,18 @@ export default function TokenomicsPage() {
         </div>
 
         {/* Utility Section */}
-        <div className="mb-32">
-          <h2 className="text-3xl font-black mb-12 tracking-tight text-center italic uppercase">CORE_UTILITY</h2>
+        <div className="mb-20 sm:mb-32">
+          <h2 className="text-2xl sm:text-3xl font-black mb-8 sm:mb-12 tracking-tight text-center italic uppercase">CORE_UTILITY</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-cyan-500/50 transition-colors">
+            <div className="p-6 sm:p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-cyan-500/50 transition-colors">
               <h3 className="text-xl font-bold mb-4 text-white uppercase italic">AI Access</h3>
               <p className="text-zinc-400 text-sm leading-relaxed">Stake $HAX to unlock high-frequency AI trading signals and advanced market sentiment analysis tools.</p>
             </div>
-            <div className="p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-colors">
+            <div className="p-6 sm:p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-purple-500/50 transition-colors">
               <h3 className="text-xl font-bold mb-4 text-white uppercase italic">Game Incentives</h3>
               <p className="text-zinc-400 text-sm leading-relaxed">Earn $HAX through high scores in HAX_RUNNER. Use tokens to purchase exclusive in-game power-ups and NFTs.</p>
             </div>
-            <div className="p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-blue-500/50 transition-colors">
+            <div className="p-6 sm:p-10 bg-zinc-900/30 border border-white/5 rounded-3xl hover:border-blue-500/50 transition-colors">
               <h3 className="text-xl font-bold mb-4 text-white uppercase italic">DAO Governance</h3>
               <p className="text-zinc-400 text-sm leading-relaxed">Holders vote on project trajectory, new feature prioritization, and multi-chain treasury allocations.</p>
             </div>
