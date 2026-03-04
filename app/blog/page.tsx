@@ -35,13 +35,13 @@ export default function BlogPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 pb-28 md:pb-14">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-4">
             Business, Web3, and Service Guides
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
             Practical articles for clients and builders focused on digital
             growth, Web3 implementation, and secure execution.
           </p>
@@ -58,7 +58,7 @@ export default function BlogPage() {
             <h2 className="text-2xl font-bold text-white mb-6">
               Featured Articles
             </h2>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid gap-6 md:grid-cols-2">
               {featuredPosts.map((post) => (
                 <BlogCard key={post.slug} post={post} featured />
               ))}
@@ -69,7 +69,7 @@ export default function BlogPage() {
         {/* Recent Posts */}
         <section className="mb-16">
           <h2 className="text-2xl font-bold text-white mb-6">Recent Posts</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {regularPosts.map((post) => (
               <BlogCard key={post.slug} post={post} />
             ))}
@@ -77,7 +77,7 @@ export default function BlogPage() {
         </section>
 
         {/* Sidebar Section with Recommended Tools */}
-        <section className="grid lg:grid-cols-3 gap-8 mb-12">
+        <section className="grid gap-6 lg:grid-cols-3 mb-12">
           <div className="lg:col-span-2">
             <AdSenseBlock adSlot="blog-content" adFormat="auto" />
           </div>
@@ -114,17 +114,17 @@ function BlogCard({ post, featured = false }: BlogCardProps) {
   return (
     <Link href={`/blog/${post.slug}`}>
       <article
-        className={`group bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-[#0366d6]/50 transition-all h-full flex flex-col ${featured ? "md:p-8" : ""}`}
+        className={`group bg-gray-900/50 border border-gray-800 rounded-xl p-5 sm:p-6 hover:border-[#0366d6]/50 transition-all h-full flex flex-col ${featured ? "md:p-8" : ""}`}
       >
-        <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-          <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs font-semibold">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mb-3">
+          <span className="px-2.5 py-1 bg-purple-500/20 text-purple-400 rounded-full text-[11px] sm:text-xs font-semibold">
             {post.category}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 whitespace-nowrap">
             <Calendar className="w-4 h-4" />
             <span>{formattedDate}</span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 whitespace-nowrap">
             <Clock className="w-4 h-4" />
             <span>{post.readTime} min</span>
           </div>
