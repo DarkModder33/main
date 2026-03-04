@@ -89,18 +89,18 @@ export default function TodoApp() {
   const completedTasks = todos.filter(t => t.completed).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-blue-950/20 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-purple-950/20 dark:to-blue-950/20 p-4 sm:p-6 pb-24">
       <div className="max-w-4xl mx-auto">
         
         {/* Header with Premium Badge */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             My Tasks
           </h1>
           {!isPremium && (
             <Button 
               onClick={() => setShowUpgradeModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               ⭐ Upgrade to Premium
             </Button>
@@ -108,7 +108,7 @@ export default function TodoApp() {
         </div>
 
         {/* Stats Bar */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
             <div className="text-2xl font-bold text-blue-600">{activeTasks}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Active Tasks</div>
@@ -130,7 +130,7 @@ export default function TodoApp() {
         {/* Free Tier Limit Warning */}
         {!isPremium && activeTasks >= 8 && (
           <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 p-4 rounded-lg mb-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="font-semibold text-yellow-800 dark:text-yellow-300">
                   ⚠️ Approaching Free Tier Limit
@@ -142,7 +142,7 @@ export default function TodoApp() {
               <Button 
                 size="sm"
                 onClick={() => setShowUpgradeModal(true)}
-                className="bg-yellow-600 hover:bg-yellow-700"
+                className="w-full sm:w-auto bg-yellow-600 hover:bg-yellow-700"
               >
                 Upgrade Now
               </Button>
@@ -157,7 +157,7 @@ export default function TodoApp() {
             
             {/* Add Todo Input */}
             <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg mb-6">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -165,7 +165,7 @@ export default function TodoApp() {
                   placeholder="What needs to be done?"
                   className="flex-1 text-lg"
                 />
-                <Button onClick={addTodo} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={addTodo} size="lg" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
                   Add Task
                 </Button>
               </div>
@@ -174,9 +174,9 @@ export default function TodoApp() {
             {/* Todo List */}
             <div className="space-y-3">
               {todos.length === 0 ? (
-                <div className="bg-white dark:bg-gray-900 p-12 rounded-lg shadow text-center text-gray-400">
-                  <div className="text-6xl mb-4">📝</div>
-                  <div className="text-xl">No tasks yet. Add one above!</div>
+                <div className="bg-white dark:bg-gray-900 p-8 sm:p-12 rounded-lg shadow text-center text-gray-400">
+                  <div className="text-5xl sm:text-6xl mb-4">📝</div>
+                  <div className="text-lg sm:text-xl">No tasks yet. Add one above!</div>
                 </div>
               ) : (
                 todos.map(todo => (
@@ -184,16 +184,16 @@ export default function TodoApp() {
                     key={todo.id}
                     className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start sm:items-center gap-3">
                       <Checkbox
                         checked={todo.completed}
                         onCheckedChange={() => toggleTodo(todo.id)}
                         className="h-5 w-5"
                       />
-                      <span className={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                      <span className={`flex-1 break-words text-base sm:text-lg ${todo.completed ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>
                         {todo.text}
                       </span>
-                      <div className="text-xs text-gray-400">
+                      <div className="hidden sm:block text-xs text-gray-400 whitespace-nowrap">
                         {new Date(todo.createdAt).toLocaleDateString()}
                       </div>
                       <Button
@@ -212,7 +212,7 @@ export default function TodoApp() {
 
             {/* Actions */}
             {todos.length > 0 && (
-              <div className="mt-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex justify-between items-center">
+              <div className="mt-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   {activeTasks} active • {completedTasks} completed
                 </div>
@@ -282,7 +282,7 @@ export default function TodoApp() {
 
       {/* Bottom Ad (Free users) */}
       {!isPremium && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-2">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-2 py-2">
           <AdSense adSlot="todo-bottom" />
         </div>
       )}
