@@ -48,22 +48,22 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen">
       <ShamrockHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 md:pb-14">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Transparent Pricing</span>
-          <h1 className="theme-title text-3xl sm:text-4xl font-bold mb-4">
+          <h1 className="theme-title text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Subscription Plans for AI + Trading + Game Access
           </h1>
-          <p className="theme-subtitle">
+          <p className="theme-subtitle text-sm sm:text-base">
             Everyone gets 30 minutes of free AI use each week. Choose a paid tier anytime for higher limits and premium lanes.
           </p>
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-3 mb-8">
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 mb-8">
           {plans.map((plan) => (
             <article
               key={plan.name}
-              className={`theme-grid-card ${
+              className={`theme-grid-card p-5 sm:p-6 ${
                 plan.featured ? "border-[#00ff41]/70 shadow-[0_0_28px_rgba(0,255,65,0.2)]" : ""
               }`}
             >
@@ -73,8 +73,8 @@ export default function PricingPage() {
                   Most Popular
                 </span>
               )}
-              <h2 className="text-xl font-semibold">{plan.name}</h2>
-              <p className="text-3xl font-bold text-white">
+              <h2 className="text-lg sm:text-xl font-semibold">{plan.name}</h2>
+              <p className="text-2xl sm:text-3xl font-bold text-white">
                 ${plan.price.toFixed(2)}
                 <span className="text-sm text-[#9fb0cf] font-medium"> {plan.cadence}</span>
               </p>

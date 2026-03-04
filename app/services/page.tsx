@@ -169,13 +169,13 @@ export default function ServicesPage() {
       </Script>
       <ShamrockHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 pb-28 md:pb-14">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-5 sm:mb-6">
             Professional Services
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
             Clear, outcome-focused service paths for AI trading, digital builds, and real-world support.
             Pick one path and we&apos;ll guide the next action.
           </p>
@@ -201,9 +201,9 @@ export default function ServicesPage() {
           <AdSenseBlock adSlot="services-top" adFormat="horizontal" />
         </div>
 
-        <section className="mb-12 grid gap-4 md:grid-cols-3">
+        <section className="mb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {servicePaths.map((path) => (
-            <article key={path.title} className="interactive-surface rounded-xl border border-white/10 bg-white/[0.02] p-5 min-h-[190px]">
+            <article key={path.title} className="interactive-surface rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:p-5 min-h-[190px]">
               <h2 className="text-lg font-bold text-white">{path.title}</h2>
               <p className="mt-2 text-sm text-gray-300">{path.summary}</p>
               <TrackedCtaLink
@@ -228,7 +228,7 @@ export default function ServicesPage() {
                 <p className="text-sm font-semibold text-white">Full Service Catalog</p>
                 <p className="text-xs text-gray-400">10 detailed offerings with feature breakdowns and pricing anchors</p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300">
+              <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-300 shrink-0">
                 <span>expand</span>
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-90" />
               </span>
@@ -418,10 +418,10 @@ export default function ServicesPage() {
 
         {/* Process Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             How We Work
           </h2>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <ProcessStep
               number="1"
               title="Discovery"
@@ -446,11 +446,11 @@ export default function ServicesPage() {
         </section>
 
         {/* Why Choose Us */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-7 sm:mb-8 text-center">
             Why Choose TradeHax AI?
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Benefit
               title="Cross-Domain Expertise"
               description="Digital services, repair support, education, and Web3 consulting in one team"
@@ -467,11 +467,11 @@ export default function ServicesPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-12 text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6 sm:p-8 md:p-12 text-center mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Start Your Project?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
             Let&apos;s discuss how we can bring your vision to life with
             cutting-edge technology and proven development practices.
           </p>
@@ -585,13 +585,13 @@ function ServiceCard({
   ctaConversionId: ServiceConversionId;
 }) {
   return (
-    <div className="interactive-surface bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8">
-      <div className="w-16 h-16 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6 text-purple-400">
+    <div className="interactive-surface bg-gray-900/50 border border-gray-800 rounded-xl p-5 sm:p-8">
+      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-500/20 rounded-lg flex items-center justify-center mb-5 sm:mb-6 text-purple-400">
         {icon}
       </div>
 
-      <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
-      <p className="text-gray-400 mb-6">{description}</p>
+      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">{title}</h3>
+      <p className="text-sm sm:text-base text-gray-400 mb-6">{description}</p>
 
       <ul className="space-y-3 mb-6">
         {features.map((feature) => (
