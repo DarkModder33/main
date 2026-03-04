@@ -3,7 +3,7 @@
 import { Clapperboard, Image as ImageIcon, Loader2, Mic, MicOff, Search, Send, Square } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { SafetyStateBanner } from "@/components/ai/SafetyStateBanner";
 import { ContextSignalPanel } from "@/components/ai/ContextSignalPanel";
 
@@ -304,13 +304,67 @@ const STARTER_SCENARIOS: Record<
 
 type ResponseTransformMode = "checklist" | "risk" | "counter" | "operator";
 
+type MissionBlueprintId = "starter-loop" | "risk-lock" | "odin-warroom";
+
+type MissionBlueprint = {
+  id: MissionBlueprintId;
+  label: string;
+  description: string;
+  recommendedSkill: SkillLevel;
+  recommendedMode: ExperienceMode;
+  steps: string[];
+};
+
 type MissionTask = {
   id: string;
   label: string;
   status: "queued" | "executed";
-  mode: ResponseTransformMode;
+  mode: ResponseTransformMode | "mission";
   createdAt: number;
 };
+
+const MISSION_BLUEPRINTS: MissionBlueprint[] = [
+  {
+    id: "starter-loop",
+    label: "Starter Loop",
+    description: "Plan, stress-test, challenge assumptions, and debrief in one guided run.",
+    recommendedSkill: "beginner",
+    recommendedMode: "beginner",
+    steps: [
+      "/plan Build a beginner-safe 7-day execution plan with one measurable KPI per day.",
+      "/risk Stress-test the plan for downside scenarios, invalidation levels, and mitigation actions.",
+      "/counter Challenge the plan with strongest counter-thesis and evidence thresholds.",
+      "/debrief Summarize key adjustments and finalize the next immediate action.",
+    ],
+  },
+  {
+    id: "risk-lock",
+    label: "Risk Lock",
+    description: "Harden risk controls, turn them into SOP, then debrief process gaps.",
+    recommendedSkill: "intermediate",
+    recommendedMode: "beginner",
+    steps: [
+      "/risk Build a strict risk envelope with position sizing, invalidation, and capital-protection rules.",
+      "/sop Convert the risk envelope into a production SOP with monitoring and rollback criteria.",
+      "/counter Identify weak assumptions in this SOP and propose hardening updates.",
+      "/debrief Produce a concise process-upgrade brief with top 3 enforceable rules.",
+    ],
+  },
+  {
+    id: "odin-warroom",
+    label: "ODIN Warroom",
+    description: "Operator-grade mission chain for signal, scenarios, SOP execution, and after-action review.",
+    recommendedSkill: "advanced",
+    recommendedMode: "odin",
+    steps: [
+      "/odinsignal Generate a catalyst-aware signal brief with confidence tiers and operator next action.",
+      "/parabolic Build bullish/base/bear scenario map with trigger levels and risk-adjusted sizing.",
+      "/counter Challenge the signal with strongest opposing narrative and invalidation evidence.",
+      "/sop Convert final signal strategy into SOP with escalation and rollback logic.",
+      "/debrief Produce an after-action framework and iterative improvements for next cycle.",
+    ],
+  },
+];
 
 export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {}) {
   const [voiceSupported, setVoiceSupported] = useState(false);
@@ -326,6 +380,16 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   const [localError, setLocalError] = useState("");
   const [input, setInput] = useState("");
   const [activeTab, setActiveTab] = useState<MultimodalTab>("text");
+  const [missionRunnerActive, setMissionRunnerActive] = useState(false);
+  const [missionRunnerIndex, setMissionRunnerIndex] = useState(0);
+  const [missionRunnerPlan, setMissionRunnerPlan] = useState<{
+    id: MissionBlueprintId;
+    label: string;
+    runId: number;
+    steps: string[];
+    taskIds: string[];
+  } | null>(null);
+  const missionDispatchLockRef = useRef(false);
 
   const [imagePrompt, setImagePrompt] = useState("");
   const [imageStyle, setImageStyle] = useState<"trading" | "nft" | "hero" | "general">("general");
@@ -1009,6 +1073,77 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     trackFriction({ slashPrefills: 1 });
   };
 
+  const stopMissionRunner = () => {
+    setMissionRunnerActive(false);
+    setMissionRunnerPlan(null);
+    setMissionRunnerIndex(0);
+  };
+
+  const executeMissionStep = async (stepPrompt: string, taskId: string) => {
+    missionDispatchLockRef.current = true;
+    try {
+      clearError();
+      await sendMessage({ text: stepPrompt });
+      setMissionTasks((prev) =>
+        prev.map((task) => (task.id === taskId ? { ...task, status: "executed" } : task)),
+      );
+      trackFriction({ sends: 1, slashPrefills: 1 });
+    } finally {
+      missionDispatchLockRef.current = false;
+    }
+  };
+
+  const startMissionRunner = (blueprint: MissionBlueprint) => {
+    if (isStreaming) return;
+
+    if (blueprint.recommendedMode === "odin") {
+      applyExperienceMode("odin");
+    } else if (experienceMode !== "beginner") {
+      applyExperienceMode("beginner");
+    }
+
+    applySkillDefaults(blueprint.recommendedSkill);
+
+    const runId = Date.now();
+    const taskIds = blueprint.steps.map((_, index) => `${blueprint.id}-${runId}-${index}`);
+    const missionEntries: MissionTask[] = blueprint.steps.map((step, index) => ({
+      id: taskIds[index],
+      label: `Step ${index + 1}: ${step.split(" ")[0]}`,
+      status: "queued",
+      mode: "mission",
+      createdAt: Date.now(),
+    }));
+
+    setMissionTasks((prev) => [...missionEntries, ...prev].slice(0, 12));
+    setMissionRunnerPlan({
+      id: blueprint.id,
+      label: blueprint.label,
+      runId,
+      steps: blueprint.steps,
+      taskIds,
+    });
+    setMissionRunnerIndex(0);
+    setMissionRunnerActive(true);
+    setShowSetupPanels(true);
+  };
+
+  useEffect(() => {
+    if (!missionRunnerActive || !missionRunnerPlan) return;
+    if (isStreaming) return;
+    if (missionDispatchLockRef.current) return;
+
+    if (missionRunnerIndex >= missionRunnerPlan.steps.length) {
+      setMissionRunnerActive(false);
+      return;
+    }
+
+    const nextIndex = missionRunnerIndex;
+    const nextPrompt = missionRunnerPlan.steps[nextIndex];
+    const nextTaskId = missionRunnerPlan.taskIds[nextIndex];
+    setMissionRunnerIndex((prev) => prev + 1);
+    void executeMissionStep(nextPrompt, nextTaskId);
+  }, [missionRunnerActive, missionRunnerPlan, missionRunnerIndex, isStreaming]);
+
   const buildTransformPrompt = (mode: ResponseTransformMode, sourceText: string) => {
     const clipped = sourceText.slice(0, 1800);
     if (mode === "checklist") {
@@ -1395,6 +1530,44 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mb-3 rounded-lg border border-violet-500/25 bg-violet-500/10 p-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold text-violet-100">Autonomous Mission Runner</p>
+          {missionRunnerActive && missionRunnerPlan ? (
+            <button
+              type="button"
+              onClick={stopMissionRunner}
+              className="rounded-full border border-rose-300/40 bg-rose-500/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-rose-100"
+            >
+              Stop Mission
+            </button>
+          ) : null}
+        </div>
+        <p className="mt-1 text-[10px] text-violet-100/75">Runs multi-step command chains automatically for deeper execution quality.</p>
+        <div className="mt-2 grid gap-2 md:grid-cols-3">
+          {MISSION_BLUEPRINTS.map((blueprint) => (
+            <button
+              key={blueprint.id}
+              type="button"
+              disabled={isStreaming}
+              onClick={() => startMissionRunner(blueprint)}
+              className="rounded-lg border border-violet-300/25 bg-black/35 p-2 text-left transition hover:bg-black/50 disabled:opacity-50"
+            >
+              <p className="text-xs font-semibold text-violet-100">{blueprint.label}</p>
+              <p className="mt-1 text-[11px] text-violet-100/75">{blueprint.description}</p>
+              <p className="mt-2 text-[10px] text-violet-100/60">
+                {blueprint.steps.length} steps · {SKILL_LEVEL_META[blueprint.recommendedSkill].label}
+              </p>
+            </button>
+          ))}
+        </div>
+        {missionRunnerPlan ? (
+          <p className="mt-2 text-[10px] text-violet-100/80">
+            Active mission: <span className="font-semibold">{missionRunnerPlan.label}</span> · dispatched {Math.min(missionRunnerIndex, missionRunnerPlan.steps.length)}/{missionRunnerPlan.steps.length}
+          </p>
+        ) : null}
       </div>
 
       <div className="mb-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100/90">
