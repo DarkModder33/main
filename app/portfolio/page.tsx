@@ -28,20 +28,20 @@ export default function PortfolioPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
 
-      <main className="portfolio-container py-12">
+      <main className="portfolio-container py-10 sm:py-12">
         {/* Header Section */}
         <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 text-transparent bg-clip-text mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400 text-transparent bg-clip-text mb-4">
             Michael S. Flaherty
           </h1>
-          <p className="text-xl text-gray-300 mb-6">
+          <p className="text-base sm:text-xl text-gray-300 mb-6">
             Full-Stack Developer | Web3 Builder | Service Platform Founder
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Link
               href="#contact"
-              className="theme-cta theme-cta--loud px-6 py-3 text-lg"
+              className="theme-cta theme-cta--loud px-6 py-3 text-base sm:text-lg"
             >
               <Mail className="w-5 h-5" />
               Hire Me
@@ -59,8 +59,8 @@ export default function PortfolioPage() {
         </div>
 
         {/* About Section */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-12 animate-slide-up">
-          <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-12 animate-slide-up">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex items-center gap-3">
             <Briefcase className="w-8 h-8 text-[#0366d6]" />
             About Me
           </h2>
@@ -82,12 +82,12 @@ export default function PortfolioPage() {
         </section>
 
         {/* Skills Section */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex items-center gap-3">
             <Code className="w-8 h-8 text-[#0366d6]" />
             Technical Skills
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <SkillCategory
               title="Frontend"
               skills={[
@@ -139,8 +139,8 @@ export default function PortfolioPage() {
         </section>
 
         {/* Projects Section */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-12">
-          <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex items-center gap-3">
             <Award className="w-8 h-8 text-[#0366d6]" />
             Featured Projects
           </h2>
@@ -185,12 +185,12 @@ export default function PortfolioPage() {
         {/* Contact CTA Section */}
         <section
           id="contact"
-          className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-8 text-center mb-12"
+          className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6 sm:p-8 text-center mb-12"
         >
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             Let&apos;s Work Together
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             I&apos;m available for freelance projects, consulting, and full-time
             opportunities. Let&apos;s discuss how I can help bring your ideas to
             life.
@@ -241,8 +241,8 @@ function ProjectCard({
   link: string;
 }) {
   return (
-    <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 hover:border-[#0366d6]/50 transition-all">
-      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+    <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-5 sm:p-6 hover:border-[#0366d6]/50 transition-all">
+      <h3 className="text-lg sm:text-xl font-bold text-white mb-3">{title}</h3>
       <p className="text-gray-400 mb-4">{description}</p>
       <div className="flex flex-wrap gap-2 mb-4">
         {technologies.map((tech) => (
