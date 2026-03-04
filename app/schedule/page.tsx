@@ -217,10 +217,10 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
         {JSON.stringify(schedulePageJsonLd)}
       </Script>
       <ShamrockHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-20 sm:pb-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Service Booking</span>
-          <h1 className="theme-title text-3xl sm:text-4xl font-bold mb-4">
+          <h1 className="theme-title text-2xl sm:text-4xl font-bold mb-4 leading-tight">
             Book a Service in Minutes
           </h1>
           <p className="theme-subtitle">
@@ -269,7 +269,7 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
               conversionId="contact_text"
               surface="schedule:hero"
               external
-              className="theme-cta theme-cta--loud px-5 py-3"
+              className="theme-cta theme-cta--loud w-full sm:w-auto px-5 py-3"
             >
               <MessageSquare className="w-4 h-4" />
               Text {businessProfile.contactPhoneDisplay}
@@ -279,7 +279,7 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
               conversionId="contact_call"
               surface="schedule:hero"
               external
-              className="theme-cta theme-cta--muted px-5 py-3"
+              className="theme-cta theme-cta--muted w-full sm:w-auto px-5 py-3"
             >
               <Phone className="w-4 h-4" />
               Call Primary Line
@@ -289,7 +289,7 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
               conversionId="donate_cashapp"
               surface="schedule:hero"
               external
-              className="theme-cta theme-cta--secondary px-5 py-3"
+              className="theme-cta theme-cta--secondary w-full sm:w-auto px-5 py-3"
             >
               Unlock Overnight Emergency Line
             </TrackedCtaLink>
@@ -304,7 +304,7 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
           </p>
         </section>
 
-        <section id="booking-options" className="grid gap-5 lg:grid-cols-3 mb-8 scroll-mt-36">
+        <section id="booking-options" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8 scroll-mt-36">
           {prioritizedBookingOptions.map((item) => {
             const isHighlighted = highlightedKey === item.key;
 
@@ -319,7 +319,7 @@ export default function SchedulePage({ searchParams }: { searchParams?: Schedule
                 </span>
               )}
               <CalendarCheck2 className="w-5 h-5 text-[#77f9a8]" />
-              <h2 className="text-lg font-semibold">{item.title}</h2>
+              <h2 className="text-base sm:text-lg font-semibold">{item.title}</h2>
               <p>{item.detail}</p>
               <TrackedCtaLink
                 href={item.href}

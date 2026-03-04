@@ -25,7 +25,7 @@ export default function ShowcasePage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         {/* Back Link */}
         <Link
           href="/music"
@@ -42,10 +42,10 @@ export default function ShowcasePage() {
             <span className="text-purple-400 font-semibold">Artist Platform</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
             Showcase Your Musical Talent
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto">
             Upload your songs, gain followers, and receive tips directly to your connected chain wallet.
             Join our waitlist to get launch updates and early access.
           </p>
@@ -58,11 +58,11 @@ export default function ShowcasePage() {
 
         {/* Platform Features */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             Platform Features
           </h2>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <FeatureCard
               icon={<Upload />}
               title="Upload Content"
@@ -88,11 +88,11 @@ export default function ShowcasePage() {
 
         {/* Featured Artists */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             Featured Artists
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <ArtistShowcase
               artistName="Luna Rivers"
               genre="Indie Folk"
@@ -133,12 +133,12 @@ export default function ShowcasePage() {
         </section>
 
         {/* How It Works */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             How Artist Showcase Works
           </h2>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <ProcessStep
               number="1"
               title="Sign Up"
@@ -163,11 +163,11 @@ export default function ShowcasePage() {
         </section>
 
         {/* Become an Artist CTA */}
-        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-12 text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6 sm:p-12 text-center mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Share Your Music?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
             Join our artist community and start building your audience today. Platform launching soon!
           </p>
 
@@ -182,11 +182,11 @@ export default function ShowcasePage() {
 
         {/* Platform Benefits */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             Why Artists Choose Us
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <BenefitCard
               title="No Platform Fees"
               description="Keep 90% of all tips and donations. We only take 10% to maintain the platform."

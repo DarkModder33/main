@@ -24,7 +24,7 @@ export default function ScholarshipsPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       <ShamrockHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         {/* Back Link */}
         <Link
           href="/music"
@@ -35,12 +35,12 @@ export default function ScholarshipsPage() {
         </Link>
 
         {/* Coming Soon Banner */}
-        <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-6 mb-12 text-center">
+        <div className="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border border-yellow-500/30 rounded-xl p-5 sm:p-6 mb-12 text-center">
           <div className="inline-flex items-center gap-2 mb-3">
             <Clock className="w-6 h-6 text-yellow-400" />
-            <span className="text-2xl font-bold text-yellow-400">Coming Soon</span>
+            <span className="text-xl sm:text-2xl font-bold text-yellow-400">Coming Soon</span>
           </div>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-300 text-base sm:text-lg">
             Our scholarship program will launch once the liquidity pool is established.
             Join the waitlist to be notified!
           </p>
@@ -48,10 +48,10 @@ export default function ScholarshipsPage() {
 
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 text-transparent bg-clip-text mb-6">
             Music Education Scholarships
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-300 max-w-3xl mx-auto">
             Democratizing music education through blockchain technology. Apply for funding,
             participate in governance, and help talented musicians achieve their dreams.
           </p>
@@ -64,11 +64,11 @@ export default function ScholarshipsPage() {
 
         {/* Token Utility */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             L2 Token Use Cases
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <TokenUseCase
               icon={<Award />}
               title="Apply for Scholarships"
@@ -103,12 +103,12 @@ export default function ScholarshipsPage() {
         </section>
 
         {/* How It Works */}
-        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        <section className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             How Scholarships Work
           </h2>
 
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <ProcessStep
               number="1"
               title="Application"
@@ -134,7 +134,7 @@ export default function ScholarshipsPage() {
 
         {/* Roadmap */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-10 sm:mb-12">
             Development Roadmap
           </h2>
 
@@ -171,12 +171,12 @@ export default function ScholarshipsPage() {
         </section>
 
         {/* Benefits */}
-        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">
+        <section className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-8">
             Why Blockchain-Based Scholarships?
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
             <Benefit
               title="Transparent & Fair"
               description="All votes and decisions recorded on-chain for complete transparency"
@@ -198,7 +198,7 @@ export default function ScholarshipsPage() {
 
         {/* Email Signup */}
         <section className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             Join the Waitlist
           </h2>
           <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
