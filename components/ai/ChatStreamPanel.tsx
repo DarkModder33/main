@@ -87,6 +87,7 @@ type SkillLevel = "beginner" | "intermediate" | "advanced";
 const EXPERIENCE_MODE_KEY = "tradehax-chat-stream-experience-v1";
 const ONBOARDING_MEMORY_KEY = "tradehax-chat-stream-onboarding-v1";
 const FRICTION_TELEMETRY_KEY = "tradehax-chat-stream-friction-v1";
+const MISSION_RUNNER_STATE_KEY = "tradehax-chat-stream-mission-runner-v1";
 
 type OnboardingMemory = {
   objective: string;
@@ -323,6 +324,20 @@ type MissionTask = {
   createdAt: number;
 };
 
+type MissionRunnerState = {
+  active: boolean;
+  paused: boolean;
+  pauseReason: string;
+  index: number;
+  plan: {
+    id: MissionBlueprintId;
+    label: string;
+    runId: number;
+    steps: string[];
+    taskIds: string[];
+  } | null;
+};
+
 const MISSION_BLUEPRINTS: MissionBlueprint[] = [
   {
     id: "starter-loop",
@@ -382,6 +397,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   const [activeTab, setActiveTab] = useState<MultimodalTab>("text");
   const [missionRunnerActive, setMissionRunnerActive] = useState(false);
   const [missionRunnerIndex, setMissionRunnerIndex] = useState(0);
+  const [missionRunnerPaused, setMissionRunnerPaused] = useState(false);
+  const [missionRunnerPauseReason, setMissionRunnerPauseReason] = useState("");
   const [missionRunnerPlan, setMissionRunnerPlan] = useState<{
     id: MissionBlueprintId;
     label: string;
@@ -518,6 +535,41 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       }
     } catch {
       // Ignore malformed friction telemetry
+    }
+
+    try {
+      const rawMissionState = window.localStorage.getItem(MISSION_RUNNER_STATE_KEY);
+      if (rawMissionState) {
+        const parsed = JSON.parse(rawMissionState) as Partial<MissionRunnerState>;
+        const validPlan =
+          parsed.plan &&
+          typeof parsed.plan.id === "string" &&
+          typeof parsed.plan.label === "string" &&
+          Array.isArray(parsed.plan.steps) &&
+          Array.isArray(parsed.plan.taskIds)
+            ? {
+                id: parsed.plan.id as MissionBlueprintId,
+                label: parsed.plan.label,
+                runId: Number(parsed.plan.runId) || Date.now(),
+                steps: parsed.plan.steps.map((step) => String(step)).filter(Boolean),
+                taskIds: parsed.plan.taskIds.map((id) => String(id)).filter(Boolean),
+              }
+            : null;
+
+        if (validPlan && validPlan.steps.length > 0 && validPlan.taskIds.length === validPlan.steps.length) {
+          setMissionRunnerPlan(validPlan);
+          setMissionRunnerIndex(Math.max(0, Math.min(Number(parsed.index) || 0, validPlan.steps.length)));
+          setMissionRunnerPaused(Boolean(parsed.paused));
+          setMissionRunnerPauseReason(
+            typeof parsed.pauseReason === "string" && parsed.pauseReason.trim().length > 0
+              ? parsed.pauseReason
+              : "Mission restored from previous session.",
+          );
+          setMissionRunnerActive(false);
+        }
+      }
+    } catch {
+      // Ignore malformed mission state
     }
   }, []);
 
@@ -669,6 +721,23 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       // Ignore persistence failure
     }
   }, [frictionTelemetry]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const payload: MissionRunnerState = {
+      active: missionRunnerActive,
+      paused: missionRunnerPaused,
+      pauseReason: missionRunnerPauseReason,
+      index: missionRunnerIndex,
+      plan: missionRunnerPlan,
+    };
+
+    try {
+      window.localStorage.setItem(MISSION_RUNNER_STATE_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignore persistence failure
+    }
+  }, [missionRunnerActive, missionRunnerPaused, missionRunnerPauseReason, missionRunnerIndex, missionRunnerPlan]);
 
   const trackFriction = (update: Partial<FrictionTelemetry>) => {
     setFrictionTelemetry((prev) => ({
@@ -1075,8 +1144,17 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
 
   const stopMissionRunner = () => {
     setMissionRunnerActive(false);
+    setMissionRunnerPaused(false);
+    setMissionRunnerPauseReason("");
     setMissionRunnerPlan(null);
     setMissionRunnerIndex(0);
+  };
+
+  const resumeMissionRunner = () => {
+    if (!missionRunnerPlan || missionRunnerIndex >= missionRunnerPlan.steps.length) return;
+    setMissionRunnerPaused(false);
+    setMissionRunnerPauseReason("");
+    setMissionRunnerActive(true);
   };
 
   const executeMissionStep = async (stepPrompt: string, taskId: string) => {
@@ -1123,12 +1201,52 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       taskIds,
     });
     setMissionRunnerIndex(0);
+    setMissionRunnerPaused(false);
+    setMissionRunnerPauseReason("");
     setMissionRunnerActive(true);
     setShowSetupPanels(true);
   };
 
+  const recommendedMission = useMemo(() => {
+    const qualityScore = Math.round(latestStatusData?.quality?.score || 0);
+    const confidence = Math.round(latestStatusData?.predictionConfidence || 0);
+
+    if (!messages.length || skillLevel === "beginner") {
+      return {
+        id: "starter-loop" as const,
+        reason: "Best for onboarding reliability and clear stepwise execution.",
+      };
+    }
+
+    if (qualityScore > 0 && qualityScore < 68) {
+      return {
+        id: "risk-lock" as const,
+        reason: "Quality signal is moderate; tighten process discipline before scaling.",
+      };
+    }
+
+    if (confidence > 0 && confidence < 58) {
+      return {
+        id: "risk-lock" as const,
+        reason: "Confidence is soft; run risk hardening and counter-thesis first.",
+      };
+    }
+
+    if (experienceMode === "odin" || skillLevel === "advanced") {
+      return {
+        id: "odin-warroom" as const,
+        reason: "Profile supports operator-grade orchestration and scenario execution.",
+      };
+    }
+
+    return {
+      id: "risk-lock" as const,
+      reason: "Balanced path for reliability, controls, and repeatable execution.",
+    };
+  }, [messages.length, skillLevel, experienceMode, latestStatusData?.quality?.score, latestStatusData?.predictionConfidence]);
+
   useEffect(() => {
-    if (!missionRunnerActive || !missionRunnerPlan) return;
+    if (!missionRunnerActive || !missionRunnerPlan || missionRunnerPaused) return;
     if (isStreaming) return;
     if (missionDispatchLockRef.current) return;
 
@@ -1137,12 +1255,38 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       return;
     }
 
+    if (missionRunnerIndex > 0) {
+      const priorQuality = Math.round(latestStatusData?.quality?.score || 0);
+      const priorConfidence = Math.round(latestStatusData?.predictionConfidence || 0);
+      const weakQuality = priorQuality > 0 && priorQuality < 52;
+      const weakConfidence = priorConfidence > 0 && priorConfidence < 45;
+
+      if (weakQuality || weakConfidence) {
+        setMissionRunnerPaused(true);
+        setMissionRunnerActive(false);
+        setMissionRunnerPauseReason(
+          weakQuality
+            ? `Mission paused: response quality dropped (${priorQuality}/100). Review output before continuing.`
+            : `Mission paused: prediction confidence dropped (${priorConfidence}%). Review risk before continuing.`,
+        );
+        return;
+      }
+    }
+
     const nextIndex = missionRunnerIndex;
     const nextPrompt = missionRunnerPlan.steps[nextIndex];
     const nextTaskId = missionRunnerPlan.taskIds[nextIndex];
     setMissionRunnerIndex((prev) => prev + 1);
     void executeMissionStep(nextPrompt, nextTaskId);
-  }, [missionRunnerActive, missionRunnerPlan, missionRunnerIndex, isStreaming]);
+  }, [
+    missionRunnerActive,
+    missionRunnerPlan,
+    missionRunnerPaused,
+    missionRunnerIndex,
+    isStreaming,
+    latestStatusData?.quality?.score,
+    latestStatusData?.predictionConfidence,
+  ]);
 
   const buildTransformPrompt = (mode: ResponseTransformMode, sourceText: string) => {
     const clipped = sourceText.slice(0, 1800);
@@ -1546,6 +1690,23 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           ) : null}
         </div>
         <p className="mt-1 text-[10px] text-violet-100/75">Runs multi-step command chains automatically for deeper execution quality.</p>
+        <div className="mt-2 rounded-lg border border-violet-300/20 bg-black/30 px-2.5 py-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold text-violet-100">Recommended mission: {MISSION_BLUEPRINTS.find((b) => b.id === recommendedMission.id)?.label}</p>
+            <button
+              type="button"
+              disabled={isStreaming}
+              onClick={() => {
+                const target = MISSION_BLUEPRINTS.find((b) => b.id === recommendedMission.id);
+                if (target) startMissionRunner(target);
+              }}
+              className="rounded-full border border-violet-300/35 bg-violet-500/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-violet-100 disabled:opacity-50"
+            >
+              Run Recommended
+            </button>
+          </div>
+          <p className="mt-1 text-[10px] text-violet-100/75">{recommendedMission.reason}</p>
+        </div>
         <div className="mt-2 grid gap-2 md:grid-cols-3">
           {MISSION_BLUEPRINTS.map((blueprint) => (
             <button
@@ -1564,9 +1725,23 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           ))}
         </div>
         {missionRunnerPlan ? (
-          <p className="mt-2 text-[10px] text-violet-100/80">
-            Active mission: <span className="font-semibold">{missionRunnerPlan.label}</span> · dispatched {Math.min(missionRunnerIndex, missionRunnerPlan.steps.length)}/{missionRunnerPlan.steps.length}
-          </p>
+          <div className="mt-2 space-y-1">
+            <p className="text-[10px] text-violet-100/80">
+              Active mission: <span className="font-semibold">{missionRunnerPlan.label}</span> · dispatched {Math.min(missionRunnerIndex, missionRunnerPlan.steps.length)}/{missionRunnerPlan.steps.length}
+            </p>
+            {missionRunnerPaused ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[10px] text-amber-100/90">{missionRunnerPauseReason || "Mission paused."}</p>
+                <button
+                  type="button"
+                  onClick={resumeMissionRunner}
+                  className="rounded-full border border-amber-300/35 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-100"
+                >
+                  Resume
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
