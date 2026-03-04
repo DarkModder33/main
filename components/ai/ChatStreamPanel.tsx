@@ -88,6 +88,7 @@ const EXPERIENCE_MODE_KEY = "tradehax-chat-stream-experience-v1";
 const ONBOARDING_MEMORY_KEY = "tradehax-chat-stream-onboarding-v1";
 const FRICTION_TELEMETRY_KEY = "tradehax-chat-stream-friction-v1";
 const MISSION_RUNNER_STATE_KEY = "tradehax-chat-stream-mission-runner-v1";
+const MISSION_ANALYTICS_KEY = "tradehax-chat-stream-mission-analytics-v1";
 
 type OnboardingMemory = {
   objective: string;
@@ -338,6 +339,22 @@ type MissionRunnerState = {
   } | null;
 };
 
+type MissionAnalyticsBucket = {
+  runs: number;
+  completed: number;
+  paused: number;
+  qualityAvg: number;
+  confidenceAvg: number;
+  updatedAt: number;
+};
+
+type MissionAnalyticsStore = {
+  byBlueprint: Record<MissionBlueprintId, MissionAnalyticsBucket>;
+  totalRuns: number;
+  totalCompleted: number;
+  updatedAt: number;
+};
+
 const MISSION_BLUEPRINTS: MissionBlueprint[] = [
   {
     id: "starter-loop",
@@ -407,6 +424,48 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     taskIds: string[];
   } | null>(null);
   const missionDispatchLockRef = useRef(false);
+  const [missionLastDispatchedStep, setMissionLastDispatchedStep] = useState<{
+    index: number;
+    command: string;
+    promptSnippet: string;
+  } | null>(null);
+  const [missionAnalytics, setMissionAnalytics] = useState<MissionAnalyticsStore>({
+    byBlueprint: {
+      "starter-loop": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+      "risk-lock": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+      "odin-warroom": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+    },
+    totalRuns: 0,
+    totalCompleted: 0,
+    updatedAt: 0,
+  });
+
+  const missionContextPayload = useMemo(() => {
+    if (!missionRunnerPlan) {
+      return undefined;
+    }
+
+    return {
+      mission: {
+        id: missionRunnerPlan.id,
+        label: missionRunnerPlan.label,
+        runId: missionRunnerPlan.runId,
+        active: missionRunnerActive,
+        paused: missionRunnerPaused,
+        pauseReason: missionRunnerPauseReason || undefined,
+        currentStepIndex: missionRunnerIndex,
+        totalSteps: missionRunnerPlan.steps.length,
+        lastStep: missionLastDispatchedStep,
+      },
+    };
+  }, [
+    missionRunnerPlan,
+    missionRunnerActive,
+    missionRunnerPaused,
+    missionRunnerPauseReason,
+    missionRunnerIndex,
+    missionLastDispatchedStep,
+  ]);
 
   const [imagePrompt, setImagePrompt] = useState("");
   const [imageStyle, setImageStyle] = useState<"trading" | "nft" | "hero" | "general">("general");
@@ -455,6 +514,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
         sloProfile,
         context: {
           xSearchQuery: xQuery.trim() || undefined,
+          ...missionContextPayload,
         },
       },
     }),
@@ -570,6 +630,35 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       }
     } catch {
       // Ignore malformed mission state
+    }
+
+    try {
+      const rawMissionAnalytics = window.localStorage.getItem(MISSION_ANALYTICS_KEY);
+      if (rawMissionAnalytics) {
+        const parsed = JSON.parse(rawMissionAnalytics) as Partial<MissionAnalyticsStore>;
+        const byBlueprint = parsed.byBlueprint || {};
+        setMissionAnalytics((prev) => ({
+          byBlueprint: {
+            "starter-loop": {
+              ...prev.byBlueprint["starter-loop"],
+              ...(byBlueprint["starter-loop"] || {}),
+            },
+            "risk-lock": {
+              ...prev.byBlueprint["risk-lock"],
+              ...(byBlueprint["risk-lock"] || {}),
+            },
+            "odin-warroom": {
+              ...prev.byBlueprint["odin-warroom"],
+              ...(byBlueprint["odin-warroom"] || {}),
+            },
+          },
+          totalRuns: Math.max(0, Number(parsed.totalRuns) || 0),
+          totalCompleted: Math.max(0, Number(parsed.totalCompleted) || 0),
+          updatedAt: Math.max(0, Number(parsed.updatedAt) || 0),
+        }));
+      }
+    } catch {
+      // Ignore malformed mission analytics
     }
   }, []);
 
@@ -739,6 +828,15 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     }
   }, [missionRunnerActive, missionRunnerPaused, missionRunnerPauseReason, missionRunnerIndex, missionRunnerPlan]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(MISSION_ANALYTICS_KEY, JSON.stringify(missionAnalytics));
+    } catch {
+      // Ignore persistence failure
+    }
+  }, [missionAnalytics]);
+
   const trackFriction = (update: Partial<FrictionTelemetry>) => {
     setFrictionTelemetry((prev) => ({
       ...prev,
@@ -751,6 +849,52 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       ) as Partial<FrictionTelemetry>,
       updatedAt: Date.now(),
     }));
+  };
+
+  const recordMissionOutcome = (input: {
+    blueprintId: MissionBlueprintId;
+    completed: boolean;
+    paused: boolean;
+    qualityScore: number;
+    confidence: number;
+  }) => {
+    setMissionAnalytics((prev) => {
+      const bucket = prev.byBlueprint[input.blueprintId] || {
+        runs: 0,
+        completed: 0,
+        paused: 0,
+        qualityAvg: 0,
+        confidenceAvg: 0,
+        updatedAt: 0,
+      };
+
+      const nextRuns = bucket.runs + 1;
+      const nextCompleted = bucket.completed + (input.completed ? 1 : 0);
+      const nextPaused = bucket.paused + (input.paused ? 1 : 0);
+      const nextQualityAvg = nextRuns === 1
+        ? input.qualityScore
+        : Math.round(((bucket.qualityAvg * bucket.runs) + input.qualityScore) / nextRuns);
+      const nextConfidenceAvg = nextRuns === 1
+        ? input.confidence
+        : Math.round(((bucket.confidenceAvg * bucket.runs) + input.confidence) / nextRuns);
+
+      return {
+        byBlueprint: {
+          ...prev.byBlueprint,
+          [input.blueprintId]: {
+            runs: nextRuns,
+            completed: nextCompleted,
+            paused: nextPaused,
+            qualityAvg: nextQualityAvg,
+            confidenceAvg: nextConfidenceAvg,
+            updatedAt: Date.now(),
+          },
+        },
+        totalRuns: prev.totalRuns + 1,
+        totalCompleted: prev.totalCompleted + (input.completed ? 1 : 0),
+        updatedAt: Date.now(),
+      };
+    });
   };
 
   useEffect(() => {
@@ -1148,6 +1292,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerPauseReason("");
     setMissionRunnerPlan(null);
     setMissionRunnerIndex(0);
+    setMissionLastDispatchedStep(null);
   };
 
   const resumeMissionRunner = () => {
@@ -1157,9 +1302,15 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerActive(true);
   };
 
-  const executeMissionStep = async (stepPrompt: string, taskId: string) => {
+  const executeMissionStep = async (stepPrompt: string, taskId: string, stepIndex: number) => {
     missionDispatchLockRef.current = true;
     try {
+      const commandToken = (stepPrompt.trim().split(" ")[0] || "step").replace(/^\//, "").toLowerCase();
+      setMissionLastDispatchedStep({
+        index: stepIndex + 1,
+        command: commandToken,
+        promptSnippet: stepPrompt.slice(0, 180),
+      });
       clearError();
       await sendMessage({ text: stepPrompt });
       setMissionTasks((prev) =>
@@ -1203,6 +1354,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerIndex(0);
     setMissionRunnerPaused(false);
     setMissionRunnerPauseReason("");
+    setMissionLastDispatchedStep(null);
     setMissionRunnerActive(true);
     setShowSetupPanels(true);
   };
@@ -1211,39 +1363,67 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     const qualityScore = Math.round(latestStatusData?.quality?.score || 0);
     const confidence = Math.round(latestStatusData?.predictionConfidence || 0);
 
+    const reliabilityScoreFor = (id: MissionBlueprintId) => {
+      const stats = missionAnalytics.byBlueprint[id];
+      if (!stats || stats.runs === 0) return 55;
+      const completionRate = stats.completed / Math.max(1, stats.runs);
+      const pauseRate = stats.paused / Math.max(1, stats.runs);
+      const quality = Math.max(0, Math.min(100, stats.qualityAvg || 0));
+      const conf = Math.max(0, Math.min(100, stats.confidenceAvg || 0));
+      return Math.round(completionRate * 60 + (1 - pauseRate) * 20 + quality * 0.12 + conf * 0.08);
+    };
+
+    const starterReliability = reliabilityScoreFor("starter-loop");
+    const riskReliability = reliabilityScoreFor("risk-lock");
+    const odinReliability = reliabilityScoreFor("odin-warroom");
+
     if (!messages.length || skillLevel === "beginner") {
       return {
         id: "starter-loop" as const,
-        reason: "Best for onboarding reliability and clear stepwise execution.",
+        reason: `Best for onboarding reliability and clear stepwise execution (reliability ${starterReliability}/100).`,
       };
     }
 
     if (qualityScore > 0 && qualityScore < 68) {
       return {
         id: "risk-lock" as const,
-        reason: "Quality signal is moderate; tighten process discipline before scaling.",
+        reason: `Quality signal is moderate; tighten process discipline before scaling (reliability ${riskReliability}/100).`,
       };
     }
 
     if (confidence > 0 && confidence < 58) {
       return {
         id: "risk-lock" as const,
-        reason: "Confidence is soft; run risk hardening and counter-thesis first.",
+        reason: `Confidence is soft; run risk hardening and counter-thesis first (reliability ${riskReliability}/100).`,
       };
     }
 
     if (experienceMode === "odin" || skillLevel === "advanced") {
       return {
         id: "odin-warroom" as const,
-        reason: "Profile supports operator-grade orchestration and scenario execution.",
+        reason: `Profile supports operator-grade orchestration and scenario execution (reliability ${odinReliability}/100).`,
+      };
+    }
+
+    if (riskReliability >= starterReliability && riskReliability >= odinReliability) {
+      return {
+        id: "risk-lock" as const,
+        reason: `Historical trend favors Risk Lock in this profile (reliability ${riskReliability}/100).`,
       };
     }
 
     return {
       id: "risk-lock" as const,
-      reason: "Balanced path for reliability, controls, and repeatable execution.",
+      reason: `Balanced path for reliability, controls, and repeatable execution (reliability ${riskReliability}/100).`,
     };
-  }, [messages.length, skillLevel, experienceMode, latestStatusData?.quality?.score, latestStatusData?.predictionConfidence]);
+  }, [
+    messages.length,
+    skillLevel,
+    experienceMode,
+    latestStatusData?.quality?.score,
+    latestStatusData?.predictionConfidence,
+    missionAnalytics.byBlueprint,
+  ]);
 
   useEffect(() => {
     if (!missionRunnerActive || !missionRunnerPlan || missionRunnerPaused) return;
@@ -1251,6 +1431,15 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     if (missionDispatchLockRef.current) return;
 
     if (missionRunnerIndex >= missionRunnerPlan.steps.length) {
+      const finalQuality = Math.round(latestStatusData?.quality?.score || 0);
+      const finalConfidence = Math.round(latestStatusData?.predictionConfidence || 0);
+      recordMissionOutcome({
+        blueprintId: missionRunnerPlan.id,
+        completed: true,
+        paused: false,
+        qualityScore: finalQuality,
+        confidence: finalConfidence,
+      });
       setMissionRunnerActive(false);
       return;
     }
@@ -1262,6 +1451,13 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       const weakConfidence = priorConfidence > 0 && priorConfidence < 45;
 
       if (weakQuality || weakConfidence) {
+        recordMissionOutcome({
+          blueprintId: missionRunnerPlan.id,
+          completed: false,
+          paused: true,
+          qualityScore: priorQuality,
+          confidence: priorConfidence,
+        });
         setMissionRunnerPaused(true);
         setMissionRunnerActive(false);
         setMissionRunnerPauseReason(
@@ -1277,13 +1473,14 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     const nextPrompt = missionRunnerPlan.steps[nextIndex];
     const nextTaskId = missionRunnerPlan.taskIds[nextIndex];
     setMissionRunnerIndex((prev) => prev + 1);
-    void executeMissionStep(nextPrompt, nextTaskId);
+    void executeMissionStep(nextPrompt, nextTaskId, nextIndex);
   }, [
     missionRunnerActive,
     missionRunnerPlan,
     missionRunnerPaused,
     missionRunnerIndex,
     isStreaming,
+    latestStatusData?.quality?.classification,
     latestStatusData?.quality?.score,
     latestStatusData?.predictionConfidence,
   ]);

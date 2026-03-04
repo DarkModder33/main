@@ -276,6 +276,54 @@ function serializeContext(context: unknown) {
   return "";
 }
 
+function resolveMissionDirective(context: unknown) {
+  if (!context || typeof context !== "object" || Array.isArray(context)) {
+    return "";
+  }
+
+  const missionRaw = (context as Record<string, unknown>).mission;
+  if (!missionRaw || typeof missionRaw !== "object" || Array.isArray(missionRaw)) {
+    return "";
+  }
+
+  const mission = missionRaw as Record<string, unknown>;
+  const missionId = typeof mission.id === "string" ? sanitizePlainText(mission.id, 60) : "";
+  const label = typeof mission.label === "string" ? sanitizePlainText(mission.label, 120) : "";
+  const stepIndex = Number(mission.currentStepIndex);
+  const totalSteps = Number(mission.totalSteps);
+  const paused = Boolean(mission.paused);
+  const pauseReason = typeof mission.pauseReason === "string" ? sanitizePlainText(mission.pauseReason, 240) : "";
+  const lastStepRaw = mission.lastStep;
+  const lastStep =
+    lastStepRaw && typeof lastStepRaw === "object" && !Array.isArray(lastStepRaw)
+      ? (lastStepRaw as Record<string, unknown>)
+      : null;
+  const lastCommand = lastStep && typeof lastStep.command === "string"
+    ? sanitizePlainText(lastStep.command, 40)
+    : "";
+  const lastPrompt = lastStep && typeof lastStep.promptSnippet === "string"
+    ? sanitizePlainText(lastStep.promptSnippet, 260)
+    : "";
+
+  if (!missionId && !label) {
+    return "";
+  }
+
+  return [
+    "Mission directive:",
+    `Mission=${label || missionId}`,
+    Number.isFinite(stepIndex) && Number.isFinite(totalSteps)
+      ? `Step=${Math.max(0, stepIndex)}/${Math.max(0, totalSteps)}`
+      : "",
+    paused ? `Paused=true${pauseReason ? ` (${pauseReason})` : ""}` : "Paused=false",
+    lastCommand ? `LastCommand=/${lastCommand}` : "",
+    lastPrompt ? `LastPrompt=${lastPrompt}` : "",
+    "Preserve continuity with previous mission steps, avoid redundant restatement, and output only the highest-leverage next action.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function readRolloutPercent() {
   const parsed = Number.parseInt(String(process.env.TRADEHAX_USE_CHAT_ROLLOUT_PERCENT || "100"), 10);
   if (!Number.isFinite(parsed)) return 100;
@@ -973,6 +1021,11 @@ export async function POST(request: NextRequest) {
 
     if (objective) {
       promptLines.push(`Objective:\n${objective}`);
+    }
+
+    const missionDirective = resolveMissionDirective(body.context);
+    if (missionDirective) {
+      promptLines.push(missionDirective);
     }
 
     const contextText = serializeContext(body.context);
