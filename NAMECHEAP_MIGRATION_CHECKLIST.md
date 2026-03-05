@@ -60,7 +60,7 @@ BASE_URL=https://tradehax.net TRADEHAX_CRON_SECRET='<same value as env>' bash de
 - Push to `main`, or run GitHub workflow manually: **Deploy to Namecheap VPS**.
 - Validate:
   - Home page loads
-  - `/api/health/snow-removal` (or equivalent health endpoint) responds
+   - Health endpoint responds
   - Auth and key API routes function
 
 ## 6) Disable Vercel remnants
