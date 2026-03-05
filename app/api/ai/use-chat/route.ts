@@ -300,6 +300,14 @@ function resolveMissionDirective(context: unknown) {
   const recoveryEnabled = recovery ? Boolean(recovery.autoEnabled) : false;
   const recoveryAttempts = recovery ? Number(recovery.attemptsCurrentRun) : 0;
   const recoveryEngaged = recovery ? Boolean(recovery.engagedInRun) : false;
+  const branchRaw = mission.branch;
+  const branch = branchRaw && typeof branchRaw === "object" && !Array.isArray(branchRaw)
+    ? (branchRaw as Record<string, unknown>)
+    : null;
+  const branchMode = branch && typeof branch.mode === "string"
+    ? sanitizePlainText(branch.mode, 20)
+    : "";
+  const branchSwitches = branch ? Number(branch.switchesCurrentRun) : 0;
   const lastStepRaw = mission.lastStep;
   const lastStep =
     lastStepRaw && typeof lastStepRaw === "object" && !Array.isArray(lastStepRaw)
@@ -326,8 +334,15 @@ function resolveMissionDirective(context: unknown) {
     `RecoveryAuto=${recoveryEnabled ? "enabled" : "disabled"}`,
     Number.isFinite(recoveryAttempts) ? `RecoveryAttempts=${Math.max(0, recoveryAttempts)}` : "",
     recoveryEngaged ? "RecoveryEngaged=true" : "RecoveryEngaged=false",
+    branchMode ? `BranchMode=${branchMode}` : "",
+    Number.isFinite(branchSwitches) ? `BranchSwitches=${Math.max(0, branchSwitches)}` : "",
     lastCommand ? `LastCommand=/${lastCommand}` : "",
     lastPrompt ? `LastPrompt=${lastPrompt}` : "",
+    branchMode === "stabilize"
+      ? "Branch directive: stabilize output with stricter assumptions, explicit risk gate, and one deterministic next action."
+      : branchMode === "accelerate"
+        ? "Branch directive: accelerate output by avoiding repeated caveats and prioritizing concise, execution-ready operator actions."
+        : "",
     recoveryEngaged
       ? "When recovering, prioritize contradiction checks, root-cause isolation, and a go/no-go next action before continuing mission flow."
       : "",
