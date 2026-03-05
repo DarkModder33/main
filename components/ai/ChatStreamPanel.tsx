@@ -330,6 +330,9 @@ type MissionRunnerState = {
   paused: boolean;
   pauseReason: string;
   index: number;
+  autoRecoveryEnabled?: boolean;
+  recoveryAttempts?: number;
+  runUsedRecovery?: boolean;
   plan: {
     id: MissionBlueprintId;
     label: string;
@@ -343,6 +346,8 @@ type MissionAnalyticsBucket = {
   runs: number;
   completed: number;
   paused: number;
+  autoRecoveries: number;
+  recoveredCompletions: number;
   qualityAvg: number;
   confidenceAvg: number;
   updatedAt: number;
@@ -416,6 +421,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   const [missionRunnerIndex, setMissionRunnerIndex] = useState(0);
   const [missionRunnerPaused, setMissionRunnerPaused] = useState(false);
   const [missionRunnerPauseReason, setMissionRunnerPauseReason] = useState("");
+  const [missionAutoRecoveryEnabled, setMissionAutoRecoveryEnabled] = useState(true);
+  const [missionRecoveryAttempts, setMissionRecoveryAttempts] = useState(0);
+  const [missionRunUsedRecovery, setMissionRunUsedRecovery] = useState(false);
   const [missionRunnerPlan, setMissionRunnerPlan] = useState<{
     id: MissionBlueprintId;
     label: string;
@@ -424,6 +432,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     taskIds: string[];
   } | null>(null);
   const missionDispatchLockRef = useRef(false);
+  const missionRecoveryAttemptedStepsRef = useRef<Set<string>>(new Set());
   const [missionLastDispatchedStep, setMissionLastDispatchedStep] = useState<{
     index: number;
     command: string;
@@ -431,9 +440,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   } | null>(null);
   const [missionAnalytics, setMissionAnalytics] = useState<MissionAnalyticsStore>({
     byBlueprint: {
-      "starter-loop": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
-      "risk-lock": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
-      "odin-warroom": { runs: 0, completed: 0, paused: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+      "starter-loop": { runs: 0, completed: 0, paused: 0, autoRecoveries: 0, recoveredCompletions: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+      "risk-lock": { runs: 0, completed: 0, paused: 0, autoRecoveries: 0, recoveredCompletions: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
+      "odin-warroom": { runs: 0, completed: 0, paused: 0, autoRecoveries: 0, recoveredCompletions: 0, qualityAvg: 0, confidenceAvg: 0, updatedAt: 0 },
     },
     totalRuns: 0,
     totalCompleted: 0,
@@ -455,6 +464,11 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
         pauseReason: missionRunnerPauseReason || undefined,
         currentStepIndex: missionRunnerIndex,
         totalSteps: missionRunnerPlan.steps.length,
+        recovery: {
+          autoEnabled: missionAutoRecoveryEnabled,
+          attemptsCurrentRun: missionRecoveryAttempts,
+          engagedInRun: missionRunUsedRecovery,
+        },
         lastStep: missionLastDispatchedStep,
       },
     };
@@ -464,6 +478,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     missionRunnerPaused,
     missionRunnerPauseReason,
     missionRunnerIndex,
+    missionAutoRecoveryEnabled,
+    missionRecoveryAttempts,
+    missionRunUsedRecovery,
     missionLastDispatchedStep,
   ]);
 
@@ -620,6 +637,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           setMissionRunnerPlan(validPlan);
           setMissionRunnerIndex(Math.max(0, Math.min(Number(parsed.index) || 0, validPlan.steps.length)));
           setMissionRunnerPaused(Boolean(parsed.paused));
+          setMissionAutoRecoveryEnabled(parsed.autoRecoveryEnabled !== false);
+          setMissionRecoveryAttempts(Math.max(0, Number(parsed.recoveryAttempts) || 0));
+          setMissionRunUsedRecovery(Boolean(parsed.runUsedRecovery));
           setMissionRunnerPauseReason(
             typeof parsed.pauseReason === "string" && parsed.pauseReason.trim().length > 0
               ? parsed.pauseReason
@@ -818,6 +838,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       paused: missionRunnerPaused,
       pauseReason: missionRunnerPauseReason,
       index: missionRunnerIndex,
+      autoRecoveryEnabled: missionAutoRecoveryEnabled,
+      recoveryAttempts: missionRecoveryAttempts,
+      runUsedRecovery: missionRunUsedRecovery,
       plan: missionRunnerPlan,
     };
 
@@ -826,7 +849,16 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     } catch {
       // Ignore persistence failure
     }
-  }, [missionRunnerActive, missionRunnerPaused, missionRunnerPauseReason, missionRunnerIndex, missionRunnerPlan]);
+  }, [
+    missionRunnerActive,
+    missionRunnerPaused,
+    missionRunnerPauseReason,
+    missionRunnerIndex,
+    missionAutoRecoveryEnabled,
+    missionRecoveryAttempts,
+    missionRunUsedRecovery,
+    missionRunnerPlan,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -855,6 +887,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     blueprintId: MissionBlueprintId;
     completed: boolean;
     paused: boolean;
+    recoveryUsed: boolean;
     qualityScore: number;
     confidence: number;
   }) => {
@@ -863,6 +896,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
         runs: 0,
         completed: 0,
         paused: 0,
+        autoRecoveries: 0,
+        recoveredCompletions: 0,
         qualityAvg: 0,
         confidenceAvg: 0,
         updatedAt: 0,
@@ -871,6 +906,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       const nextRuns = bucket.runs + 1;
       const nextCompleted = bucket.completed + (input.completed ? 1 : 0);
       const nextPaused = bucket.paused + (input.paused ? 1 : 0);
+      const nextAutoRecoveries = bucket.autoRecoveries + (input.recoveryUsed ? 1 : 0);
+      const nextRecoveredCompletions =
+        bucket.recoveredCompletions + (input.completed && input.recoveryUsed ? 1 : 0);
       const nextQualityAvg = nextRuns === 1
         ? input.qualityScore
         : Math.round(((bucket.qualityAvg * bucket.runs) + input.qualityScore) / nextRuns);
@@ -885,6 +923,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
             runs: nextRuns,
             completed: nextCompleted,
             paused: nextPaused,
+            autoRecoveries: nextAutoRecoveries,
+            recoveredCompletions: nextRecoveredCompletions,
             qualityAvg: nextQualityAvg,
             confidenceAvg: nextConfidenceAvg,
             updatedAt: Date.now(),
@@ -1292,7 +1332,10 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerPauseReason("");
     setMissionRunnerPlan(null);
     setMissionRunnerIndex(0);
+    setMissionRecoveryAttempts(0);
+    setMissionRunUsedRecovery(false);
     setMissionLastDispatchedStep(null);
+    missionRecoveryAttemptedStepsRef.current.clear();
   };
 
   const resumeMissionRunner = () => {
@@ -1315,6 +1358,43 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       await sendMessage({ text: stepPrompt });
       setMissionTasks((prev) =>
         prev.map((task) => (task.id === taskId ? { ...task, status: "executed" } : task)),
+      );
+      trackFriction({ sends: 1, slashPrefills: 1 });
+    } finally {
+      missionDispatchLockRef.current = false;
+    }
+  };
+
+  const buildRecoveryPrompt = (input: {
+    weakQuality: boolean;
+    weakConfidence: boolean;
+    qualityScore: number;
+    confidence: number;
+    failedStepPrompt: string;
+    stepNumber: number;
+  }) => {
+    const qualityLine = input.weakQuality ? `quality dropped to ${Math.max(0, input.qualityScore)}/100` : "";
+    const confidenceLine = input.weakConfidence ? `confidence dropped to ${Math.max(0, input.confidence)}%` : "";
+    const reason = [qualityLine, confidenceLine].filter(Boolean).join(" and ");
+    return `/counter Mission recovery protocol for step ${input.stepNumber}. ${reason || "Signal quality drift detected"}. Recover this step by identifying the strongest failure hypothesis, repairing assumptions, and outputting: (1) corrected operator action, (2) hard invalidation trigger, (3) one go/no-go decision for the next mission step. Step context: ${input.failedStepPrompt.slice(0, 260)}`;
+  };
+
+  const executeMissionRecoveryStep = async (input: {
+    prompt: string;
+    taskId: string;
+    stepNumber: number;
+  }) => {
+    missionDispatchLockRef.current = true;
+    try {
+      setMissionLastDispatchedStep({
+        index: input.stepNumber,
+        command: "counter",
+        promptSnippet: input.prompt.slice(0, 180),
+      });
+      clearError();
+      await sendMessage({ text: input.prompt });
+      setMissionTasks((prev) =>
+        prev.map((task) => (task.id === input.taskId ? { ...task, status: "executed" } : task)),
       );
       trackFriction({ sends: 1, slashPrefills: 1 });
     } finally {
@@ -1354,6 +1434,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerIndex(0);
     setMissionRunnerPaused(false);
     setMissionRunnerPauseReason("");
+    setMissionRecoveryAttempts(0);
+    setMissionRunUsedRecovery(false);
+    missionRecoveryAttemptedStepsRef.current.clear();
     setMissionLastDispatchedStep(null);
     setMissionRunnerActive(true);
     setShowSetupPanels(true);
@@ -1368,9 +1451,18 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       if (!stats || stats.runs === 0) return 55;
       const completionRate = stats.completed / Math.max(1, stats.runs);
       const pauseRate = stats.paused / Math.max(1, stats.runs);
+      const recoveryRate = Number(stats.autoRecoveries || 0) / Math.max(1, stats.runs);
+      const recoveredCompletionRate = Number(stats.recoveredCompletions || 0) / Math.max(1, stats.runs);
       const quality = Math.max(0, Math.min(100, stats.qualityAvg || 0));
       const conf = Math.max(0, Math.min(100, stats.confidenceAvg || 0));
-      return Math.round(completionRate * 60 + (1 - pauseRate) * 20 + quality * 0.12 + conf * 0.08);
+      return Math.round(
+        completionRate * 52 +
+          (1 - pauseRate) * 18 +
+          quality * 0.11 +
+          conf * 0.08 +
+          (1 - Math.min(1, recoveryRate)) * 6 +
+          Math.min(1, recoveredCompletionRate) * 6,
+      );
     };
 
     const starterReliability = reliabilityScoreFor("starter-loop");
@@ -1437,6 +1529,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
         blueprintId: missionRunnerPlan.id,
         completed: true,
         paused: false,
+        recoveryUsed: missionRunUsedRecovery,
         qualityScore: finalQuality,
         confidence: finalConfidence,
       });
@@ -1449,12 +1542,57 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       const priorConfidence = Math.round(latestStatusData?.predictionConfidence || 0);
       const weakQuality = priorQuality > 0 && priorQuality < 52;
       const weakConfidence = priorConfidence > 0 && priorConfidence < 45;
+      const priorStepIndex = missionRunnerIndex - 1;
 
       if (weakQuality || weakConfidence) {
+        const recoveryKey = `${missionRunnerPlan.runId}:${priorStepIndex}`;
+        const canAutoRecover =
+          missionAutoRecoveryEnabled &&
+          priorStepIndex >= 0 &&
+          !missionRecoveryAttemptedStepsRef.current.has(recoveryKey);
+
+        if (canAutoRecover) {
+          const failedStepPrompt = missionRunnerPlan.steps[priorStepIndex] || "";
+          missionRecoveryAttemptedStepsRef.current.add(recoveryKey);
+          setMissionRunUsedRecovery(true);
+          setMissionRecoveryAttempts((prev) => prev + 1);
+          setMissionRunnerPauseReason(
+            `Auto-recovery injected after step ${priorStepIndex + 1} due to ${
+              weakQuality ? `quality ${priorQuality}/100` : `confidence ${priorConfidence}%`
+            } signal drift.`,
+          );
+
+          const recoveryTaskId = `mission-recovery-${missionRunnerPlan.runId}-${Date.now()}`;
+          const recoveryTask: MissionTask = {
+            id: recoveryTaskId,
+            label: `Recovery ${missionRecoveryAttempts + 1}: /counter repair step ${priorStepIndex + 1}`,
+            status: "queued",
+            mode: "mission",
+            createdAt: Date.now(),
+          };
+          setMissionTasks((prev) => [recoveryTask, ...prev].slice(0, 12));
+
+          const recoveryPrompt = buildRecoveryPrompt({
+            weakQuality,
+            weakConfidence,
+            qualityScore: priorQuality,
+            confidence: priorConfidence,
+            failedStepPrompt,
+            stepNumber: priorStepIndex + 1,
+          });
+          void executeMissionRecoveryStep({
+            prompt: recoveryPrompt,
+            taskId: recoveryTaskId,
+            stepNumber: priorStepIndex + 1,
+          });
+          return;
+        }
+
         recordMissionOutcome({
           blueprintId: missionRunnerPlan.id,
           completed: false,
           paused: true,
+          recoveryUsed: missionRunUsedRecovery,
           qualityScore: priorQuality,
           confidence: priorConfidence,
         });
@@ -1472,6 +1610,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     const nextIndex = missionRunnerIndex;
     const nextPrompt = missionRunnerPlan.steps[nextIndex];
     const nextTaskId = missionRunnerPlan.taskIds[nextIndex];
+    setMissionRunnerPauseReason("");
     setMissionRunnerIndex((prev) => prev + 1);
     void executeMissionStep(nextPrompt, nextTaskId, nextIndex);
   }, [
@@ -1479,6 +1618,9 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     missionRunnerPlan,
     missionRunnerPaused,
     missionRunnerIndex,
+    missionAutoRecoveryEnabled,
+    missionRunUsedRecovery,
+    missionRecoveryAttempts,
     isStreaming,
     latestStatusData?.quality?.classification,
     latestStatusData?.quality?.score,
@@ -1876,15 +2018,28 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       <div className="mb-3 rounded-lg border border-violet-500/25 bg-violet-500/10 p-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-[11px] font-semibold text-violet-100">Autonomous Mission Runner</p>
-          {missionRunnerActive && missionRunnerPlan ? (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={stopMissionRunner}
-              className="rounded-full border border-rose-300/40 bg-rose-500/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-rose-100"
+              onClick={() => setMissionAutoRecoveryEnabled((prev) => !prev)}
+              className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${
+                missionAutoRecoveryEnabled
+                  ? "border-emerald-300/40 bg-emerald-500/20 text-emerald-100"
+                  : "border-zinc-300/35 bg-black/35 text-zinc-100/80"
+              }`}
             >
-              Stop Mission
+              Auto-Recover {missionAutoRecoveryEnabled ? "On" : "Off"}
             </button>
-          ) : null}
+            {missionRunnerActive && missionRunnerPlan ? (
+              <button
+                type="button"
+                onClick={stopMissionRunner}
+                className="rounded-full border border-rose-300/40 bg-rose-500/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-rose-100"
+              >
+                Stop Mission
+              </button>
+            ) : null}
+          </div>
         </div>
         <p className="mt-1 text-[10px] text-violet-100/75">Runs multi-step command chains automatically for deeper execution quality.</p>
         <div className="mt-2 rounded-lg border border-violet-300/20 bg-black/30 px-2.5 py-2">
@@ -1925,6 +2080,10 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           <div className="mt-2 space-y-1">
             <p className="text-[10px] text-violet-100/80">
               Active mission: <span className="font-semibold">{missionRunnerPlan.label}</span> · dispatched {Math.min(missionRunnerIndex, missionRunnerPlan.steps.length)}/{missionRunnerPlan.steps.length}
+            </p>
+            <p className="text-[10px] text-violet-100/70">
+              Recovery status: {missionAutoRecoveryEnabled ? "armed" : "disabled"} · attempts this run {missionRecoveryAttempts}
+              {missionRunUsedRecovery ? " · recovery engaged" : ""}
             </p>
             {missionRunnerPaused ? (
               <div className="flex flex-wrap items-center gap-2">

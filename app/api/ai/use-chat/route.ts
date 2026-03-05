@@ -293,6 +293,13 @@ function resolveMissionDirective(context: unknown) {
   const totalSteps = Number(mission.totalSteps);
   const paused = Boolean(mission.paused);
   const pauseReason = typeof mission.pauseReason === "string" ? sanitizePlainText(mission.pauseReason, 240) : "";
+  const recoveryRaw = mission.recovery;
+  const recovery = recoveryRaw && typeof recoveryRaw === "object" && !Array.isArray(recoveryRaw)
+    ? (recoveryRaw as Record<string, unknown>)
+    : null;
+  const recoveryEnabled = recovery ? Boolean(recovery.autoEnabled) : false;
+  const recoveryAttempts = recovery ? Number(recovery.attemptsCurrentRun) : 0;
+  const recoveryEngaged = recovery ? Boolean(recovery.engagedInRun) : false;
   const lastStepRaw = mission.lastStep;
   const lastStep =
     lastStepRaw && typeof lastStepRaw === "object" && !Array.isArray(lastStepRaw)
@@ -316,8 +323,14 @@ function resolveMissionDirective(context: unknown) {
       ? `Step=${Math.max(0, stepIndex)}/${Math.max(0, totalSteps)}`
       : "",
     paused ? `Paused=true${pauseReason ? ` (${pauseReason})` : ""}` : "Paused=false",
+    `RecoveryAuto=${recoveryEnabled ? "enabled" : "disabled"}`,
+    Number.isFinite(recoveryAttempts) ? `RecoveryAttempts=${Math.max(0, recoveryAttempts)}` : "",
+    recoveryEngaged ? "RecoveryEngaged=true" : "RecoveryEngaged=false",
     lastCommand ? `LastCommand=/${lastCommand}` : "",
     lastPrompt ? `LastPrompt=${lastPrompt}` : "",
+    recoveryEngaged
+      ? "When recovering, prioritize contradiction checks, root-cause isolation, and a go/no-go next action before continuing mission flow."
+      : "",
     "Preserve continuity with previous mission steps, avoid redundant restatement, and output only the highest-leverage next action.",
   ]
     .filter(Boolean)
