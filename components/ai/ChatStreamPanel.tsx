@@ -333,6 +333,8 @@ type MissionRunnerState = {
   autoRecoveryEnabled?: boolean;
   recoveryAttempts?: number;
   runUsedRecovery?: boolean;
+  branchMode?: MissionBranchMode;
+  branchSwitches?: number;
   plan: {
     id: MissionBlueprintId;
     label: string;
@@ -358,6 +360,16 @@ type MissionAnalyticsStore = {
   totalRuns: number;
   totalCompleted: number;
   updatedAt: number;
+};
+
+type MissionBranchMode = "stabilize" | "steady" | "accelerate";
+
+type MissionSignalSnapshot = {
+  qualityAvg: number;
+  confidenceAvg: number;
+  fallbackEvents: number;
+  weakSignals: number;
+  sampleSize: number;
 };
 
 const MISSION_BLUEPRINTS: MissionBlueprint[] = [
@@ -424,6 +436,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   const [missionAutoRecoveryEnabled, setMissionAutoRecoveryEnabled] = useState(true);
   const [missionRecoveryAttempts, setMissionRecoveryAttempts] = useState(0);
   const [missionRunUsedRecovery, setMissionRunUsedRecovery] = useState(false);
+  const [missionBranchMode, setMissionBranchMode] = useState<MissionBranchMode>("steady");
+  const [missionBranchSwitches, setMissionBranchSwitches] = useState(0);
   const [missionRunnerPlan, setMissionRunnerPlan] = useState<{
     id: MissionBlueprintId;
     label: string;
@@ -469,6 +483,10 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           attemptsCurrentRun: missionRecoveryAttempts,
           engagedInRun: missionRunUsedRecovery,
         },
+        branch: {
+          mode: missionBranchMode,
+          switchesCurrentRun: missionBranchSwitches,
+        },
         lastStep: missionLastDispatchedStep,
       },
     };
@@ -481,6 +499,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     missionAutoRecoveryEnabled,
     missionRecoveryAttempts,
     missionRunUsedRecovery,
+    missionBranchMode,
+    missionBranchSwitches,
     missionLastDispatchedStep,
   ]);
 
@@ -640,6 +660,12 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           setMissionAutoRecoveryEnabled(parsed.autoRecoveryEnabled !== false);
           setMissionRecoveryAttempts(Math.max(0, Number(parsed.recoveryAttempts) || 0));
           setMissionRunUsedRecovery(Boolean(parsed.runUsedRecovery));
+          setMissionBranchMode(
+            parsed.branchMode === "stabilize" || parsed.branchMode === "accelerate" || parsed.branchMode === "steady"
+              ? parsed.branchMode
+              : "steady",
+          );
+          setMissionBranchSwitches(Math.max(0, Number(parsed.branchSwitches) || 0));
           setMissionRunnerPauseReason(
             typeof parsed.pauseReason === "string" && parsed.pauseReason.trim().length > 0
               ? parsed.pauseReason
@@ -841,6 +867,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
       autoRecoveryEnabled: missionAutoRecoveryEnabled,
       recoveryAttempts: missionRecoveryAttempts,
       runUsedRecovery: missionRunUsedRecovery,
+      branchMode: missionBranchMode,
+      branchSwitches: missionBranchSwitches,
       plan: missionRunnerPlan,
     };
 
@@ -857,6 +885,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     missionAutoRecoveryEnabled,
     missionRecoveryAttempts,
     missionRunUsedRecovery,
+    missionBranchMode,
+    missionBranchSwitches,
     missionRunnerPlan,
   ]);
 
@@ -1068,6 +1098,103 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     }
     return null;
   })();
+
+  const recentMissionSignals = useMemo<MissionSignalSnapshot>(() => {
+    const statusEvents: StreamStatusData[] = [];
+
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const message = messages[i];
+      for (let j = message.parts.length - 1; j >= 0; j -= 1) {
+        const part = message.parts[j] as { type?: string; data?: unknown };
+        if (part?.type !== "data-status" || !part?.data || typeof part.data !== "object") continue;
+        statusEvents.push(part.data as StreamStatusData);
+        if (statusEvents.length >= 8) break;
+      }
+      if (statusEvents.length >= 8) break;
+    }
+
+    const sample = statusEvents.slice(0, 6);
+    if (sample.length === 0) {
+      return {
+        qualityAvg: 0,
+        confidenceAvg: 0,
+        fallbackEvents: 0,
+        weakSignals: 0,
+        sampleSize: 0,
+      };
+    }
+
+    let qualitySum = 0;
+    let qualityCount = 0;
+    let confidenceSum = 0;
+    let confidenceCount = 0;
+    let fallbackEvents = 0;
+    let weakSignals = 0;
+
+    for (const event of sample) {
+      const quality = Math.round(event?.quality?.score || 0);
+      const confidence = Math.round(event?.predictionConfidence || 0);
+      const failedModels = Array.isArray(event?.failedModels) ? event.failedModels.length : 0;
+      const hasFallback = Boolean(event?.sloFallbackTriggered) || failedModels > 0 || String(event?.status || "").includes("fallback");
+
+      if (quality > 0) {
+        qualitySum += quality;
+        qualityCount += 1;
+      }
+
+      if (confidence > 0) {
+        confidenceSum += confidence;
+        confidenceCount += 1;
+      }
+
+      if (hasFallback) fallbackEvents += 1;
+      if ((quality > 0 && quality < 64) || (confidence > 0 && confidence < 55)) {
+        weakSignals += 1;
+      }
+    }
+
+    return {
+      qualityAvg: qualityCount > 0 ? Math.round(qualitySum / qualityCount) : 0,
+      confidenceAvg: confidenceCount > 0 ? Math.round(confidenceSum / confidenceCount) : 0,
+      fallbackEvents,
+      weakSignals,
+      sampleSize: sample.length,
+    };
+  }, [messages]);
+
+  const adaptiveBranchMode = useMemo<MissionBranchMode>(() => {
+    if (!missionRunnerPlan) return "steady";
+
+    if (
+      (recentMissionSignals.qualityAvg > 0 && recentMissionSignals.qualityAvg < 68) ||
+      (recentMissionSignals.confidenceAvg > 0 && recentMissionSignals.confidenceAvg < 58) ||
+      recentMissionSignals.fallbackEvents >= 1 ||
+      recentMissionSignals.weakSignals >= 2
+    ) {
+      return "stabilize";
+    }
+
+    if (
+      recentMissionSignals.sampleSize >= 2 &&
+      recentMissionSignals.qualityAvg >= 84 &&
+      recentMissionSignals.confidenceAvg >= 72 &&
+      recentMissionSignals.fallbackEvents === 0
+    ) {
+      return "accelerate";
+    }
+
+    return "steady";
+  }, [missionRunnerPlan, recentMissionSignals]);
+
+  useEffect(() => {
+    if (!missionRunnerPlan) return;
+    if (missionBranchMode === adaptiveBranchMode) return;
+
+    setMissionBranchMode(adaptiveBranchMode);
+    if (missionRunnerActive) {
+      setMissionBranchSwitches((prev) => prev + 1);
+    }
+  }, [missionRunnerPlan, missionRunnerActive, missionBranchMode, adaptiveBranchMode]);
 
   const latestAssistantText = (() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -1334,6 +1461,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerIndex(0);
     setMissionRecoveryAttempts(0);
     setMissionRunUsedRecovery(false);
+    setMissionBranchMode("steady");
+    setMissionBranchSwitches(0);
     setMissionLastDispatchedStep(null);
     missionRecoveryAttemptedStepsRef.current.clear();
   };
@@ -1363,6 +1492,18 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     } finally {
       missionDispatchLockRef.current = false;
     }
+  };
+
+  const buildBranchAdjustedMissionStep = (baseStep: string) => {
+    if (missionBranchMode === "stabilize") {
+      return `${baseStep}\n\nBranch directive (stabilize): Prior responses show reliability drift. Tighten assumptions, include explicit risk gate + invalidation threshold, and end with one go/no-go action only.`;
+    }
+
+    if (missionBranchMode === "accelerate") {
+      return `${baseStep}\n\nBranch directive (accelerate): Recent responses are stable and high confidence. Compress to operator brevity, skip repeated caveats, and output highest-leverage executable action.`;
+    }
+
+    return baseStep;
   };
 
   const buildRecoveryPrompt = (input: {
@@ -1436,6 +1577,8 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     setMissionRunnerPauseReason("");
     setMissionRecoveryAttempts(0);
     setMissionRunUsedRecovery(false);
+    setMissionBranchMode("steady");
+    setMissionBranchSwitches(0);
     missionRecoveryAttemptedStepsRef.current.clear();
     setMissionLastDispatchedStep(null);
     setMissionRunnerActive(true);
@@ -1608,7 +1751,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     }
 
     const nextIndex = missionRunnerIndex;
-    const nextPrompt = missionRunnerPlan.steps[nextIndex];
+    const nextPrompt = buildBranchAdjustedMissionStep(missionRunnerPlan.steps[nextIndex]);
     const nextTaskId = missionRunnerPlan.taskIds[nextIndex];
     setMissionRunnerPauseReason("");
     setMissionRunnerIndex((prev) => prev + 1);
@@ -1621,6 +1764,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
     missionAutoRecoveryEnabled,
     missionRunUsedRecovery,
     missionRecoveryAttempts,
+    missionBranchMode,
     isStreaming,
     latestStatusData?.quality?.classification,
     latestStatusData?.quality?.score,
@@ -2084,6 +2228,12 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
             <p className="text-[10px] text-violet-100/70">
               Recovery status: {missionAutoRecoveryEnabled ? "armed" : "disabled"} · attempts this run {missionRecoveryAttempts}
               {missionRunUsedRecovery ? " · recovery engaged" : ""}
+            </p>
+            <p className="text-[10px] text-violet-100/70">
+              Branch mode: {missionBranchMode} · switches {missionBranchSwitches}
+              {recentMissionSignals.sampleSize > 0
+                ? ` · q${recentMissionSignals.qualityAvg}/c${recentMissionSignals.confidenceAvg} · fallback ${recentMissionSignals.fallbackEvents}`
+                : ""}
             </p>
             {missionRunnerPaused ? (
               <div className="flex flex-wrap items-center gap-2">
