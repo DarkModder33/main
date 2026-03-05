@@ -55,13 +55,13 @@ npm run llm:finetune:workflow:push
 
 Expected output:
 - Model checkpoints saved to `./fine-tuned-tradehax-mistral/`
-- Model uploaded to Hub: `https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned`
+- Model uploaded to Hub: `https://huggingface.co/your-org/tradehax-mistral-finetuned`
 - Training metrics logged
 
 #### Update Env (After Training)
 ```bash
 # Update .env.local to use fine-tuned model:
-HF_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_MODEL_ID=your-org/tradehax-mistral-finetuned
 ```
 
 ---
@@ -78,7 +78,7 @@ Add these variables:
 ```
 HF_API_TOKEN=hf_YOUR_TOKEN_HERE  [Mark as SECRET]
 HF_MODEL_ID=mistralai/Mistral-7B-Instruct-v0.1
-HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned
 DATASET_PATH=data/custom-llm/tradehax-training-expanded.jsonl
 TRAIN_EPOCHS=3
 TRAIN_BATCH_SIZE=4
@@ -133,7 +133,8 @@ curl -X POST https://tradehax.net/api/hf-server \
 ### Phase 5: Monitoring & Optimization
 
 #### Hugging Face Hub Monitoring
-- Check model metrics: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned
+
+- Check model metrics: <https://huggingface.co/your-org/tradehax-mistral-finetuned>
 - Monitor download counts & community feedback
 
 #### Vercel Monitoring

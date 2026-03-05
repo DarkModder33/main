@@ -25,7 +25,7 @@ scripts/run-finetune-workflow.js  | +65 lines (workflow runner for fine-tuning p
 ### 3. NON-SECRET CONFIG VALUES
 
 HF_MODEL_ID (active):              mistralai/Mistral-7B-Instruct-v0.1
-HF_HUB_MODEL_ID (push target):     irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID (push target):     your-org/tradehax-mistral-finetuned
 HF_IMAGE_MODEL_ID:                 stabilityai/stable-diffusion-2-1
 Dataset file path (default):       tradehax-training-expanded.jsonl
 Output directory:                  artifacts/fine-tuned-tradehax-mistral

@@ -391,7 +391,7 @@ GitHub:
   Issues: https://github.com/DarkModder33/main/issues
 
 Hugging Face:
-  Hub: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned
+  Hub: <https://huggingface.co/your-org/tradehax-mistral-finetuned>
 
 Guides (In Repository):
   • DEPLOYMENT_PATHS.md

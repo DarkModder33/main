@@ -317,11 +317,11 @@ class DeploymentAutomation {
     const checklist = [
       { step: '1', task: 'Push to GitHub main', cmd: 'git push origin main' },
       { step: '2', task: 'Add HF_API_TOKEN to Vercel secrets', cmd: 'vercel env add HF_API_TOKEN' },
-      { step: '3', task: 'Set HF_MODEL_ID to fine-tuned model', cmd: 'vercel env set HF_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned' },
+      { step: '3', task: 'Set HF_MODEL_ID to fine-tuned model', cmd: 'vercel env set HF_MODEL_ID=your-org/tradehax-mistral-finetuned' },
       { step: '4', task: 'Enable payments flag', cmd: 'vercel env set NEXT_PUBLIC_ENABLE_PAYMENTS=true' },
       { step: '5', task: 'Trigger deployment', cmd: 'vercel deploy --prod' },
       { step: '6', task: 'Test /api/hf-server endpoint', cmd: 'curl -X POST https://tradehax.net/api/hf-server ...' },
-      { step: '7', task: 'Verify model on HF Hub', cmd: 'https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned' },
+      { step: '7', task: 'Verify model on HF Hub', cmd: 'https://huggingface.co/your-org/tradehax-mistral-finetuned' },
       { step: '8', task: 'Monitor Vercel logs', cmd: 'vercel logs' },
     ];
 

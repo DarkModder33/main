@@ -406,7 +406,7 @@ const AI_PROVIDERS = {
   huggingface: {
     apiKey: process.env.HUGGINGFACE_API_KEY,
     models: ['glm-4.7-flash-uncensored'],
-    dataset: 'Hackavelli88/TradeHax',
+    dataset: 'your-org/TradeHax',
     endpoint: 'https://api-inference.huggingface.co'
   },
   local: {

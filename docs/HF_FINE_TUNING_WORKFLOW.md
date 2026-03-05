@@ -17,7 +17,7 @@ This workflow fine-tunes Mistral-7B for multi-purpose AI on TradeHax datasets, u
 ## Configs
 
 - Dataset: data/custom-llm/*.jsonl
-- Model: mistralai/Mistral-7B-Instruct-v0.1 -> irishpride81mf/tradehax-mistral-finetuned
+- Model: mistralai/Mistral-7B-Instruct-v0.1 -> your-org/tradehax-mistral-finetuned
 - Params: epochs=3, batch=4, lr=2e-5, LoRA r=16 alpha=32
 
 ## Testing

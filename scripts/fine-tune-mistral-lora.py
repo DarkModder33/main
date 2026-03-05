@@ -37,7 +37,7 @@ def main() -> None:
     use_cuda = torch.cuda.is_available()
     env_model_id = os.getenv("HF_MODEL_ID")
     model_id = env_model_id or ("mistralai/Mistral-7B-Instruct-v0.1" if use_cuda else "sshleifer/tiny-gpt2")
-    hub_model_id = os.getenv("HF_HUB_MODEL_ID", "irishpride81mf/tradehax-mistral-finetuned")
+    hub_model_id = os.getenv("HF_HUB_MODEL_ID", "your-org/tradehax-mistral-finetuned")
     dataset_path = os.getenv("DATASET_PATH", "tradehax-training-expanded.jsonl")
     output_dir = os.getenv("TRAIN_OUTPUT_DIR", "./fine-tuned-tradehax-mistral")
     epochs = int(os.getenv("TRAIN_EPOCHS", "3"))

@@ -59,7 +59,7 @@ Create `.env.local` (copy from `.env.example`):
 ```bash
 HF_API_TOKEN=hf_YOUR_TOKEN_HERE
 HF_MODEL_ID=mistralai/Mistral-7B-Instruct-v0.1
-HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned
 DATASET_PATH=data/custom-llm/tradehax-training-expanded.jsonl
 TRAIN_EPOCHS=3
 TRAIN_BATCH_SIZE=4
@@ -104,7 +104,7 @@ npm run llm:finetune:workflow:push
 ### Step 7: Verify Training Output
 After training completes:
 - Check `./fine-tuned-tradehax-mistral/` directory
-- Verify model uploaded to Hub: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned
+- Verify model uploaded to Hub: <https://huggingface.co/your-org/tradehax-mistral-finetuned>
 
 ### Step 8: Test API Endpoint
 
@@ -175,7 +175,7 @@ Training:
   batch_size: 4
   learning_rate: 2e-5
   max_length: 512
-Output Hub: irishpride81mf/tradehax-mistral-finetuned
+Output Hub: your-org/tradehax-mistral-finetuned
 ```
 
 ## 🚀 Next Steps
