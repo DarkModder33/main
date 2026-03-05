@@ -113,7 +113,7 @@ curl -X POST http://localhost:3000/api/hf-server \
 ```bash
 # Ensure training data exists: data/custom-llm/tradehax-training-expanded.jsonl
 npm run llm:finetune:workflow:push
-# Output: Model uploaded to irishpride81mf/tradehax-mistral-finetuned
+# Output: Model uploaded to your-org/tradehax-mistral-finetuned
 ```
 
 ### 5. Deploy to Vercel
@@ -127,7 +127,7 @@ Add all variables from `.env.example`:
 ```
 HF_API_TOKEN=hf_YOUR_TOKEN_HERE [Mark as SECRET]
 HF_MODEL_ID=mistralai/Mistral-7B-Instruct-v0.1
-HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned
 DATASET_PATH=data/custom-llm/tradehax-training-expanded.jsonl
 TRAIN_EPOCHS=3
 TRAIN_BATCH_SIZE=4
@@ -159,7 +159,7 @@ curl -X POST https://tradehax.net/api/hf-server \
 ```yaml
 Base LLM:        mistralai/Mistral-7B-Instruct-v0.1
 Image Model:     stabilityai/stable-diffusion-2-1
-Fine-tuned Hub:  irishpride81mf/tradehax-mistral-finetuned
+Fine-tuned Hub:  your-org/tradehax-mistral-finetuned
 ```
 
 ### LoRA Configuration
@@ -196,7 +196,7 @@ HF_IMAGE_STEPS=30
 HF_IMAGE_GUIDANCE_SCALE=6.5
 
 # Fine-tuning
-HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned
 DATASET_PATH=data/custom-llm/tradehax-training-expanded.jsonl
 TRAIN_EPOCHS=3
 TRAIN_BATCH_SIZE=4

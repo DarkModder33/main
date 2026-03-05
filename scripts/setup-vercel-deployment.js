@@ -229,7 +229,7 @@ echo "3. Monitor logs: vercel logs"
         title: 'Switch to fine-tuned model (if ready)',
         actions: [
           'After successful fine-tuning & Hub push:',
-          'Set: HF_MODEL_ID = irishpride81mf/tradehax-mistral-finetuned',
+          'Set: HF_MODEL_ID = your-org/tradehax-mistral-finetuned',
           'Redeploy',
           'Re-test inference with custom model',
         ],

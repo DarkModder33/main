@@ -336,7 +336,7 @@ class AutomationRunner {
     log('📞 SUPPORT\n', 'cyan');
     log('Email: darkmodder33@proton.me', 'yellow');
     log('GitHub: https://github.com/DarkModder33/main', 'yellow');
-    log('Hub: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned', 'yellow');
+    log('Hub: https://huggingface.co/your-org/tradehax-mistral-finetuned', 'yellow');
 
     log('\n' + '─'.repeat(70) + '\n', 'cyan');
     log('✅ Automation setup complete! Start with:', 'green');

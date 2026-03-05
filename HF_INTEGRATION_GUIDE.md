@@ -163,7 +163,7 @@ HF_IMAGE_GUIDANCE_SCALE=6.5
 HF_IMAGE_NEGATIVE_PROMPT_DEFAULT=low quality, blurry
 
 # Fine-Tuning Config
-HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned
 DATASET_PATH=data/custom-llm/tradehax-training-expanded.jsonl
 TRAIN_EPOCHS=3
 TRAIN_BATCH_SIZE=4

@@ -19,7 +19,7 @@ This workflow is production-oriented:
 Use these defaults for real runs:
 
 - `HF_MODEL_ID=mistralai/Mistral-7B-Instruct-v0.1`
-- `HF_HUB_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned`
+- `HF_HUB_MODEL_ID=your-org/tradehax-mistral-finetuned`
 - `DATASET_PATH=tradehax-training-expanded.jsonl`
 - `TRAIN_EPOCHS=3`
 - `TRAIN_BATCH_SIZE=4`
@@ -52,7 +52,7 @@ The workflow script supports dependency bootstrap (`--install-deps`) via `run-fi
 After successful `push_to_hub`:
 
 1. In Vercel project environment variables, set:
-   - `HF_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned`
+   - `HF_MODEL_ID=your-org/tradehax-mistral-finetuned`
 2. Redeploy.
 
 ## 5) Test inference

@@ -309,7 +309,7 @@ OPTION C: Manual Steps (Full Control)
 
 Email: darkmodder33@proton.me
 GitHub: https://github.com/DarkModder33/main
-Hugging Face: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned
+Hugging Face: <https://huggingface.co/your-org/tradehax-mistral-finetuned>
 
 Common Issues:
   ❓ "HF_API_TOKEN not found" → vercel env set HF_API_TOKEN=hf_...

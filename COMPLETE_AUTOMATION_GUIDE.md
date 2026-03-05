@@ -194,7 +194,7 @@ After successful fine-tuning and Hub push:
 
 ```bash
 # 1. Update Vercel environment
-vercel env set HF_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+vercel env set HF_MODEL_ID=your-org/tradehax-mistral-finetuned
 
 # 2. Trigger redeployment
 vercel deploy --prod
@@ -260,7 +260,7 @@ vercel logs | grep -i error
 curl https://tradehax.net/api/monetization/check
 
 # 5. Test model switching (post fine-tune)
-vercel env set HF_MODEL_ID=irishpride81mf/tradehax-mistral-finetuned
+vercel env set HF_MODEL_ID=your-org/tradehax-mistral-finetuned
 vercel deploy --prod
 ```
 
@@ -384,7 +384,7 @@ vercel deploy --prod
 **For automation help or issues:**
 - Email: darkmodder33@proton.me
 - GitHub: https://github.com/DarkModder33/main
-- Hugging Face: https://huggingface.co/irishpride81mf/tradehax-mistral-finetuned
+- Hugging Face: https://huggingface.co/your-org/tradehax-mistral-finetuned
 
 ---
 
