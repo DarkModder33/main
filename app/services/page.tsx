@@ -26,30 +26,25 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata = createPageMetadata({
-  title: "Philadelphia & South Jersey Tech Services | Web, App, Repair, and Web3",
+  title: "Digital Services | Execution Studio for AI, Web & Automation",
   description:
-    "TradeHax AI provides web development, app builds, tech support, marketing, and Web3 consulting for Greater Philadelphia, South Jersey, and remote clients.",
+    "Execution studio for AI systems, websites, automations, and technical delivery. Custom development, blockchain solutions, and professional IT services with transparent pricing.",
   path: "/services",
   imagePath: "/og-services.svg",
-  imageAlt: "TradeHax AI services across Philadelphia and South Jersey",
+  imageAlt: "TradeHax AI Digital Services - Professional execution studio",
   keywords: [
-    "web development philadelphia",
-    "app development philadelphia",
-    "computer repair near philadelphia",
-    "tech support south jersey",
-    "website design south jersey",
-    "social media marketing services",
-    "web3 development",
-    "blockchain consulting",
-    "trading systems",
+    "AI automation services",
+    "custom AI agents",
+    "web development",
+    "app development",
+    "blockchain development",
     "smart contracts",
-    "dapp development",
-    "local tech support",
-    "atlantic county tech support",
-    "philadelphia web3 consulting",
-    "south jersey app development",
-    "local business website development",
-    "remote technical support services",
+    "technical support",
+    "IT services",
+    "web3 consulting",
+    "digital services",
+    "execution studio",
+    "automation workflows",
   ],
 });
 
@@ -171,26 +166,107 @@ export default function ServicesPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 pb-28 md:pb-14">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#00FF41] to-[#39FF14] text-transparent bg-clip-text mb-5 sm:mb-6">
-            Professional Services
+        <section className="theme-panel p-8 sm:p-12 md:p-16 mb-8 text-center">
+          <span className="theme-kicker mb-5">Digital Services</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl leading-tight font-black text-white tracking-tighter italic uppercase mb-6">
+            Execution Studio
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-            Clear, outcome-focused service paths for AI trading, digital builds, and real-world support.
-            Pick one path and we&apos;ll guide the next action.
+          <p className="text-zinc-200 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed mb-8">
+            AI systems, websites, automations, and technical delivery. Professional execution from discovery to deployment with transparent pricing and clear timelines.
           </p>
-          <div className="mt-8">
+          <div className="flex flex-wrap gap-3 justify-center">
             <TrackedCtaLink
               href={scheduleLinks.root}
               conversionId="open_schedule"
               surface="services:hero"
               className="theme-cta theme-cta--loud px-6 py-3"
             >
-              Choose Your Service Path
+              Book Service Call
               <ArrowRight className="w-5 h-5" />
             </TrackedCtaLink>
+            <TrackedCtaLink
+              href="/portfolio"
+              conversionId="open_portfolio"
+              surface="services:hero"
+              className="theme-cta theme-cta--secondary px-6 py-3"
+            >
+              View Portfolio
+            </TrackedCtaLink>
           </div>
-        </div>
+        </section>
+
+        {/* Value Proposition - What You Get */}
+        <section className="theme-panel p-6 sm:p-8 mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase italic mb-6">What You Get</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-cyan-500/10">
+                <Code className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">Custom AI Agents & Automation</h3>
+                <p className="text-sm text-zinc-400">
+                  Intelligent workflows, chat agents, data processing pipelines, and custom AI integrations
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-purple-500/10">
+                <Zap className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">Full-Stack Web & App Development</h3>
+                <p className="text-sm text-zinc-400">
+                  Next.js, React, mobile apps, APIs, databases—complete solutions from prototype to production
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-emerald-500/10">
+                <Server className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">Blockchain & Web3 Systems</h3>
+                <p className="text-sm text-zinc-400">
+                  Smart contracts, DApps, NFT platforms, multi-chain development, and auditing
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-amber-500/10">
+                <Wrench className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">Technical Support & Optimization</h3>
+                <p className="text-sm text-zinc-400">
+                  Remote troubleshooting, system cleanup, hardware diagnostics, and IT management
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-rose-500/10">
+                <ShoppingCart className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">E-Commerce & Payment Systems</h3>
+                <p className="text-sm text-zinc-400">
+                  Shopify, WooCommerce, custom stores, payment gateways, and conversion optimization
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-indigo-500/10">
+                <Megaphone className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold mb-1">Social Media & Marketing</h3>
+                <p className="text-sm text-zinc-400">
+                  Content strategy, community management, paid campaigns, and analytics tracking
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="mb-12">
           <ActionRail surface="services" />

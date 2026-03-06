@@ -39,7 +39,12 @@ export type ServiceConversionId =
   | "open_ai_chat"
   | "open_service_catalog"
   | "open_lesson_packages"
-  | "open_lesson_studio";
+  | "open_lesson_studio"
+  | "open_intelligence"
+  | "open_flow_tape"
+  | "open_music_lessons"
+  | "open_music_showcase"
+  | "open_music_scholarships";
 
 type FunnelStage = "awareness" | "consideration" | "intent";
 
@@ -312,6 +317,36 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
     label: "lesson_studio",
     value: 4,
     stage: "intent",
+  },
+  open_intelligence: {
+    action: "open_intelligence",
+    label: "intelligence_hub",
+    value: 3,
+    stage: "consideration",
+  },
+  open_flow_tape: {
+    action: "open_flow_tape",
+    label: "flow_tape_view",
+    value: 4,
+    stage: "intent",
+  },
+  open_music_lessons: {
+    action: "open_music_lessons",
+    label: "music_lessons_page",
+    value: 3,
+    stage: "consideration",
+  },
+  open_music_showcase: {
+    action: "open_music_showcase",
+    label: "music_showcase_page",
+    value: 2,
+    stage: "consideration",
+  },
+  open_music_scholarships: {
+    action: "open_music_scholarships",
+    label: "music_scholarships_page",
+    value: 2,
+    stage: "consideration",
   },
 };
 
