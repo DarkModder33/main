@@ -112,120 +112,295 @@ export default function Home() {
       <HomeEngagementTracker />
       <ExperimentReadoutPanel />
 
-      {/* Hero + Guided Experience */}
-      <section className="relative overflow-hidden px-4 sm:px-6 pt-14 sm:pt-20 pb-12 sm:pb-14">
+      {/* Hero: "Digital Dynasty" Portal */}
+      <section className="relative overflow-hidden px-4 sm:px-6 pt-14 sm:pt-20 pb-16 sm:pb-20">
         <div className="absolute top-[-8rem] right-[-6rem] w-[280px] h-[280px] sm:w-[460px] sm:h-[460px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-9rem] left-[-4rem] w-[260px] h-[260px] sm:w-[400px] sm:h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-[1.2fr_0.8fr] gap-6 sm:gap-8 items-start">
-          <div className="theme-panel p-6 sm:p-8 md:p-12">
-            <span className="theme-kicker mb-4">Operational Entry</span>
-            <h1 className="text-3xl sm:text-5xl md:text-7xl leading-tight font-black text-white tracking-tighter italic uppercase mb-5 break-words">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="theme-panel p-8 sm:p-12 md:p-16">
+            <span className="theme-kicker mb-5">Digital Dynasty</span>
+            <h1 className="text-4xl sm:text-6xl md:text-7xl leading-tight font-black text-white tracking-tighter italic uppercase mb-6 break-words">
               <GlitchText text="TradeHax" />
             </h1>
-            <p className="text-zinc-300 text-base sm:text-lg max-w-2xl leading-relaxed mb-8">
-              Professional digital execution for service, growth, and AI workflows.
-              Start with a clear intent and move through a predictable path.
+            <p className="text-zinc-200 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+              One platform. Three precision environments. Built for real execution.
             </p>
 
             <HomeHeroActions scheduleHref={scheduleLinks.root} />
-          </div>
 
-          <div className="theme-panel p-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Guided Experience</h2>
-              <Sparkles className="w-4 h-4 text-cyan-300" />
+            {/* Three entry lane cards */}
+            <div className="grid sm:grid-cols-3 gap-4 mt-12 text-left">
+              <TrackedCtaLink
+                href="/intelligence"
+                conversionId="open_intelligence"
+                surface="home:entry_lanes"
+                conversionContext={{ placement: "entry_lane", variant: "intelligence", audience: "all" }}
+                className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all group"
+              >
+                <CircuitBoard className="w-6 h-6 text-cyan-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Trade Intelligence</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">Real-time signals & AI copilot</p>
+              </TrackedCtaLink>
+
+              <TrackedCtaLink
+                href="/music"
+                conversionId="open_music"
+                surface="home:entry_lanes"
+                conversionContext={{ placement: "entry_lane", variant: "music", audience: "all" }}
+                className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-purple-500/30 transition-all group"
+              >
+                <Guitar className="w-6 h-6 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Music Intelligence</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">AI guitar & creative growth</p>
+              </TrackedCtaLink>
+
+              <TrackedCtaLink
+                href="/services"
+                conversionId="open_services"
+                surface="home:entry_lanes"
+                conversionContext={{ placement: "entry_lane", variant: "services", audience: "all" }}
+                className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all group"
+              >
+                <MonitorSmartphone className="w-6 h-6 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Digital Services</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed">AI systems & technical delivery</p>
+              </TrackedCtaLink>
             </div>
-            <div className="space-y-3">
-              {[
-                {
-                  title: "1) Define Intent",
-                  detail: "Choose service, AI workflow, or market research path.",
-                },
-                {
-                  title: "2) Follow Route",
-                  detail: "Use guided page flow with minimal decision overhead.",
-                },
-                {
-                  title: "3) Execute Next Action",
-                  detail: "Book, deploy, or run the recommended operation.",
-                },
-              ].map((step) => (
-                <article key={step.title} className="interactive-surface rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                  <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-zinc-400">{step.detail}</p>
-                </article>
-              ))}
-            </div>
-            <details className="mt-5 rounded-lg border border-white/10 bg-white/[0.02] p-3">
-              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-zinc-300">
-                Advanced Wallet Tools
-              </summary>
-              <div className="mt-3 min-h-10">
-                <WalletButton />
-              </div>
-            </details>
           </div>
         </div>
       </section>
 
       <LiveActivity />
 
-      <section id="home-quick-paths" className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-6">
-        <div className="theme-panel p-6 md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-cyan-300">Quick Paths</h2>
-            <p className="text-xs text-zinc-400">Choose one route and execute the next action in under 60 seconds.</p>
-          </div>
-          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible">
-            {quickPathLinks.map((route) => (
+      {/* Three Flagship Portals */}
+      <section id="home-flagship-portals" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+        <div className="theme-panel p-6 sm:p-8 md:p-12">
+          <span className="theme-kicker mb-4">Choose Your Environment</span>
+          <h2 className="theme-title text-3xl sm:text-4xl md:text-5xl mb-12">Three Flagship Portals</h2>
+
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Portal A — Trade Intelligence */}
+            <article className="theme-grid-card border-l-4 border-l-cyan-500">
+              <div className="mb-6">
+                <CircuitBoard className="w-10 h-10 text-cyan-400 mb-4" />
+                <h3 className="text-2xl font-black text-white uppercase italic mb-3">Trade Intelligence</h3>
+                <p className="text-zinc-200 text-base leading-relaxed mb-4">
+                  AI quant copilot for real-time signals, backtesting, and explainable trade workflows.
+                </p>
+              </div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                  <span>Options flow tape with unusual activity scoring</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                  <span>Dark pool scanner for institutional block trades</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                  <span>Cross-chain crypto flow with confidence bands</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                  <span>AI-powered probability engine and risk modeling</span>
+                </li>
+              </ul>
               <TrackedCtaLink
-                key={route.label}
-                href={route.href}
-                conversionId={route.conversionId}
-                surface="home:quick_paths"
-                conversionContext={{ placement: "quick_paths", variant: route.variant, audience: "all" }}
-                className="theme-cta theme-cta--secondary shrink-0 px-4 py-2 text-xs uppercase tracking-wider"
+                href="/intelligence"
+                conversionId="open_intelligence"
+                surface="home:flagship_portals"
+                conversionContext={{ placement: "flagship_portal", variant: "intelligence", audience: "all" }}
+                className="theme-cta theme-cta--loud w-full justify-center"
               >
-                {route.label}
+                Launch Intelligence Hub
+                <ArrowRight className="w-4 h-4" />
               </TrackedCtaLink>
-            ))}
+            </article>
+
+            {/* Portal B — Music Intelligence */}
+            <article className="theme-grid-card border-l-4 border-l-purple-500">
+              <div className="mb-6">
+                <Guitar className="w-10 h-10 text-purple-400 mb-4" />
+                <h3 className="text-2xl font-black text-white uppercase italic mb-3">Music Intelligence</h3>
+                <p className="text-zinc-200 text-base leading-relaxed mb-4">
+                  AI-assisted guitar/music environment for learning, creative growth, and premium instruction.
+                </p>
+              </div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                  <span>Private guitar lessons with 15+ years teaching experience</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                  <span>AI-powered practice tools and technique analysis</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                  <span>Artist growth programs and scholarship opportunities</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+                  <span>Performance showcases and creative collaboration</span>
+                </li>
+              </ul>
+              <TrackedCtaLink
+                href="/music"
+                conversionId="open_music"
+                surface="home:flagship_portals"
+                conversionContext={{ placement: "flagship_portal", variant: "music", audience: "all" }}
+                className="theme-cta theme-cta--loud w-full justify-center"
+              >
+                Explore Music Portal
+                <ArrowRight className="w-4 h-4" />
+              </TrackedCtaLink>
+            </article>
+
+            {/* Portal C — Digital Services */}
+            <article className="theme-grid-card border-l-4 border-l-emerald-500">
+              <div className="mb-6">
+                <MonitorSmartphone className="w-10 h-10 text-emerald-400 mb-4" />
+                <h3 className="text-2xl font-black text-white uppercase italic mb-3">Digital Services</h3>
+                <p className="text-zinc-200 text-base leading-relaxed mb-4">
+                  Execution studio for AI systems, websites, automations, and technical delivery.
+                </p>
+              </div>
+              <ul className="space-y-2 mb-6">
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span>Custom AI agents and automation workflows</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span>Full-stack web and mobile app development</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span>Blockchain/Web3 smart contract deployment</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-zinc-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <span>Technical support and system optimization</span>
+                </li>
+              </ul>
+              <TrackedCtaLink
+                href="/services"
+                conversionId="open_services"
+                surface="home:flagship_portals"
+                conversionContext={{ placement: "flagship_portal", variant: "services", audience: "all" }}
+                className="theme-cta theme-cta--loud w-full justify-center"
+              >
+                View Service Catalog
+                <ArrowRight className="w-4 h-4" />
+              </TrackedCtaLink>
+            </article>
           </div>
         </div>
       </section>
 
-      {/* Intent Lanes Section */}
-      <section id="home-intent-lanes" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="theme-panel p-6 sm:p-8 md:p-12">
-          <span className="theme-kicker mb-4">Start Here</span>
-          <h2 className="theme-title text-3xl sm:text-4xl md:text-5xl mb-6">Choose Your Primary Path</h2>
-          <p className="text-zinc-300 max-w-2xl mb-10 sm:mb-12 text-base sm:text-lg">
-            This matrix removes guesswork: select one lane, complete the route, then return for the next objective.
-          </p>
-          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {intentLanes.map((lane) => (
-              <article key={lane.title} className="theme-grid-card">
-                <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-500 mb-4">
-                  <lane.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-white uppercase italic">{lane.title}</h3>
-                <p className="text-zinc-300 text-sm leading-relaxed">{lane.detail}</p>
-                <TrackedCtaLink
-                  href={lane.href}
-                  external={lane.external}
-                  conversionId={lane.conversionId}
-                  surface={lane.surface}
-                  conversionContext={{ placement: "intent_lane", variant: lane.title.toLowerCase().replace(/\s+/g, "_"), audience: "all" }}
-                  className="theme-cta theme-cta--secondary mt-4 self-start"
-                >
-                  {lane.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </TrackedCtaLink>
-              </article>
-            ))}
+      {/* Credibility Strip */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="theme-panel p-6 sm:p-8">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-xl bg-cyan-500/10">
+                <Sparkles className="w-6 h-6 text-cyan-400" />
+              </div>
+              <h3 className="text-sm font-bold text-white uppercase mb-1">AI-Native Workflows</h3>
+              <p className="text-xs text-zinc-400">Built with Claude, GPT-4, and custom models</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-xl bg-emerald-500/10">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h3 className="text-sm font-bold text-white uppercase mb-1">Real Shipping Capability</h3>
+              <p className="text-xs text-zinc-400">Production systems and live deployments</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-xl bg-purple-500/10">
+                <CircuitBoard className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-sm font-bold text-white uppercase mb-1">Cross-Domain Execution</h3>
+              <p className="text-xs text-zinc-400">Finance, music, tech services unified</p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-xl bg-amber-500/10">
+                <Wrench className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className="text-sm font-bold text-white uppercase mb-1">Compliance-First Trading</h3>
+              <p className="text-xs text-zinc-400">Educational signals, no financial advice</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why This Platform Exists */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="theme-panel p-8 sm:p-12 text-center">
+          <span className="theme-kicker mb-4">Platform Rationale</span>
+          <h2 className="theme-title text-2xl sm:text-3xl md:text-4xl mb-6">Why This Platform Exists</h2>
+          <div className="text-zinc-200 text-base sm:text-lg leading-relaxed space-y-4 max-w-2xl mx-auto">
+            <p>
+              One system. Multiple specialized environments. One uncompromising quality standard.
+            </p>
+            <p>
+              TradeHax was built to solve a simple problem: <strong className="text-white">execution without fragmentation</strong>.
+              Whether you need market intelligence, creative instruction, or technical delivery—everything runs on the same
+              infrastructure, same AI backbone, same commitment to real results.
+            </p>
+            <p className="text-sm text-zinc-400 border-t border-white/10 pt-4 mt-6">
+              No hype. No shortcuts. Just professional-grade tools and clear paths to action.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Action Footer */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="theme-panel p-8 sm:p-12">
+          <div className="text-center mb-8">
+            <h2 className="theme-title text-2xl sm:text-3xl mb-3">Ready to Execute?</h2>
+            <p className="text-zinc-300 text-base">Choose your entry point and start immediately.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <TrackedCtaLink
+              href="/ai-hub"
+              conversionId="open_ai_chat"
+              surface="home:action_footer"
+              conversionContext={{ placement: "action_footer", variant: "ai_assistant", audience: "all" }}
+              className="theme-cta theme-cta--loud justify-center px-6 py-4"
+            >
+              Launch AI Assistant
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href="/intelligence"
+              conversionId="open_intelligence"
+              surface="home:action_footer"
+              conversionContext={{ placement: "action_footer", variant: "intelligence", audience: "all" }}
+              className="theme-cta theme-cta--loud justify-center px-6 py-4"
+            >
+              View Intelligence
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href="/music"
+              conversionId="open_music"
+              surface="home:action_footer"
+              conversionContext={{ placement: "action_footer", variant: "music", audience: "all" }}
+              className="theme-cta theme-cta--loud justify-center px-6 py-4"
+            >
+              Explore Music
+            </TrackedCtaLink>
+            <TrackedCtaLink
+              href={scheduleLinks.root}
+              conversionId="open_schedule"
+              surface="home:action_footer"
+              conversionContext={{ placement: "action_footer", variant: "build", audience: "all" }}
+              className="theme-cta theme-cta--loud justify-center px-6 py-4"
+            >
+              Request Build
+            </TrackedCtaLink>
           </div>
         </div>
       </section>
