@@ -9,12 +9,16 @@ This folder packages your provided file `tradehax-final.jsx` into a runnable web
 - `src/main.jsx` - app entry point
 - `package.json` - dependency manifest (includes `ethers`, `react-router-dom`)
 - `vite.config.js` - dev/build config
+- `vercel.json` - production route/headers hardening for SPA + security headers
+- `public/__health` - uptime probe endpoint payload
 - `scripts/smoke-test.js` - verification harness
+- `PRODUCTION_CHECKLIST.md` - deploy/runbook checklist
 
 ## Routes
 
 - `/` - lightweight launcher page
 - `/tradehax` - full TradeHax GPT interface page
+- `/__health` - static health endpoint for uptime checks
 - External future option link is included to `https://tradehaxai.tech`
 
 ## Features
@@ -34,6 +38,13 @@ This folder packages your provided file `tradehax-final.jsx` into a runnable web
 ```bash
 cd web
 node scripts/smoke-test.js
+```
+
+## Release Validate (recommended)
+
+```bash
+cd web
+npm run release:check
 ```
 
 ## Run Locally

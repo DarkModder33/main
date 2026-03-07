@@ -6,6 +6,8 @@ const required = [
   "index.html",
   "package.json",
   "vite.config.js",
+  "vercel.json",
+  path.join("public", "__health"),
   path.join("src", "main.jsx"),
   path.join("src", "App.jsx"),
   path.join("src", "TradeHaxFinal.jsx")
@@ -25,6 +27,19 @@ if (fs.existsSync(appPath)) {
   const appText = fs.readFileSync(appPath, "utf8");
   if (!appText.includes('path="/tradehax"')) {
     console.error("Router page /tradehax route not found in App.jsx.");
+    failed = true;
+  }
+}
+
+const vercelPath = path.join(root, "vercel.json");
+if (fs.existsSync(vercelPath)) {
+  const vercelText = fs.readFileSync(vercelPath, "utf8");
+  if (!vercelText.includes('"dest": "/index.html"')) {
+    console.error("SPA fallback route to /index.html not found in vercel.json.");
+    failed = true;
+  }
+  if (!vercelText.includes('"source": "/__health"')) {
+    console.error("Health endpoint header/route for /__health not found in vercel.json.");
     failed = true;
   }
 }
