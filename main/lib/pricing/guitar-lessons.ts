@@ -4,19 +4,19 @@
 export const LESSON_PRICING = {
   beginner: {
     pricePerSession: 50,
-    packageOf4: 180,
+    packageOf4: 200,
     title: "Start Your Journey",
     level: "Beginner Package"
   },
   intermediate: {
-    pricePerSession: 10,  // Changed from $75 to $10
-    packageOf4: 40,       // Changed from $270 to $40
+    pricePerSession: 50,  // $50 per session (same as beginner)
+    packageOf4: 200,      // $200 for 4 lessons (4 × $50)
     title: "Level Up Your Skills",
     level: "Intermediate"
   },
   advanced: {
-    pricePerSession: 50,  // Changed from $100 to $50
-    packageOf4: 200,      // Changed from $360 to $200
+    pricePerSession: 50,  // $50 per session (same as beginner/intermediate)
+    packageOf4: 200,      // $200 for 4 lessons (4 × $50)
     title: "Master the Craft",
     level: "Advanced"
   }
