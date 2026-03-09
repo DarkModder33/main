@@ -21,7 +21,7 @@ const planCatalog: Record<SubscriptionTier, PlanDefinition> = {
       botCreatesDaily: 0,
     },
     entitlements: {
-      uncensoredAi: false,
+      uncensoredAi: true,  // Free users can use uncensored AI until clientele is built
       overclockAi: false,
       premiumSignals: false,
       adFree: false,
