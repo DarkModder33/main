@@ -100,7 +100,7 @@ function HomePage() {
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 18 }}>
             <Link
-              to="/tradehax"
+              to="/"
               style={{
                 display: "inline-block",
                 textDecoration: "none",
@@ -114,7 +114,7 @@ function HomePage() {
               Launch TradeHax Interface
             </Link>
             <Link
-              to="/tradehax"
+              to="/"
               style={{
                 display: "inline-block",
                 textDecoration: "none",
@@ -191,9 +191,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/tradehax" element={<TradeHaxFinal />} />
-        <Route path="*" element={<Navigate to="/tradehax" replace />} />
+        <Route path="/" element={<TradeHaxFinal />} />
+        <Route path="/about" element={<HomePage />} />
+        <Route path="/tradehax" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
