@@ -136,16 +136,16 @@ export function GamifiedOnboarding({ achievements = [], onComplete }: Achievemen
                                     <div
                                         key={achievement.id}
                                         className={`p-4 rounded-xl border transition ${isCompleted
-                                                ? 'border-green-500/50 bg-green-500/10'
-                                                : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
+                                            ? 'border-green-500/50 bg-green-500/10'
+                                            : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
                                             }`}
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex gap-4 flex-1">
                                                 <div
                                                     className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${isCompleted
-                                                            ? 'bg-green-500/20 text-green-400'
-                                                            : 'bg-cyan-500/20 text-cyan-400'
+                                                        ? 'bg-green-500/20 text-green-400'
+                                                        : 'bg-cyan-500/20 text-cyan-400'
                                                         }`}
                                                 >
                                                     {isCompleted ? (
@@ -182,8 +182,8 @@ export function GamifiedOnboarding({ achievements = [], onComplete }: Achievemen
                                                 }}
                                                 disabled={isCompleted}
                                                 className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition ${isCompleted
-                                                        ? 'bg-green-500/20 text-green-400 cursor-default'
-                                                        : 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
+                                                    ? 'bg-green-500/20 text-green-400 cursor-default'
+                                                    : 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
                                                     }`}
                                             >
                                                 {isCompleted ? '✓ Done' : 'Go →'}
@@ -211,7 +211,7 @@ export function GamifiedOnboarding({ achievements = [], onComplete }: Achievemen
                             </p>
                             {allCompleted && (
                                 <p className="text-xs text-green-400 mt-2">
-                                    🎉 You've unlocked your Discord role and $100 credits!
+                                    🎉 You&apos;ve unlocked your Discord role and $100 credits!
                                 </p>
                             )}
                         </div>

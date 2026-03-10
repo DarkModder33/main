@@ -8,8 +8,8 @@ import "./globals.css";
 
 import { SiteNavigatorWidget } from "@/components/ai/SiteNavigatorWidget";
 import { ChainSessionProvider } from "@/components/counter/provider/ChainSession";
-import { GamifiedOnboarding } from "@/components/onboarding/GamifiedOnboarding";
 import { HyperboreaIntroOverlay } from "@/components/intro/HyperboreaIntroOverlay";
+import { GamifiedOnboarding } from "@/components/onboarding/GamifiedOnboarding";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { CinematicFxLayer } from "@/components/ui/CinematicFxLayer";
