@@ -1,6 +1,7 @@
 # TradeHax Digital Empire: 90-Day Execution Plan
 
 ## 🎯 North Star Metric
+
 **Viral Coefficient: 0.3 → 1.5** (compound network growth)
 
 ---
@@ -8,18 +9,21 @@
 ## 📅 Phase 1: Foundation (Weeks 1-4) - "Make It Clear"
 
 ### Week 1: Hero + Clarity ✅ COMPLETE
+
 - [x] Hero: "Multiply Your Edge" tagline
 - [x] Value props: "For traders/creators/builders"
 - [x] 60-second onboarding promise
 - **Expected impact**: +30% CTA click-through rate
 
 ### Week 2: Gamified Onboarding ✅ COMPLETE
+
 - [x] 4-step achievement system
 - [x] Progress bars + badges
 - [x] Reward messaging ($100 credits)
 - **Expected impact**: 5x onboarding completion rate
 
 ### Week 3: Leaderboards (HIGH PRIORITY - START NOW)
+
 **Why**: Drives daily return visits & competition
 
 ```tsx
@@ -30,16 +34,19 @@
 ```
 
 **Components needed**:
+
 - `LeaderboardCard` (user rank, stats, position)
 - `RealTimeLeaderboard` (WebSocket for live updates)
 - `PremiumBadge` (featured rank = $9/mo)
 
 **Metrics to track**:
+
 - Daily visits to leaderboard
 - % of users checking rank
 - Premium badge conversion
 
 ### Week 4: Marketplace Skeleton (HIGH PRIORITY)
+
 **Why**: Unlocks creator economy
 
 ```tsx
@@ -50,11 +57,13 @@
 ```
 
 **MVP components**:
+
 - `AgentCard` (name, creator, rating, price)
 - `SearchFilter` (category, rating, price range)
 - `PreviewModal` (quick description, try demo)
 
 **Revenue model**:
+
 - TradeHax: 30% commission
 - Creator: 70% revenue share
 - Marketing: Free featured spot for 7 days
@@ -64,6 +73,7 @@
 ## 📅 Phase 2: Network Effects (Weeks 5-8) - "Make It Stick"
 
 ### Week 5: Discord Bot Integration
+
 **Distribution channel**: Deploy bot to Discord app directory
 
 ```
@@ -75,11 +85,13 @@ Commands available:
 ```
 
 **Expected impact**:
+
 - Bot installs: 50 → 10,000 guilds
 - Free users from Discord: 1,000/week
 - Premium conversions: 5% of new users = 50/week
 
 ### Week 6: Referral Flywheel
+
 **Mechanism**: "Invite 3 friends, unlock Pro for free"
 
 ```
@@ -96,10 +108,12 @@ When User B upgrades to Pro:
 ```
 
 **Metrics**:
+
 - Referral rate: 10% → 25%
 - Viral coefficient: K = (1 invite/user) × (25% conversion) = 0.25 → 0.5+
 
 ### Week 7: Learning Center Framework
+
 **Model**: Free → Freemium → Premium
 
 ```
@@ -122,6 +136,7 @@ Tier 3: Premium Certificate ($49)
 **Why**: Drives premium conversions + engagement
 
 ### Week 8: Community Discord
+
 **Goal**: 500+ active members in community Discord
 
 ```
@@ -154,13 +169,16 @@ Channels:
 **Design**: Radiant gradient, clear unlock paths, social proof
 
 ### Week 10-11: Conversion Optimization
+
 - A/B test pricing (current vs. "$49 instead of $99")
 - Landing page tests (value hierarchy)
 - Email sequences (cart abandonment style)
 - Premium feature teasers
 
 ### Week 12: Metrics Review + Roadmap Q2
+
 **Check these numbers:**
+
 - MAU growth: baseline → target
 - Referral coefficient
 - Premium conversion rate
@@ -218,6 +236,7 @@ Week 9-12:  Monetization → 8% premium conversion, $50K/m revenue
 ## 🎯 Month 3 Vision
 
 **TradeHax becomes the network where:**
+
 - 50K users check their trading rank daily
 - 5K creators earn $1K+/month from marketplace
 - 1M Discord messages/month about strategies
