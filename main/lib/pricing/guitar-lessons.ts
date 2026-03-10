@@ -1,5 +1,5 @@
-# Guitar Lesson Pricing Configuration
-# Update these values to change lesson pricing across the application
+// Guitar Lesson Pricing Configuration
+// Update these values to change lesson pricing across the application
 
 export const LESSON_PRICING = {
   beginner: {

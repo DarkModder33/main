@@ -5,7 +5,9 @@ export async function GET() {
     {
       status: "ok",
       service: "tradehax",
-      version: "1.1.0",
+      version: "1.1.1",
+      runtime: "nextjs",
+      nodeEnv: process.env.NODE_ENV || "unknown",
       timestamp: new Date().toISOString(),
     },
     {
