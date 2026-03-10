@@ -13,6 +13,7 @@ const eslintConfig = [
   {
     ignores: [
       "archive/**",
+      "main/**",
       "public/**",
       "scripts/**",
       "tradehax-fresh/**",

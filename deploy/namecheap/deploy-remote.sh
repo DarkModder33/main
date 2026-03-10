@@ -7,10 +7,12 @@ set -euo pipefail
 APP_ROOT="${APP_ROOT:-/var/www/tradehax}"
 APP_NAME="${APP_NAME:-tradehax}"
 APP_PORT="${APP_PORT:-3000}"
+HEALTHCHECK_PATH="${HEALTHCHECK_PATH:-/api/health}"
 RELEASE_ID="${RELEASE_ID:-manual-$(date +%Y%m%d%H%M%S)}"
 RELEASE_SOURCE="${RELEASE_SOURCE:-$APP_ROOT/releases/$RELEASE_ID}"
 SHARED_ENV_FILE="${SHARED_ENV_FILE:-$APP_ROOT/shared/.env.production}"
 CURRENT_LINK="$APP_ROOT/current"
+PREVIOUS_RELEASE=""
 
 if [[ ! -d "$RELEASE_SOURCE" ]]; then
   echo "ERROR: Release source does not exist: $RELEASE_SOURCE" >&2
@@ -24,6 +26,10 @@ fi
 
 cd "$RELEASE_SOURCE"
 ln -sfn "$SHARED_ENV_FILE" .env.production
+
+if [[ -L "$CURRENT_LINK" ]] || [[ -d "$CURRENT_LINK" ]]; then
+  PREVIOUS_RELEASE="$(readlink -f "$CURRENT_LINK" || true)"
+fi
 
 echo "==> Installing dependencies"
 npm ci
@@ -50,7 +56,7 @@ pm2 save
 
 echo "==> Health check"
 for i in {1..20}; do
-  if curl -fsS "http://127.0.0.1:${APP_PORT}" >/dev/null 2>&1; then
+  if curl -fsS "http://127.0.0.1:${APP_PORT}${HEALTHCHECK_PATH}" | grep -q '"status":"ok"'; then
     echo "Health check passed."
     exit 0
   fi
@@ -58,4 +64,14 @@ for i in {1..20}; do
 done
 
 echo "ERROR: Health check failed after restart." >&2
+
+if [[ -n "$PREVIOUS_RELEASE" && -d "$PREVIOUS_RELEASE" ]]; then
+  echo "==> Rolling back to previous release: $PREVIOUS_RELEASE"
+  ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
+  if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+    pm2 restart "$APP_NAME" --update-env
+    pm2 save
+  fi
+fi
+
 exit 1
