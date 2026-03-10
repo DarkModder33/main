@@ -179,6 +179,7 @@ export default function RootLayout({
                     >
                       AI Hub
                     </Link>
+                      <Link href="/tutorials/trading-assistant" className="hover:text-white transition-colors uppercase">Tutorials</Link>
                     <Link href="/about" className="hover:text-white transition-colors uppercase">About</Link>
                     <Link href="/music" className="hover:text-white transition-colors uppercase">Music</Link>
                     <Link href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</Link>
