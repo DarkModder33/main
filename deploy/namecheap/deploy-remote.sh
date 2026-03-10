@@ -21,8 +21,10 @@ ensure_node_toolchain() {
 
   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    set +u
     # shellcheck disable=SC1090
     source "$NVM_DIR/nvm.sh"
+    set -u
   fi
 
   if ! command -v npm >/dev/null 2>&1; then
@@ -33,10 +35,12 @@ ensure_node_toolchain() {
 
     echo "==> Bootstrapping Node.js via nvm (npm missing)"
     curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    set +u
     # shellcheck disable=SC1090
     source "$NVM_DIR/nvm.sh"
-    nvm install --lts
-    nvm use --lts
+    nvm install 20
+    nvm use 20
+    set -u
   fi
 
   if ! command -v npm >/dev/null 2>&1; then
