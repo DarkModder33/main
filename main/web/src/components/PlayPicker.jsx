@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { AnalyticsPanel } from "./AnalyticsPanel";
+import { WatchlistPanel } from "./WatchlistPanel";
 
 export function PlayPicker({ plays }) {
   // plays: [{ market, odds, action, description }]
@@ -56,6 +58,8 @@ export function PlayPicker({ plays }) {
           )}
         </div>
       ))}
+      <AnalyticsPanel />
+      <WatchlistPanel />
     </div>
   );
 }
