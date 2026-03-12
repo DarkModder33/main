@@ -3,15 +3,15 @@ import React, { useMemo, useRef, useState, useEffect } from "react";
 import { apiClient, userProfileStorage } from "./lib/api-client";
 
 const COLORS = {
-  bg: "#090B10",
-  surface: "#0E1117",
-  panel: "#12161E",
-  border: "#1C2333",
-  accent: "#00D9FF",
-  gold: "#F5A623",
-  text: "#C8D8E8",
-  textDim: "#8EA2B8",
-  green: "#00E5A0",
+  bg: "var(--bg-color)",
+  surface: "var(--surface-color)",
+  panel: "var(--panel-color)",
+  border: "var(--border-color)",
+  accent: "var(--accent-color)",
+  gold: "var(--gold-color)",
+  text: "var(--text-color)",
+  textDim: "var(--text-dim-color)",
+  green: "var(--green-color)",
 };
 
 const STARTER_PROMPTS = [
@@ -542,6 +542,28 @@ export default function NeuralHub() {
             </ul>
           </aside>
         </section>
+
+        <button
+          onClick={async () => {
+            const priceId = prompt('Enter Stripe Price ID (from your Stripe dashboard):');
+            if (!priceId) return alert('Price ID required!');
+            const email = prompt('Enter your email for receipt:');
+            const res = await fetch('/api/stripe-checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ priceId, customerEmail: email })
+            });
+            const data = await res.json();
+            if (data.url) {
+              window.location.href = data.url;
+            } else {
+              alert('Stripe checkout failed: ' + (data.error || 'Unknown error'));
+            }
+          }}
+          style={{ background:COLORS.gold, color:COLORS.bg, padding:'12px 24px', borderRadius:8, fontWeight:600, fontSize:16, margin:'24px 0', cursor:'pointer' }}
+        >
+          Checkout with Stripe
+        </button>
       </section>
     </main>
   );
