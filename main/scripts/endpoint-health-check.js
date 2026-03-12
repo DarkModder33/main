@@ -13,6 +13,13 @@ const endpoints = [
   { name: 'Unusual Signals', url: process.env.TRADEHAX_API_UNUSUAL || 'http://localhost:3000/api/signals/unusual' },
 ];
 
+const stripeEndpoint = {
+  name: 'Stripe',
+  url: 'https://api.stripe.com/v1/accounts/' + (process.env.STRIPE_ACCOUNT_ID || ''),
+  token: process.env.STRIPE_API_KEY
+};
+endpoints.push(stripeEndpoint);
+
 async function checkEndpoint(ep) {
   if (!ep.url) return { name: ep.name, status: 'missing url' };
   try {
@@ -30,4 +37,3 @@ async function runHealthChecks() {
 }
 
 runHealthChecks();
-
