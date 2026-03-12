@@ -1,6 +1,8 @@
-
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { apiClient, userProfileStorage } from "./lib/api-client";
+import OpportunityScannerCard from "./features/scanner/OpportunityScannerCard.jsx";
+import { SignalCard } from "./components/SignalCard.jsx";
+import { PlayPicker, useLivePlayPicker } from "./components/PlayPicker.jsx";
 
 const COLORS = {
   bg: "#090B10",
@@ -141,6 +143,13 @@ export default function NeuralHub() {
     [cryptoPrices],
   );
 
+  const currentHost = typeof window !== "undefined" ? window.location.hostname : "";
+  const activeWebsite = currentHost.includes("tradehaxai.tech") ? "tradehaxai" : "tradehax";
+  const crossSiteCta =
+    activeWebsite === "tradehaxai"
+      ? { label: "Back to TradeHax Home", href: "https://tradehax.net" }
+      : { label: "Open Trading AI Assistant", href: "https://tradehaxai.tech" };
+
   function updatePreferredAssets(value) {
     setUserProfile((prev) => ({
       ...prev,
@@ -262,7 +271,7 @@ export default function NeuralHub() {
         background: COLORS.bg,
         color: COLORS.text,
         fontFamily: "Inter, Arial, sans-serif",
-        padding: 20,
+        padding: "clamp(12px, 2.8vw, 20px)",
       }}
     >
       <section style={{ maxWidth: 1120, margin: "0 auto" }}>
@@ -276,15 +285,42 @@ export default function NeuralHub() {
           <p style={{ color: COLORS.textDim, maxWidth: 760, lineHeight: 1.65, marginTop: 14 }}>
             A cleaner professional trading assistant: concise AI guidance, execution-first thinking, and a stable production interface.
           </p>
+
+          <a
+            href={crossSiteCta.href}
+            aria-label={crossSiteCta.label}
+            style={{
+              marginTop: 14,
+              display: "inline-flex",
+              WebkitBoxAlign: "center",
+              alignItems: "center",
+              gap: 8,
+              textDecoration: "none",
+              borderRadius: 10,
+              WebkitBorderRadius: 10,
+              border: `1px solid ${COLORS.accent}66`,
+              background: "#0D2230",
+              color: COLORS.accent,
+              padding: "14px 18px",
+              minHeight: 48,
+              minWidth: 48,
+              fontWeight: 700,
+              fontSize: 16,
+            }}
+          >
+            {crossSiteCta.label}
+          </a>
         </header>
 
         <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 12,
-            marginBottom: 18,
-          }}
+            style={{
+              display: "grid",
+              WebkitBoxOrient: "horizontal",
+              WebkitBoxDirection: "normal",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 16,
+              marginBottom: 18,
+            }}
         >
           {stats.map((item) => (
             <div
@@ -305,8 +341,9 @@ export default function NeuralHub() {
         <section
           style={{
             display: "grid",
-            gridTemplateColumns: "1.1fr 0.9fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
             gap: 16,
+            alignItems: "start",
           }}
         >
           <div
@@ -353,7 +390,7 @@ export default function NeuralHub() {
                   {message.meta?.bullets?.length ? (
                     <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, color: COLORS.textDim }}>
                       {message.meta.bullets.map((bullet) => (
-                        <li key={bullet} style={{ marginBottom: 6 }}>
+                        <li key={`${message.id}-${bullet}`} style={{ marginBottom: 6 }}>
                           {bullet}
                         </li>
                       ))}
@@ -362,7 +399,7 @@ export default function NeuralHub() {
                   {message.meta?.executionPlaybook?.length ? (
                     <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, color: COLORS.accent }}>
                       {message.meta.executionPlaybook.map((item) => (
-                        <li key={item} style={{ marginBottom: 6 }}>
+                        <li key={`${message.id}-playbook-${item}`} style={{ marginBottom: 6 }}>
                           {item}
                         </li>
                       ))}
@@ -380,6 +417,7 @@ export default function NeuralHub() {
                 onClick={() => setLiveMode(!liveMode)}
                 style={{
                   padding: "10px 16px",
+                  minHeight: 44,
                   background: liveMode ? COLORS.green : COLORS.border,
                   color: liveMode ? COLORS.bg : COLORS.text,
                   border: "none",
@@ -425,6 +463,11 @@ export default function NeuralHub() {
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                    submitMessage();
+                  }
+                }}
                 placeholder="Ask for a BTC setup, ETH plan, or risk breakdown..."
                 style={{
                   width: "100%",
@@ -449,6 +492,7 @@ export default function NeuralHub() {
                     border: 0,
                     borderRadius: 10,
                     padding: "12px 18px",
+                    minHeight: 44,
                     fontWeight: 700,
                     cursor: loading ? "not-allowed" : "pointer",
                   }}
@@ -465,6 +509,7 @@ export default function NeuralHub() {
                       border: `1px solid ${COLORS.accent}55`,
                       borderRadius: 10,
                       padding: "12px 14px",
+                      minHeight: 44,
                       cursor: "pointer",
                     }}
                   >
@@ -540,6 +585,21 @@ export default function NeuralHub() {
               <li>Live market snapshot in prompt assembly</li>
               <li>Structured execution playbooks and risk outputs</li>
             </ul>
+
+            <OpportunityScannerCard />
+            {/* Example signals for demo purposes */}
+            <div style={{ marginTop: 24 }}>
+              <SignalCard signal={{ symbol: "BTC/USDC", action: "BUY", confidence: 82, trend: "up", play: "Kalshi: BTC > $50k", odds: "1.8", timeframe: "1d" }} />
+              <SignalCard signal={{ symbol: "ETH/USDC", action: "SELL", confidence: 68, trend: "down", play: "Polymarket: ETH < $3k", odds: "2.1", timeframe: "4h" }} />
+            </div>
+            {/* Example play picker for demo purposes */}
+            <div style={{ marginTop: 24 }}>
+              {/* Use live play picker hook */}
+              {(() => {
+                const livePlays = useLivePlayPicker();
+                return <PlayPicker plays={livePlays} />;
+              })()}
+            </div>
           </aside>
         </section>
       </section>
