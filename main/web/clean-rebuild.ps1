@@ -155,4 +155,3 @@ Write-Host "     curl https://tradehaxai.me/"
 Write-Host ""
 Write-Host "Log: C:\tradez\main\tmp_deploy_clean_rebuild_$timestamp.txt" -ForegroundColor Gray
 Write-Host ""
-
