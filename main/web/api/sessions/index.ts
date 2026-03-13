@@ -4,7 +4,14 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSession, createSession, updateSession, addMessage, recordSignalOutcome, getRecentMessages } from './store.js';
+import {
+  appendSessionMessage,
+  createUserSession,
+  fetchRecentSessionMessages,
+  fetchSession,
+  saveSignalOutcome,
+  updateSessionProfile,
+} from './session-service.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,13 +28,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Create new session
     if (req.method === 'POST' && action === 'create') {
       const { userId } = req.body || {};
-      const session = createSession(userId);
+      const session = createUserSession(userId);
       return res.status(201).json(session);
     }
 
     // Get session
     if (req.method === 'GET' && sessionId && typeof sessionId === 'string') {
-      const session = getSession(sessionId);
+      const session = fetchSession(sessionId);
       if (!session) {
         return res.status(404).json({ error: 'Session not found' });
       }
@@ -36,54 +43,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Add message to session
     if (req.method === 'POST' && sessionId && typeof sessionId === 'string' && action === 'message') {
-      const session = getSession(sessionId);
+      const session = fetchSession(sessionId);
       if (!session) {
         return res.status(404).json({ error: 'Session not found' });
       }
-
       const { role, content, metadata } = req.body || {};
       if (!role || !content) {
         return res.status(400).json({ error: 'role and content required' });
       }
-
-      const message = addMessage(sessionId, { role, content, timestamp: Date.now(), metadata });
+      const message = appendSessionMessage(sessionId, { role, content, metadata });
       return res.status(201).json(message);
     }
 
     // Get recent messages
     if (req.method === 'GET' && sessionId && typeof sessionId === 'string' && action === 'messages') {
       const { count } = req.query;
-      const messages = getRecentMessages(sessionId, parseInt(String(count || '8'), 10));
+      const messages = fetchRecentSessionMessages(sessionId, parseInt(String(count || '8'), 10));
       return res.status(200).json({ messages });
     }
 
     // Record signal outcome
     if (req.method === 'PUT' && sessionId && typeof sessionId === 'string' && action === 'outcome') {
       const { messageId, outcome, profitLoss, assetSymbol } = req.body || {};
-
       if (!messageId || !outcome || !assetSymbol) {
         return res.status(400).json({ error: 'messageId, outcome, assetSymbol required' });
       }
-
-      const success = recordSignalOutcome(sessionId, messageId, outcome, profitLoss || 0, assetSymbol);
+      const success = saveSignalOutcome(sessionId, messageId, outcome, profitLoss || 0, assetSymbol);
       if (!success) {
         return res.status(404).json({ error: 'Session or message not found' });
       }
-
-      const session = getSession(sessionId);
+      const session = fetchSession(sessionId);
       return res.status(200).json(session);
     }
 
     // Update session profile
     if (req.method === 'PUT' && sessionId && typeof sessionId === 'string' && action === 'profile') {
-      const session = getSession(sessionId);
+      const session = fetchSession(sessionId);
       if (!session) {
         return res.status(404).json({ error: 'Session not found' });
       }
-
       const updates = req.body || {};
-      const updated = updateSession(sessionId, { userProfile: { ...session.userProfile, ...updates } });
-
+      const updated = updateSessionProfile(sessionId, updates);
       return res.status(200).json(updated);
     }
 
@@ -96,4 +96,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
-
