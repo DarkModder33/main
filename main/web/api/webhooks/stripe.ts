@@ -1,16 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'crypto';
+import Stripe from 'stripe';
+import getRawBody from 'raw-body';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2023-10-16' });
 
 // Stripe secret from env
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-function verifySignature(req: VercelRequest, secret: string): boolean {
-  const sig = req.headers['stripe-signature'] as string;
-  if (!sig || !secret) return false;
-  // Stripe sends the raw body, so this is a placeholder for actual verification logic
-  // In production, use Stripe's official SDK: stripe.webhooks.constructEvent
-  return true; // Replace with real verification
-}
+export const config = {
+  api: {
+    bodyParser: false, // Disable body parsing to get raw body
+  },
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -18,13 +19,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!verifySignature(req, STRIPE_WEBHOOK_SECRET)) {
-    res.status(400).send('Invalid signature');
+  let event;
+  try {
+    const rawBody = await getRawBody(req);
+    const sig = req.headers['stripe-signature'] as string;
+    event = stripe.webhooks.constructEvent(rawBody, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err: any) {
+    console.error('Stripe webhook signature verification failed:', err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
     return;
   }
 
-  // Parse event
-  const event = req.body;
   // Log event for auditing
   console.log('[Stripe Webhook]', event.type, event.id);
 
@@ -44,4 +49,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Respond quickly
   res.status(200).json({ received: true });
 }
-
