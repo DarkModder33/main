@@ -1,3 +1,23 @@
+# =====================================================================
+# TradeHax Endpoint Health Check Script (PowerShell)
+#
+# This script automates health checks for all major API endpoints and services:
+#   - Hugging Face LLM (scripts/api-connection-manager.js)
+#   - OpenAI (scripts/api-connection-manager.js)
+#   - Supabase (web/scripts/supabase-health.mjs)
+#   - Stripe (scripts/endpoint-health-check.js)
+#   - TradeHax AI Chat (scripts/endpoint-health-check.js)
+#   - Crypto Data (scripts/endpoint-health-check.js)
+#   - Unusual Signals (scripts/endpoint-health-check.js)
+#   - Any additional endpoints referenced in the above scripts
+#
+# Usage:
+#   - Local:   powershell -ExecutionPolicy Bypass -File scripts/full-health-check.ps1
+#   - Cloud:   Integrate as a CI/CD step or post-deploy hook
+#
+# Review output for errors and endpoint status.
+# =====================================================================
+
 # PowerShell master health check script for TradeHax
 $ErrorActionPreference = 'Stop'
 
@@ -30,4 +50,3 @@ if (Test-Path "scripts/nmap-check.sh") {
 }
 
 Write-Host "All health checks complete. Review output above for errors."
-

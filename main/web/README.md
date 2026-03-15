@@ -123,6 +123,39 @@ A server-side health endpoint is now available at:
 
 It verifies server access using `SUPABASE_SECRET_KEY` and returns project connectivity, latency, and visible storage buckets.
 
+## Automated Endpoint Health Checks
+
+To run a full health check of all major API endpoints and services (Hugging Face, OpenAI, Supabase, Stripe, TradeHax AI Chat, Crypto Data, Unusual Signals, etc.), use the provided scripts:
+
+### PowerShell (Windows)
+
+```
+powershell -ExecutionPolicy Bypass -File scripts/full-health-check.ps1
+```
+
+### Bash (Linux/WSL/Mac)
+
+```
+bash scripts/full-health-check.sh
+```
+
+These scripts will:
+- Run all handshake and health check scripts
+- Report endpoint status and errors
+- Can be integrated into CI/CD or run locally
+
+**Endpoints checked:**
+- Hugging Face LLM
+- OpenAI
+- Supabase
+- Stripe
+- TradeHax AI Chat
+- Crypto Data
+- Unusual Signals
+- Any additional endpoints referenced in the scripts
+
+Review the output for errors and endpoint status. Update your `.env.local` or cloud environment variables as needed if any endpoint fails.
+
 ## Codebase Structure (In Progress)
 
 The app now starts from a feature-first shell while preserving the current UI:
