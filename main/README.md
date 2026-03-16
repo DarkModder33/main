@@ -71,6 +71,12 @@ cd C:\tradez\main
 - Server-side environment variables
 - Zero exposed secrets
 
+#### **Signal & Data Layer** (NEW)
+- Advanced Signal Engine: Multi-source, explainable, and backtested
+- Alert & Timeline Engine: Real-time, user-customizable alerts
+- Personalization & Adaptive Learning: User-specific model fine-tuning
+- Automated Backtest Trigger: Continuous validation pipeline
+
 ---
 
 ## ✨ Features
@@ -146,7 +152,10 @@ C:\tradez\main/
     │       ├── conversation-context-manager.ts
     │       ├── data-provider-router.ts
     │       ├── signal-explainability-engine.ts
-    │       └── massive-storage-server.js
+    │       ├── massive-storage-server.js
+    │       ├── advanced-signal-engine.js
+    │       ├── alert-timeline-engine.js
+    │       └── personalization-adaptive.js
     ├── vercel.json                  ← Security headers
     ├── .gitignore                   ← Secret patterns
     └── package.json                 ← Dependencies
@@ -287,6 +296,17 @@ git log --oneline | head -10
 3. **Test:** Visit https://tradehax.net/
 4. **Audit:** Read SECURITY_AUDIT.md
 5. **Evaluate:** Review code in NeuralHub.jsx
+6. **Explore:** New advanced signal, alert, personalization, and backtest modules for competitive edge
+
+---
+
+## 🏆 Roadmap to Surpass Competitors
+- Expand live data feeds and predictive model ensemble
+- Launch user-facing signal timeline and alert dashboard
+- Integrate adaptive learning and user-driven fine-tuning
+- Automate backtesting and validation for all new features
+- Publicly document signal methodologies and backtest results
+- Build trust with transparent, auditable, and explainable AI
 
 ---
 
@@ -316,38 +336,28 @@ For questions about:
 
 | Phase | Status |
 |-------|--------|
-| **Features** | ✅ Complete (3 major) |
-| **Security** | ✅ Hardened (8 patches) |
-| **Testing** | ✅ Pass (build + features) |
-| **Deployment** | ✅ Live (6 domains) |
-| **Documentation** | ✅ Complete (4 guides) |
-| **Evaluation Ready** | ✅ YES |
+| **Features** | ✅ Complete |
 
 ---
 
-## 🎓 Conclusion
+## 🧩 Supabase Integration Across All Layers
 
-**TradeHax Neural Hub** is a professional-grade AI trading assistant that:
+TradeHax.net now uses Supabase for persistent, real-time, and analytics-driven data in every domain:
 
-✅ Exceeds industry standards in multiple dimensions  
-✅ Implements enterprise-level security  
-✅ Demonstrates deep technical expertise  
-✅ Shows production-ready practices  
-✅ Is fully documented and verified  
-✅ **Is ready for Masters degree evaluation**
+### Guitar Lessons
+- **Tables:** `guitar_lessons`, `user_guitar_progress`
+- **Features:** Track lesson content, user progress, scores, notes, and completion across devices.
 
----
+### Trading (Crypto/Stock)
+- **Tables:** `user_trading_activity`, `user_portfolios`
+- **Features:** Log all user trades, actions, and portfolio changes for analytics, recommendations, and AI personalization.
 
-**Project Status:** ✅ **COMPLETE & PRODUCTION READY**
+### Neural Hub / AI / LLM
+- **Tables:** `ai_interactions`, `ai_feedback`, `ai_agent_state`
+- **Features:** Store all AI/LLM conversations, feedback, and agent state for fine-tuning, explainability, and user-specific adaptation.
 
-**Deployment:** 🌐 **LIVE**
+### Analytics & Events
+- **Tables:** `site_events`, `analytics_events`, `onboarding_events`, `feedback`
+- **Features:** Capture all user actions, onboarding steps, and feedback for continuous improvement and advanced analytics.
 
-**Evaluation:** 🎓 **READY**
-
----
-
-*TradeHax Neural Hub - Masters Degree Submission*  
-*March 9, 2026*  
-*Professional-Grade AI Trading Assistant*  
-*Enterprise Security & Production Deployment*
-
+**All data is accessible via Supabase client (frontend), admin (backend), and neural hub logic for real-time, secure, and scalable operations.**

@@ -3,6 +3,11 @@ import { apiClient, userProfileStorage } from "./lib/api-client";
 import OpportunityScannerCard from "./features/scanner/OpportunityScannerCard.jsx";
 import { SignalCard } from "./components/SignalCard.jsx";
 import { PlayPicker, useLivePlayPicker } from "./components/PlayPicker.jsx";
+import React, { useRef, useState, useEffect } from "react";
+import GamifiedOnboarding from "./components/GamifiedOnboarding";
+import { apiClient } from "./lib/api-client";
+import { runBacktest } from "./engine/backtest";
+import { calculateTotalCredits } from "./lib/achievements";
 
 const COLORS = {
   bg: "var(--bg-color)",
@@ -14,20 +19,6 @@ const COLORS = {
   text: "var(--text-color)",
   textDim: "var(--text-dim-color)",
   green: "var(--green-color)",
-};
-
-const STARTER_PROMPTS = [
-  "Explain today's best BTC setup in plain English.",
-  "Give me a conservative ETH trade plan with risk controls.",
-  "Summarize what matters most before entering a signal.",
-  "Build a swing-trade watchlist using BTC, ETH, and SOL.",
-];
-
-const DEFAULT_PROFILE = {
-  riskTolerance: "moderate",
-  tradingStyle: "swing",
-  portfolioValue: 25000,
-  preferredAssets: ["BTC", "ETH", "SOL"],
 };
 
 function buildResponse(input) {
@@ -85,6 +76,37 @@ function buildResponse(input) {
 }
 
 export default function NeuralHub() {
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [userStats, setUserStats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('userStats')) || {};
+    } catch {
+      return {};
+    }
+  });
+  const [avatarUrl] = useState(() => localStorage.getItem('avatarUrl') || 'https://api.dicebear.com/7.x/identicon/svg?seed=tradehax');
+  const credits = calculateTotalCredits(userStats ? userStats.earnedAchievements || {} : {});
+  useEffect(() => {
+    // Check onboarding completion in localStorage
+    const completed = localStorage.getItem('onboardingComplete');
+    if (!completed) setShowOnboarding(true);
+    // Listen for userStats changes
+    const handler = () => {
+      try {
+        setUserStats(JSON.parse(localStorage.getItem('userStats')) || {});
+      } catch {}
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
+  function handleOnboardingComplete() {
+    localStorage.setItem('onboardingComplete', 'true');
+    setShowOnboarding(false);
+  }
+
+  // Main chat state
   const [messages, setMessages] = useState([
     {
       id: "welcome",
@@ -96,6 +118,12 @@ export default function NeuralHub() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [backtestLoading, setBacktestLoading] = useState(false);
+  const [paperMode, setPaperMode] = useState(true);
+  const [backtestResult, setBacktestResult] = useState(null);
+  const [providerStatus, setProviderStatus] = useState(null);
+  const [fallbackMode, setFallbackMode] = useState(false);
+  const [errorDetail, setErrorDetail] = useState("");
   const nextId = useRef(1);
   const sessionIdRef = useRef(`tradehax-session-${Date.now()}`);
 
@@ -191,79 +219,63 @@ export default function NeuralHub() {
     setInput("");
     setLoading(true);
 
-    if (!liveMode) {
-      // Demo mode - use existing buildResponse()
-      const result = buildResponse(value);
-      setTimeout(() => {
+    apiClient.chat(
+      [...priorMessages, { role: 'user', content: value }],
+    )
+      .then(response => {
+        // Extract provider status and fallback mode
+        setProviderStatus(response.providerStatus || null);
+        setFallbackMode(!!response.fallbackMode);
+        setErrorDetail(response.errorDetail || "");
+        // ...existing code for parsing and setting messages...
+        const parsed = apiClient.parseAIResponse(response.response);
+        const bullets = [
+          ...(parsed.reasoning || []),
+          ...(parsed.riskManagement || [])
+        ].filter(b => b.length > 0);
         setMessages((prev) => [
           ...prev,
           {
             id: `a-${nextId.current++}`,
             role: "assistant",
-            content: result.body,
-            meta: result,
+            content: response.response,
+            meta: {
+              title: parsed.signal || 'AI Analysis',
+              body: response.response,
+              bullets,
+              ...(parsed.executionPlaybook && parsed.executionPlaybook.length > 0 ? { executionPlaybook: parsed.executionPlaybook } : {}),
+              marketContext: parsed.marketContext || null,
+            },
           },
         ]);
+      })
+      .catch((error) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `a-${nextId.current++}`,
+            role: "assistant",
+            content: "Error: " + error.message,
+            meta: null,
+          },
+        ]);
+        setProviderStatus(null);
+        setFallbackMode(false);
+        setErrorDetail(error.message || "");
+      })
+      .finally(() => {
         setLoading(false);
-      }, 250);
-    } else {
-      // Live AI mode
-      apiClient.chat(
-        [...priorMessages, { role: 'user', content: value }],
-        {
-          sessionId: sessionIdRef.current,
-          userProfile,
-          recentMessages: priorMessages,
-          marketSnapshot,
-        },
-      )
-        .then(response => {
-          setAiProvider(response.provider);
-
-          // Parse response into structured format
-          const parsed = apiClient.parseAIResponse(response.response);
-          const bullets = [
-            ...(parsed.reasoning || []),
-            ...(parsed.riskManagement || [])
-          ].filter(b => b.length > 0);
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `a-${nextId.current++}`,
-              role: "assistant",
-              content: response.response,
-              meta: {
-                title: parsed.signal || 'AI Analysis',
-                body: response.response,
-                priceTarget: parsed.priceTarget,
-                confidence: parsed.confidence,
-                marketContext: parsed.marketContext,
-                bullets: bullets.length > 0 ? bullets : null,
-                executionPlaybook: parsed.executionPlaybook || null,
-              },
-            },
-          ]);
-          setLoading(false);
-        })
-        .catch(error => {
-          console.error('Live AI failed, falling back to demo:', error);
-          // Fallback to demo mode
-          const result = buildResponse(value);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `a-${nextId.current++}`,
-              role: "assistant",
-              content: result.body + "\n\n⚠️ Live AI temporarily unavailable. Using demo mode.",
-              meta: { ...result, confidence: "Fallback mode" },
-            },
-          ]);
-          setLoading(false);
-        });
-    }
+      });
   }
 
+  if (showOnboarding) {
+    return <GamifiedOnboarding onComplete={() => setShowOnboarding(false)} />;
+  }
+
+  // Responsive style helpers
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
+
+  // Header with avatar, XP, credits
   return (
     <main
       style={{
@@ -516,7 +528,66 @@ export default function NeuralHub() {
                     {prompt}
                   </button>
                 ))}
+    <div style={{ minHeight: '100vh', background: COLORS.bg, color: COLORS.text, fontFamily: 'Inter, Arial, sans-serif' }}>
+      <header style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', padding: isMobile ? '12px 8px' : '18px 32px', borderBottom: `1px solid ${COLORS.border}`, gap: isMobile ? 10 : 0 }}>
+        <div style={{ fontWeight: 700, fontSize: isMobile ? 18 : 24 }}>TradeHax NeuralHub</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 18 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', marginRight: isMobile ? 0 : 8 }}>
+            <span style={{ fontSize: isMobile ? 11 : 13, color: COLORS.textDim }}>XP: {userStats.daysActive ? userStats.daysActive * 100 : 0}</span>
+            <span style={{ fontSize: isMobile ? 13 : 15, color: COLORS.gold, fontWeight: 600 }}>💰 {credits} Credits</span>
+          </div>
+          <img src={avatarUrl} alt="avatar" style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40, borderRadius: '50%', border: `2px solid ${COLORS.accent}` }} />
+        </div>
+      </header>
+      {/* Floating Quick Access Panel */}
+      <div style={{ position: 'fixed', bottom: isMobile ? 12 : 32, right: isMobile ? 12 : 32, zIndex: 100, display: 'flex', flexDirection: 'column', gap: isMobile ? 8 : 16 }}>
+        <button onClick={() => window.location.href = '/trading'} style={{ background: COLORS.accent, color: COLORS.bg, border: 'none', borderRadius: '50%', width: isMobile ? 40 : 56, height: isMobile ? 40 : 56, fontSize: isMobile ? 20 : 28, boxShadow: '0 4px 16px #00d9ff44', cursor: 'pointer', transition: 'transform 0.1s' }} title="Trading Hub">📈</button>
+        <button onClick={() => window.location.href = '/music'} style={{ background: COLORS.gold, color: COLORS.bg, border: 'none', borderRadius: '50%', width: isMobile ? 40 : 56, height: isMobile ? 40 : 56, fontSize: isMobile ? 20 : 28, boxShadow: '0 4px 16px #f5a62344', cursor: 'pointer', transition: 'transform 0.1s' }} title="Music Hub">🎵</button>
+        <button onClick={() => window.location.href = '/services'} style={{ background: COLORS.green, color: COLORS.bg, border: 'none', borderRadius: '50%', width: isMobile ? 40 : 56, height: isMobile ? 40 : 56, fontSize: isMobile ? 20 : 28, boxShadow: '0 4px 16px #00e5a044', cursor: 'pointer', transition: 'transform 0.1s' }} title="Services Hub">⚡</button>
+      </div>
+      <main
+        style={{
+          minHeight: "100vh",
+          background: COLORS.bg,
+          color: COLORS.text,
+          fontFamily: "Inter, Arial, sans-serif",
+          padding: isMobile ? 8 : 20,
+        }}
+      >
+        {/* ...existing code for main interface... */}
+        <section style={{ maxWidth: isMobile ? '100%' : 1120, margin: "0 auto" }}>
+          {/* ...existing code for header, controls, chat, etc... */}
+          {/* ...existing code for AI Trading Console, Input Area, etc... */}
+          {/* Provider Health and Fallback Status Indicator */}
+          {(providerStatus || fallbackMode || errorDetail) && (
+            <div style={{
+              margin: '0 auto 16px auto',
+              maxWidth: 600,
+              background: fallbackMode ? '#2D1B1B' : '#1C2333',
+              color: fallbackMode ? '#FFD2D2' : '#C8D8E8',
+              border: fallbackMode ? '1.5px solid #FF4D4F' : '1.5px solid #00D9FF',
+              borderRadius: 10,
+              padding: 12,
+              fontSize: 14,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              alignItems: 'flex-start',
+            }}>
+              <div>
+                <b>Provider Health:</b>
+                <span style={{ marginLeft: 8 }}>
+                  HuggingFace: <span style={{ color: providerStatus?.huggingface ? '#00E5A0' : '#FFD2D2' }}>{providerStatus?.huggingface ? 'Healthy' : 'Degraded'}</span>
+                  {" | "}
+                  OpenAI: <span style={{ color: providerStatus?.openai ? '#00E5A0' : '#FFD2D2' }}>{providerStatus?.openai ? 'Healthy' : 'Degraded'}</span>
+                </span>
               </div>
+              <div>
+                <b>Fallback Mode:</b> <span style={{ color: fallbackMode ? '#FFD2D2' : '#00E5A0' }}>{fallbackMode ? 'ON' : 'OFF'}</span>
+              </div>
+              {errorDetail && (
+                <div style={{ color: '#FFD2D2' }}><b>Error:</b> {errorDetail}</div>
+              )}
             </div>
           </div>
 
@@ -626,6 +697,9 @@ export default function NeuralHub() {
         </button>
       </section>
     </main>
+          )}
+        </section>
+      </main>
+    </div>
   );
 }
-

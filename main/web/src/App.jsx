@@ -8,4 +8,8 @@ export default function App() {
       <AppShell />
     </ThemeProvider>
   );
+import NeuralHub from "./NeuralHub.jsx";
+
+export default function App() {
+  return <NeuralHub />;
 }

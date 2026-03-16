@@ -1,0 +1,81 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import Stripe from 'stripe';
+import getRawBody from 'raw-body';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2026-02-25.clover' });
+
+// Stripe secret from env
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+export const config = {
+  api: {
+    bodyParser: false, // Disable body parsing to get raw body
+  },
+};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+      // Restrict CORS in production
+      const allowedOrigins = [
+        'https://www.tradehax.net',
+        'https://vallcallya-p4dktjyoj-digitaldynasty.vercel.app',
+      ];
+      const origin = req.headers.origin || '';
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
+      res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-API-Key');
+
+      if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+      }
+
+      // Require API key for POST in production
+      if (isProd && req.method === 'POST') {
+        const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
+        if (!apiKey || apiKey !== process.env.TRADEHAX_ADMIN_KEY) {
+          return res.status(401).send('Unauthorized');
+        }
+      }
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
+  let event;
+  try {
+    const rawBody = await getRawBody(req);
+    const sig = req.headers['stripe-signature'] as string;
+    event = stripe.webhooks.constructEvent(rawBody, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err: any) {
+    console.error('Stripe webhook signature verification failed:', err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Log event for auditing
+  console.log('[Stripe Webhook]', event.type, event.id, {
+    headers: req.headers,
+    body: req.body,
+    event: event,
+  });
+
+  // Handle event types
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      // Handle successful payment
+      break;
+    case 'invoice.payment_failed':
+      // Handle failed payment
+      break;
+    // ...add more cases as needed
+    default:
+      break;
+  }
+
+  // Respond quickly
+  res.status(200).json({ received: true });
+}

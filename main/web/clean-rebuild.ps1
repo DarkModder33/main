@@ -19,7 +19,8 @@ param(
     [switch]$DeployToVercel,
     [switch]$RegisterDomains,
     [string]$VercelScope = "irishmike",
-    [string]$DeploymentUrl = "main-six-dun.vercel.app"
+    [string]$DeploymentUrl = "main-six-dun.vercel.app",
+    [string[]]$DomainsToRegister
 )
 
 $ErrorActionPreference = "Stop"
@@ -102,7 +103,7 @@ if ($RegisterDomains) {
     Write-Host ""
     Write-Host "Step 7: Registering domains..." -ForegroundColor Yellow
 
-    $domains = @(
+    $defaultDomains = @(
         "tradehax.net",
         "www.tradehax.net",
         "tradehaxai.tech",
@@ -110,6 +111,7 @@ if ($RegisterDomains) {
         "tradehaxai.me",
         "www.tradehaxai.me"
     )
+    $domains = if ($DomainsToRegister) { $DomainsToRegister } else { $defaultDomains }
 
     foreach ($domain in $domains) {
         Write-Host "  Setting alias: $domain → $DeploymentUrl"

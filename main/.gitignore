@@ -83,3 +83,4 @@ logs/
 
 
 .vercel
+.env*.local
