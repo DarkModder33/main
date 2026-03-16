@@ -106,6 +106,7 @@ export default function Dashboard() {
           <p style={{ margin: '5px 0 0 0', color: COLORS.textDim, fontSize: isMobile ? '12px' : '14px' }}>
             Unified AI platform for trading, music, and digital services
           </p>
+          <a href="/profile" style={{ color: COLORS.accent, fontWeight: 600, fontSize: isMobile ? 13 : 15, marginTop: 8, display: 'inline-block' }}>Profile</a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 18 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', marginRight: isMobile ? 0 : 8 }}>
