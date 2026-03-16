@@ -1,6 +1,36 @@
 # TradeHax Neural Engine - Secure Git Commit & Deploy Script (Windows)
 # For Private Network Environments
 
+
+# ===================== ROBUSTNESS ENHANCEMENTS =====================
+# Check for required tools
+function Test-Command {
+    param([string]$cmd)
+    $null = Get-Command $cmd -ErrorAction SilentlyContinue
+    return $?
+}
+
+if (-not (Test-Command git)) {
+    Write-Host "❌ ERROR: 'git' is not installed or not in PATH." -ForegroundColor Red
+    exit 1
+}
+if (-not (Test-Command npm)) {
+    Write-Host "❌ ERROR: 'npm' is not installed or not in PATH." -ForegroundColor Red
+    exit 1
+}
+
+# Check for uncommitted changes
+$dirty = git status --porcelain 2>$null | Where-Object { $_ -notmatch '^\s*M\s+deploy.ps1' }
+if ($dirty) {
+    Write-Host "⚠️  WARNING: You have unstaged or uncommitted changes!" -ForegroundColor Yellow
+    Write-Host "   Please review 'git status' before deploying." -ForegroundColor Yellow
+    $proceed = Read-Host "   Proceed anyway? (yes/no)"
+    if ($proceed -ne "yes") {
+        Write-Host "   Cancelled by user." -ForegroundColor Yellow
+        exit 0
+    }
+}
+
 Write-Host "🔒 TradeHax Neural Engine - Secure Deployment" -ForegroundColor Green
 Write-Host "==============================================" -ForegroundColor Green
 Write-Host ""
@@ -98,9 +128,9 @@ $count = (git diff --cached --name-only 2>$null).Count
 Write-Host "Total files: $count" -ForegroundColor Cyan
 Write-Host ""
 
-# ============================================================================
+# =========================================================================
 # STEP 5: COMMIT
-# ============================================================================
+# =========================================================================
 
 Write-Host "✓ Step 5: Creating commit..." -ForegroundColor Yellow
 Write-Host ""
@@ -131,12 +161,23 @@ Documentation:
 - API reference documentation
 "@
 
+# Confirm before committing
+$commitConfirm = Read-Host "  Ready to create commit? (yes/no)"
+if ($commitConfirm -ne "yes") {
+    Write-Host "  Cancelled. Nothing committed." -ForegroundColor Yellow
+    exit 0
+}
+
 git commit -m $commitMessage
 
-if ($?) {
+if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Commit created" -ForegroundColor Green
 } else {
-    Write-Host "❌ Commit failed" -ForegroundColor Red
+    Write-Host "❌ Commit failed. Possible reasons:"
+    Write-Host "   - No changes staged for commit."
+    Write-Host "   - Git misconfiguration."
+    Write-Host "   - Merge conflicts."
+    Write-Host "   Run 'git status' and resolve issues before retrying." -ForegroundColor Red
     exit 1
 }
 
@@ -173,53 +214,32 @@ Write-Host ""
 
 Write-Host "✓ Step 7: Next steps for deployment..." -ForegroundColor Yellow
 Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🚀 DEPLOYMENT TO PRIVATE SERVER" -ForegroundColor Green
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host ""
-
-Write-Host "1️⃣  On your private server, pull the latest code:" -ForegroundColor Cyan
-Write-Host "    git pull origin main" -ForegroundColor White
-Write-Host ""
-
-Write-Host "2️⃣  Set environment variables:" -ForegroundColor Cyan
-Write-Host '    $env:HUGGINGFACE_API_KEY = "hf_..."' -ForegroundColor White
-Write-Host '    $env:OPENAI_API_KEY = "sk-proj-..."' -ForegroundColor White
-Write-Host '    $env:DATABASE_URL = "postgresql://..."' -ForegroundColor White
-Write-Host ""
-
-Write-Host "3️⃣  Install dependencies and build:" -ForegroundColor Cyan
-Write-Host "    npm install" -ForegroundColor White
-Write-Host "    npm run build" -ForegroundColor White
-Write-Host ""
-
-Write-Host "4️⃣  Start the application:" -ForegroundColor Cyan
-Write-Host "    npm start" -ForegroundColor White
-Write-Host "    # or for development:" -ForegroundColor Gray
-Write-Host "    npm run dev" -ForegroundColor White
-Write-Host ""
-
-Write-Host "5️⃣  Verify deployment:" -ForegroundColor Cyan
-Write-Host "    curl http://localhost:3000/neural-console" -ForegroundColor White
-Write-Host "    # Should show: Real-time metrics dashboard" -ForegroundColor Gray
-Write-Host ""
-
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "📚 Documentation:" -ForegroundColor Green
-Write-Host "   - SECURE_DEPLOYMENT_GUIDE.md    (Detailed deployment guide)" -ForegroundColor White
-Write-Host "   - NEURAL_ENGINE_INDEX.md        (Master documentation index)" -ForegroundColor White
-Write-Host "   - .env.example                  (Environment variables template)" -ForegroundColor White
-Write-Host ""
-
-Write-Host "✅ CODE DEPLOYMENT COMPLETE" -ForegroundColor Green
-Write-Host ""
-Write-Host "⚠️  REMEMBER:" -ForegroundColor Yellow
-Write-Host "   - .env.local is NOT committed (good!)" -ForegroundColor White
-Write-Host "   - Set environment variables on server" -ForegroundColor White
-Write-Host "   - API keys are secure" -ForegroundColor White
-Write-Host "   - Review SECURE_DEPLOYMENT_GUIDE.md for detailed instructions" -ForegroundColor White
-Write-Host ""
-
-Write-Host "🎉 Your TradeHax Neural Engine is ready for deployment!" -ForegroundColor Green
-
+Write-Host '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+Write-Host 'DEPLOYMENT TO PRIVATE SERVER'
+Write-Host ''
+Write-Host '1. On your private server, pull the latest code:'
+Write-Host '    git pull origin main'
+Write-Host ''
+Write-Host '2. Set environment variables:'
+Write-Host '    $env:HUGGINGFACE_API_KEY = "hf_..."'
+Write-Host '    $env:OPENAI_API_KEY = "sk-proj-..."'
+Write-Host '    $env:DATABASE_URL = "postgresql://..."'
+Write-Host ''
+Write-Host '3. Install dependencies and build:'
+Write-Host '    npm install'
+Write-Host '    npm run build'
+Write-Host ''
+Write-Host '4. Start the application:'
+Write-Host '    npm start'
+Write-Host '    # or for development:'
+Write-Host '    npm run dev'
+Write-Host ''
+Write-Host '5. Verify deployment:'
+Write-Host '    curl http://localhost:3000/neural-console'
+Write-Host '    # Should show: Real-time metrics dashboard'
+Write-Host ''
+Write-Host 'Documentation:'
+Write-Host '   - SECURE_DEPLOYMENT_GUIDE.md    (Detailed deployment guide)'
+Write-Host '   - NEURAL_ENGINE_INDEX.md        (Master documentation index)'
+Write-Host '   - .env.example                  (Environment variables template)'
+Write-Host ''
