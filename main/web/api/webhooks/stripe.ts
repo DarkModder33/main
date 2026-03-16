@@ -31,7 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Log event for auditing
-  console.log('[Stripe Webhook]', event.type, event.id);
+  console.log('[Stripe Webhook]', event.type, event.id, {
+    headers: req.headers,
+    body: req.body,
+    event: event,
+  });
 
   // Handle event types
   switch (event.type) {
