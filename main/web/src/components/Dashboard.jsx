@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { calculateTotalCredits, getEarnedAchievements } from '../lib/achievements';
 
 const COLORS = {
   bg: '#090B10',
@@ -16,6 +17,33 @@ const COLORS = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [userStats, setUserStats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('userStats')) || {};
+    } catch {
+      return {};
+    }
+  });
+  const [avatarUrl] = useState(() => localStorage.getItem('avatarUrl') || 'https://api.dicebear.com/7.x/identicon/svg?seed=tradehax');
+  const credits = calculateTotalCredits(userStats ? userStats.earnedAchievements || {} : {});
+  const achievements = getEarnedAchievements(userStats ? userStats.earnedAchievements || {} : {});
+  // Simulate referral leaderboard and recent achievements
+  const referralLeaders = [
+    { name: 'Alice', count: 12 },
+    { name: 'Bob', count: 9 },
+    { name: 'You', count: userStats.referralsCount || 0 },
+  ];
+  const recentAchievements = achievements.slice(-3).reverse();
+
+  useEffect(() => {
+    const handler = () => {
+      try {
+        setUserStats(JSON.parse(localStorage.getItem('userStats')) || {});
+      } catch {}
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
 
   const pillars = [
     {
@@ -47,6 +75,9 @@ export default function Dashboard() {
     },
   ];
 
+  // Responsive style helpers
+  const isMobile = window.innerWidth <= 600;
+
   return (
     <div
       style={{
@@ -54,36 +85,49 @@ export default function Dashboard() {
         color: COLORS.text,
         minHeight: '100vh',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        padding: isMobile ? '0' : undefined,
       }}
     >
-      {/* Header */}
+      {/* Enhanced Header */}
       <header
         style={{
           borderBottom: `1px solid ${COLORS.border}`,
-          padding: '20px 40px',
+          padding: isMobile ? '14px 10px' : '20px 40px',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          gap: isMobile ? 10 : 0,
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700 }}>TradeHax Platform</h1>
-          <p style={{ margin: '5px 0 0 0', color: COLORS.textDim, fontSize: '14px' }}>
+          <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '28px', fontWeight: 700 }}>TradeHax Platform</h1>
+          <p style={{ margin: '5px 0 0 0', color: COLORS.textDim, fontSize: isMobile ? '12px' : '14px' }}>
             Multi-vertical AI platform for trading, music, and digital services
           </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 18 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', marginRight: isMobile ? 0 : 8 }}>
+            <span style={{ fontSize: isMobile ? 11 : 13, color: COLORS.textDim }}>XP: {userStats.daysActive ? userStats.daysActive * 100 : 0}</span>
+            <span style={{ fontSize: isMobile ? 13 : 15, color: COLORS.gold, fontWeight: 600 }}>💰 {credits} Credits</span>
+          </div>
+          <img src={avatarUrl} alt="avatar" style={{ width: isMobile ? 32 : 40, height: isMobile ? 32 : 40, borderRadius: '50%', border: `2px solid ${COLORS.accent}` }} />
         </div>
       </header>
 
       {/* Main Content */}
-      <main style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+      <main style={{ padding: isMobile ? '16px 6px' : '40px', maxWidth: isMobile ? '100%' : '1200px', margin: '0 auto' }}>
         {/* Welcome Section */}
-        <section style={{ marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '24px', marginBottom: '10px', fontWeight: 600 }}>All-in-One Command Center</h2>
-          <p style={{ color: COLORS.textDim, marginBottom: '20px', maxWidth: '600px' }}>
+        <section style={{ marginBottom: isMobile ? '24px' : '40px' }}>
+          <h2 style={{ fontSize: isMobile ? '18px' : '24px', marginBottom: '10px', fontWeight: 600 }}>All-in-One Command Center</h2>
+          <p style={{ color: COLORS.textDim, marginBottom: '20px', maxWidth: isMobile ? '100%' : '600px', fontSize: isMobile ? '13px' : undefined }}>
             TradeHax now unifies your core business layers in one platform. Run trading intelligence, creator growth, and digital services from a single operating stack.
           </p>
         </section>
 
         {/* Core Platform Pillars */}
-        <section style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+        <section style={{ marginBottom: isMobile ? '24px' : '40px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: isMobile ? '10px' : '16px' }}>
             {pillars.map((pillar) => (
               <div
                 key={pillar.id}
@@ -91,12 +135,12 @@ export default function Dashboard() {
                   background: COLORS.surface,
                   border: `1px solid ${COLORS.border}`,
                   borderRadius: '12px',
-                  padding: '24px',
+                  padding: isMobile ? '16px' : '24px',
                 }}
               >
-                <div style={{ fontSize: '34px', marginBottom: '10px' }}>{pillar.icon}</div>
-                <h3 style={{ margin: '0 0 8px 0', color: pillar.color }}>{pillar.title}</h3>
-                <p style={{ margin: '0 0 16px 0', color: COLORS.textDim, lineHeight: 1.6 }}>{pillar.description}</p>
+                <div style={{ fontSize: isMobile ? '26px' : '34px', marginBottom: '10px' }}>{pillar.icon}</div>
+                <h3 style={{ margin: '0 0 8px 0', color: pillar.color, fontSize: isMobile ? '16px' : undefined }}>{pillar.title}</h3>
+                <p style={{ margin: '0 0 16px 0', color: COLORS.textDim, lineHeight: 1.6, fontSize: isMobile ? '13px' : undefined }}>{pillar.description}</p>
                 <button
                   onClick={pillar.onClick}
                   style={{
@@ -105,9 +149,10 @@ export default function Dashboard() {
                     color: COLORS.bg,
                     border: 'none',
                     borderRadius: '8px',
-                    padding: '10px 14px',
+                    padding: isMobile ? '8px 10px' : '10px 14px',
                     fontWeight: 700,
                     cursor: 'pointer',
+                    fontSize: isMobile ? '14px' : undefined,
                   }}
                 >
                   {pillar.cta}
@@ -119,19 +164,49 @@ export default function Dashboard() {
 
         {/* Quick Stats */}
         <section>
-          <h3 style={{ fontSize: '16px', marginBottom: '16px', fontWeight: 600, color: COLORS.textDim }}>
+          <h3 style={{ fontSize: isMobile ? '13px' : '16px', marginBottom: '16px', fontWeight: 600, color: COLORS.textDim }}>
             Platform Status
           </h3>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '16px',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: isMobile ? '10px' : '16px',
             }}
           >
-            <StatCard label="Trading Signals" value="Live" />
-            <StatCard label="Music Layer" value="Active" />
-            <StatCard label="Services Layer" value="Active" />
+            <StatCard label="Trading Signals" value="Live" isMobile={isMobile} />
+            <StatCard label="Music Layer" value="Active" isMobile={isMobile} />
+            <StatCard label="Services Layer" value="Active" isMobile={isMobile} />
+          </div>
+        </section>
+
+        {/* Recent Achievements Feed */}
+        <section style={{ marginTop: isMobile ? 24 : 40, marginBottom: 24 }}>
+          <h3 style={{ fontSize: isMobile ? '13px' : '16px', marginBottom: '12px', fontWeight: 600, color: COLORS.gold }}>Recent Achievements</h3>
+          <div style={{ display: 'flex', gap: isMobile ? 8 : 16, flexDirection: isMobile ? 'column' : 'row' }}>
+            {recentAchievements.length === 0 ? (
+              <span style={{ color: COLORS.textDim }}>No achievements yet. Start exploring!</span>
+            ) : (
+              recentAchievements.map((ach) => (
+                <div key={ach.id} style={{ background: COLORS.panel, border: `2px solid ${COLORS.gold}`, borderRadius: 8, padding: isMobile ? 10 : 16, textAlign: 'center', minWidth: isMobile ? 80 : 100 }}>
+                  <div style={{ fontSize: isMobile ? 24 : 32 }}>{ach.icon}</div>
+                  <div style={{ fontWeight: 600, fontSize: isMobile ? 13 : undefined }}>{ach.name}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Referral Leaderboard */}
+        <section style={{ marginBottom: 24 }}>
+          <h3 style={{ fontSize: isMobile ? '13px' : '16px', marginBottom: '12px', fontWeight: 600, color: COLORS.accent }}>Referral Leaderboard</h3>
+          <div style={{ display: 'flex', gap: isMobile ? 8 : 16, flexDirection: isMobile ? 'column' : 'row' }}>
+            {referralLeaders.map((leader, idx) => (
+              <div key={leader.name} style={{ background: COLORS.panel, border: `2px solid ${idx === 0 ? COLORS.gold : COLORS.accent}`, borderRadius: 8, padding: isMobile ? 10 : 16, textAlign: 'center', minWidth: isMobile ? 80 : 100 }}>
+                <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : undefined }}>{leader.name}</div>
+                <div style={{ color: COLORS.textDim, fontSize: isMobile ? 11 : 13 }}>{leader.count} referrals</div>
+              </div>
+            ))}
           </div>
         </section>
       </main>
@@ -139,23 +214,22 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ label, value }) {
+function StatCard({ label, value, isMobile }) {
   return (
     <div
       style={{
         background: COLORS.panel,
         border: `1px solid ${COLORS.border}`,
         borderRadius: '8px',
-        padding: '16px',
+        padding: isMobile ? '10px' : '16px',
       }}
     >
-      <div style={{ fontSize: '12px', color: COLORS.textDim, marginBottom: '8px' }}>
+      <div style={{ fontSize: isMobile ? '10px' : '12px', color: COLORS.textDim, marginBottom: '8px' }}>
         {label}
       </div>
-      <div style={{ fontWeight: 600, color: COLORS.accent }}>
+      <div style={{ fontWeight: 600, color: COLORS.accent, fontSize: isMobile ? '13px' : undefined }}>
         {value}
       </div>
     </div>
   );
 }
-
