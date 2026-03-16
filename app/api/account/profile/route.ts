@@ -50,89 +50,97 @@ async function requireSessionUserId(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const originBlock = enforceTrustedOrigin(request);
-  if (originBlock) return originBlock;
+  try {
+    const originBlock = enforceTrustedOrigin(request);
+    if (originBlock) return originBlock;
 
-  const limit = enforceRateLimit(request, {
-    keyPrefix: "account:profile:get",
-    max: 80,
-    windowMs: 60_000,
-  });
-  if (!limit.allowed) return limit.response;
+    const limit = enforceRateLimit(request, {
+      keyPrefix: "account:profile:get",
+      max: 80,
+      windowMs: 60_000,
+    });
+    if (!limit.allowed) return limit.response;
 
-  const sessionUser = await requireSessionUserId(request);
-  if (sessionUser.response) return sessionUser.response;
+    const sessionUser = await requireSessionUserId(request);
+    if (sessionUser.response) return sessionUser.response;
 
-  const vault = await getUserEncryptedVault(sessionUser.userId || "");
+    const vault = await getUserEncryptedVault(sessionUser.userId || "");
 
-  return NextResponse.json(
-    {
-      ok: true,
-      userId: vault.userId,
-      profile: vault,
-      privacy: {
-        encryptedAtRest: true,
-        policy: "Data is used only for user-enabled personalization/training workflows and never sold.",
+    return NextResponse.json(
+      {
+        ok: true,
+        userId: vault.userId,
+        profile: vault,
+        privacy: {
+          encryptedAtRest: true,
+          policy: "Data is used only for user-enabled personalization/training workflows and never sold.",
+        },
       },
-    },
-    { headers: limit.headers },
-  );
+      { headers: limit.headers },
+    );
+  } catch (err) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Internal error" }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
-  const originBlock = enforceTrustedOrigin(request);
-  if (originBlock) return originBlock;
+  try {
+    const originBlock = enforceTrustedOrigin(request);
+    if (originBlock) return originBlock;
 
-  if (!isJsonContentType(request)) {
-    return NextResponse.json({ ok: false, error: "Expected JSON body." }, { status: 415 });
-  }
+    if (!isJsonContentType(request)) {
+      return NextResponse.json({ ok: false, error: "Expected JSON body." }, { status: 415 });
+    }
 
-  const limit = enforceRateLimit(request, {
-    keyPrefix: "account:profile:put",
-    max: 45,
-    windowMs: 60_000,
-  });
-  if (!limit.allowed) return limit.response;
+    const limit = enforceRateLimit(request, {
+      keyPrefix: "account:profile:put",
+      max: 45,
+      windowMs: 60_000,
+    });
+    if (!limit.allowed) return limit.response;
 
-  const sessionUser = await requireSessionUserId(request);
-  if (sessionUser.response) return sessionUser.response;
+    const sessionUser = await requireSessionUserId(request);
+    if (sessionUser.response) return sessionUser.response;
 
-  const body = (await request.json()) as {
-    displayName?: string;
-    profileNotes?: string;
-    favoriteSymbols?: string[];
-    preferredTimeframes?: string[];
-    macroInterests?: string[];
-    llmContext?: string;
-    consent?: {
-      allowLlmTraining?: boolean;
-      allowPersonalization?: boolean;
+    const body = (await request.json()) as {
+      displayName?: string;
+      profileNotes?: string;
+      favoriteSymbols?: string[];
+      preferredTimeframes?: string[];
+      macroInterests?: string[];
+      llmContext?: string;
+      consent?: {
+        allowLlmTraining?: boolean;
+        allowPersonalization?: boolean;
+      };
     };
-  };
 
-  const profile = await updateUserEncryptedVault(sessionUser.userId || "", {
-    displayName: body.displayName,
-    profileNotes: body.profileNotes,
-    favoriteSymbols: body.favoriteSymbols,
-    preferredTimeframes: body.preferredTimeframes,
-    macroInterests: body.macroInterests,
-    llmContext: body.llmContext,
-    consent: {
-      allowLlmTraining: body.consent?.allowLlmTraining,
-      allowPersonalization: body.consent?.allowPersonalization,
-    },
-  });
-
-  return NextResponse.json(
-    {
-      ok: true,
-      userId: profile.userId,
-      profile,
-      privacy: {
-        encryptedAtRest: true,
-        policy: "Data is used only for user-enabled personalization/training workflows and never sold.",
+    const profile = await updateUserEncryptedVault(sessionUser.userId || "", {
+      displayName: body.displayName,
+      profileNotes: body.profileNotes,
+      favoriteSymbols: body.favoriteSymbols,
+      preferredTimeframes: body.preferredTimeframes,
+      macroInterests: body.macroInterests,
+      llmContext: body.llmContext,
+      consent: {
+        allowLlmTraining: body.consent?.allowLlmTraining,
+        allowPersonalization: body.consent?.allowPersonalization,
       },
-    },
-    { headers: limit.headers },
-  );
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        userId: profile.userId,
+        profile,
+        privacy: {
+          encryptedAtRest: true,
+          policy: "Data is used only for user-enabled personalization/training workflows and never sold.",
+        },
+      },
+      { headers: limit.headers },
+    );
+  } catch (err) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Internal error" }, { status: 500 });
+  }
 }
