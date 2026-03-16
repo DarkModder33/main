@@ -133,6 +133,32 @@ function detectMacroRegime(candles: Candle[]) {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+      // Restrict CORS in production
+      const allowedOrigins = [
+        'https://www.tradehax.net',
+        'https://vallcallya-p4dktjyoj-digitaldynasty.vercel.app',
+      ];
+      const origin = req.headers.origin || '';
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
+      res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-API-Key');
+
+      if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+      }
+
+      // Require API key for POST in production
+      if (isProd && req.method === 'POST') {
+        const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
+        if (!apiKey || apiKey !== process.env.TRADEHAX_ADMIN_KEY) {
+          return res.status(401).json({ error: 'Unauthorized' });
+        }
+      }
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');

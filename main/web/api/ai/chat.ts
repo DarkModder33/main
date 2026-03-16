@@ -634,12 +634,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return healthHandler(req, res);
   }
   // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Restrict CORS in production
+  const allowedOrigins = [
+    'https://www.tradehax.net',
+    'https://vallcallya-p4dktjyoj-digitaldynasty.vercel.app',
+  ];
+  const origin = req.headers.origin || '';
+  const isProd = process.env.NODE_ENV === 'production';
+  if (isProd && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-API-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  // Require API key for POST in production
+  if (isProd && req.method === 'POST') {
+    const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
+    if (!apiKey || apiKey !== process.env.TRADEHAX_ADMIN_KEY) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
   }
 
   if (req.method !== 'POST') {
@@ -723,22 +742,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Build System Prompt ---
     let systemPrompt = buildSystemPrompt(messages[messages.length - 1].content, context, marketSnapshot);
     // --- Personalize prompt using adaptive engine ---
-    if (userProfile && userProfile.id) {
-      try {
-        const personalized = await personalizeSignal({
-          userId: userProfile.id,
-          signal: { explanation: systemPrompt, symbol: assets[0] || 'UNKNOWN' },
-          modelOrSignal: undefined
-        });
-        if (personalized && personalized.explanation) {
-          systemPrompt = personalized.explanation;
+        if (userProfile && userProfile.userId) {
+          try {
+            const personalized = await personalizeSignal({
+              userId: userProfile.userId,
+              signal: { explanation: systemPrompt, symbol: assets[0] || 'UNKNOWN' },
+              modelOrSignal: undefined
+            });
+            if (personalized && personalized.explanation) {
+              systemPrompt = personalized.explanation;
+            }
+          } catch (e) {
+            console.warn('[PERSONALIZATION] Failed to adapt prompt:', e instanceof Error ? e.message : e);
+          }
         }
-      } catch (e) {
-        console.warn('[PERSONALIZATION] Failed to adapt prompt:', e instanceof Error ? e.message : e);
-      }
-    }
     // --- Provider Selection Logic ---
-    let provider: 'huggingface' | 'openai' = 'huggingface';
+        let provider: 'huggingface' | 'openai' | 'demo' = 'huggingface';
     let invoke: () => Promise<string> = () => callHuggingFace([{ role: 'user', content: systemPrompt }], temperature);
     if (PROVIDER_STATUS.openai && (!PROVIDER_STATUS.huggingface || Math.random() < 0.5)) {
       provider = 'openai';
@@ -758,7 +777,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         messageId: undefined,
         userMessage: messages[messages.length - 1]?.content || '',
         aiResponse: '',
-        provider: 'none',
+        provider: 'demo', // using 'demo' as fallback for error case
         model: 'N/A',
         responseTimeMs: 0,
         validationScore: 0,
@@ -774,7 +793,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
         return res.status(503).json({
           error: 'AI service temporarily unavailable. Please try again later.',
-          provider: 'none',
+          provider: 'demo', // using 'demo' as fallback for error case
           model: 'N/A',
           timestamp: Date.now(),
           cached: false,
@@ -797,8 +816,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       cached: false,
       guardrailRetryCount: rawResponse.retried ? 1 : 0,
       providerStatus: { ...PROVIDER_STATUS },
-      fallbackMode: provider === 'demo' || !!rawResponse.fallback,
-      errorDetail: provider === 'demo' ? (rawResponse.error || PROVIDER_STATUS.error || undefined) : undefined,
+      fallbackMode: (provider as string) === 'demo',
+      errorDetail: (provider as string) === 'demo' ? (PROVIDER_STATUS.error || undefined) : undefined,
     };
     // Cache successful responses
     requestCache.set(messages[messages.length - 1].content, { response: responsePayload, timestamp: Date.now() });
