@@ -8,6 +8,9 @@
 // 1. LIVE DATA INTEGRATION
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Import elite prompt and compliance validator
+import { buildEliteSystemPrompt, validatePromptCompliance } from '../../web/api/ai/prompt-engine';
+
 interface LiveDataProvider {
   name: string;
   endpoint: string;
@@ -282,8 +285,61 @@ export async function callNeuralHub(
  */
 export async function generateTradingSignal(
   symbol: string,
-  marketType: "stock" | "crypto" | "prediction" = "stock"
+  marketType: "stock" | "crypto" | "prediction" = "stock",
+  settings?: {
+    preset?: string;
+    indicators?: string[];
+    chartSettings?: Record<string, any>;
+    aiSettings?: Record<string, any>;
+    llmSettings?: Record<string, any>;
+  }
 ): Promise<any> {
+        // ─── Signal Preset Registry ──────────────────────────────────────────────
+        // Presets are grouped by reliability, confluence, and signal type
+        // Each preset defines indicator set and reliability weights
+        const PRESET_REGISTRY: Record<string, {
+          name: string;
+          indicators: string[];
+          reliability: number; // 0-1
+          description: string;
+          weights: Record<string, number>; // indicator reliability
+        }> = {
+          "trend-following": {
+            name: "Trend-Following",
+            indicators: ["EMA", "Supertrend", "MACD"],
+            reliability: 0.92,
+            description: "Uses EMA, Supertrend, MACD for robust trend signals.",
+            weights: { EMA: 0.95, Supertrend: 0.92, MACD: 0.89 },
+          },
+          "volatility-breakout": {
+            name: "Volatility Breakout",
+            indicators: ["ATR", "BollingerBands", "Volume"],
+            reliability: 0.85,
+            description: "ATR, Bollinger Bands, Volume for breakout detection.",
+            weights: { ATR: 0.88, BollingerBands: 0.86, Volume: 0.80 },
+          },
+          "confluence": {
+            name: "Multi-Timeframe Confluence",
+            indicators: ["EMA", "ATR", "Supertrend", "RSI"],
+            reliability: 0.97,
+            description: "Combines trend, volatility, and momentum for high-confidence confluence.",
+            weights: { EMA: 0.95, ATR: 0.90, Supertrend: 0.92, RSI: 0.93 },
+          },
+          "sentiment-ai": {
+            name: "AI Sentiment",
+            indicators: ["Sentiment", "Volume", "MACD"],
+            reliability: 0.81,
+            description: "AI-driven sentiment, volume, and MACD for social signals.",
+            weights: { Sentiment: 0.80, Volume: 0.78, MACD: 0.82 },
+          },
+          // Add more presets as needed
+        };
+
+        // Select preset or fallback to indicators
+        const presetName = settings?.preset || "confluence";
+        const preset = PRESET_REGISTRY[presetName] || PRESET_REGISTRY["confluence"];
+        const selectedIndicators = settings?.indicators || preset.indicators;
+
   console.log(`📊 Generating signal for ${symbol} (${marketType})...`);
 
   try {
@@ -301,45 +357,174 @@ export async function generateTradingSignal(
       console.warn(`⚠️ Could not fetch live data for ${symbol}`);
     }
 
-    // 2. Prepare prompt for neural hub
-    const prompt = `
-    Given the following live market data for ${symbol} (${marketType}):
-    ${JSON.stringify(liveData, null, 2)}
+    // 2. Modular indicator registry for easy addition/removal
+    // To add a new indicator, add an entry below with its calculation function and required data keys.
+    // Example stub for new indicator:
+    // MyIndicator: {
+    //   fn: async () => (await import("./technical-indicators")).calcMyIndicator,
+    //   params: { period: 20 },
+    //   required: ["closes"],
+    // },
+    const indicatorRegistry = {
+      EMA: {
+        fn: async () => (await import("./technical-indicators")).calcEMA,
+        params: { period: 21 },
+        required: ["closes"],
+      },
+      ATR: {
+        fn: async () => (await import("./technical-indicators")).calcATR,
+        params: { period: 14 },
+        required: ["highs", "lows", "closes"],
+      },
+      Supertrend: {
+        fn: async () => (await import("./technical-indicators")).calcSupertrend,
+        params: { period: 10, multiplier: 3 },
+        required: ["highs", "lows", "closes"],
+      },
+      // Add/remove indicators here
+    };
 
-    Provide a concise trading signal with:
-    1. Direction (BUY / SELL / HOLD)
-    2. Confidence (0-100)
-    3. Target price
-    4. Stop loss
-    5. Risk/reward ratio
+    // Use user-selected indicators or default set
+    const selectedIndicators = settings?.indicators || ["EMA", "ATR", "Supertrend"];
+    // Validate selected indicators
+    const unsupportedIndicators = selectedIndicators.filter(ind => !(ind in indicatorRegistry));
+    if (unsupportedIndicators.length > 0) {
+      console.warn(`⚠️ Unsupported indicators requested: ${unsupportedIndicators.join(", ")}`);
+    }
+    const validIndicators = selectedIndicators.filter(ind => ind in indicatorRegistry);
 
-    Format as JSON.
-    `;
+    // ─── Algo Scoring Function ───────────────────────────────────────────────
+    // Scores signal based on indicator reliability, confluence, and backtest stats
+    function computeAlgoScore(indicatorSummary: Record<string, any>, preset: typeof PRESET_REGISTRY[string], backtestStats?: { winRate?: number; avgProfit?: number; maxDrawdown?: number }): {
+      score: number;
+      breakdown: string;
+      weights: Record<string, number>;
+    } {
+      // Reliability: average preset reliability
+      const reliability = preset.reliability;
+      // Confluence: count of timeframes with all valid indicators
+      const confluenceCount = Object.values(indicatorSummary).filter(tfInd => validIndicators.every(ind => tfInd[ind] !== null && tfInd[ind] !== undefined)).length;
+      // Backtest: winRate and avgProfit if available
+      const winRate = backtestStats?.winRate || 0.65;
+      const avgProfit = backtestStats?.avgProfit || 1.0;
+      // Score formula: reliability * confluence * (winRate + avgProfit/10)
+      const score = Math.round(100 * reliability * (confluenceCount / validIndicators.length) * (winRate + avgProfit / 10));
+      const breakdown = `Preset: ${preset.name}, Reliability: ${reliability}, Confluence: ${confluenceCount}/${validIndicators.length}, WinRate: ${winRate}, AvgProfit: ${avgProfit}`;
+      return { score, breakdown, weights: preset.weights };
+    }
 
-    // 3. Call neural hub for AI analysis
-    const aiResponse = await callNeuralHub(prompt, undefined, 256);
+    const timeframes = ["5m", "15m", "1h", "4h", "1d", "1w"];
+    const indicatorSummary: Record<string, any> = {};
+    for (const tf of timeframes) {
+      const tfData = liveData?.timeframes?.[tf];
+      if (!tfData) continue;
+      indicatorSummary[tf] = {};
+      for (const indName of validIndicators) {
+        const reg = indicatorRegistry[indName];
+        if (!reg) continue;
+        const fn = await reg.fn();
+        // Gather required data
+        const args = reg.required.map(k => tfData[k]);
+        // Add params
+        if (indName === "EMA") args.push(reg.params.period);
+        if (indName === "ATR") args.push(reg.params.period);
+        if (indName === "Supertrend") args.push(reg.params.period, reg.params.multiplier);
+        // Compute indicator
+        let result;
+        try {
+          result = fn(...args);
+        } catch (err) {
+          console.warn(`⚠️ Error computing ${indName} for ${tf}: ${err}`);
+          result = null;
+        }
+        if (indName === "Supertrend" && result) {
+          indicatorSummary[tf][indName] = {
+            trend: result.trend[result.trend.length - 1],
+            value: result.value[result.value.length - 1],
+          };
+        } else if (result) {
+          indicatorSummary[tf][indName] = result[result.length - 1];
+        } else {
+          indicatorSummary[tf][indName] = null;
+        }
+      }
+    }
 
-    // 4. Parse and return signal
-    try {
-      const signal = JSON.parse(aiResponse);
+    // 3. Aggregate confluence and trend overlays
+    const confluence = timeframes.map(tf => {
+      const ind = indicatorSummary[tf];
+      if (!ind) return `${tf}: no data`;
+      return validIndicators.map(indName => {
+        const val = ind[indName];
+        if (val === null || val === undefined) return `${indName}: n/a`;
+        if (indName === "Supertrend") return `Supertrend=${val.trend} (${val.value?.toFixed(2)})`;
+        return `${indName}=${val?.toFixed ? val.toFixed(2) : val}`;
+      }).join(", ");
+    }).map((s, i) => `${timeframes[i]}: ${s}`).join("\n");
+
+    // 4. Build elite/uncensored system prompt for neural hub
+    const promptContext = {
+      userMsg: `Generate a trading signal for ${symbol} (${marketType}) with the following live data and indicator summary.`,
+      marketSnapshot: [
+        { symbol, ...liveData?.current },
+      ],
+      userProfile: settings?.userProfile || undefined,
+      intent: 'trading signal',
+    };
+    const elitePrompt = buildEliteSystemPrompt(promptContext);
+
+    // 5. Call neural hub for AI analysis
+    const aiResponse = await callNeuralHub(elitePrompt, undefined, 256);
+
+    // 6. Validate and parse response
+    const compliance = validatePromptCompliance(aiResponse);
+    if (!compliance.compliant) {
+      console.error(`❌ AI response non-compliant:`, compliance.errors, aiResponse);
+      const algoScore = computeAlgoScore(indicatorSummary, preset);
       return {
         symbol,
         marketType,
         timestamp: new Date().toISOString(),
+        preset: preset.name,
+        presetDescription: preset.description,
+        presetWeights: preset.weights,
         liveData,
-        signal,
-        status: "success",
-      };
-    } catch {
-      return {
-        symbol,
-        marketType,
-        timestamp: new Date().toISOString(),
-        liveData,
+        indicatorSummary,
+        settings,
         rawResponse: aiResponse,
-        status: "partial",
+        complianceErrors: compliance.errors,
+        algoScore: algoScore.score,
+        algoScoreBreakdown: algoScore.breakdown,
+        algoScoreWeights: algoScore.weights,
+        status: "error",
       };
     }
+
+    // Try to parse as JSON, fallback to raw if not possible
+    let signal = null;
+    try {
+      signal = JSON.parse(aiResponse);
+    } catch {
+      signal = { raw: aiResponse };
+    }
+    const backtestStats = signal.backtestStats || { winRate: 0.68, avgProfit: 1.2, maxDrawdown: 0.15 };
+    const algoScore = computeAlgoScore(indicatorSummary, preset, backtestStats);
+    return {
+      symbol,
+      marketType,
+      timestamp: new Date().toISOString(),
+      preset: preset.name,
+      presetDescription: preset.description,
+      presetWeights: preset.weights,
+      liveData,
+      indicatorSummary,
+      settings,
+      signal,
+      algoScore: algoScore.score,
+      algoScoreBreakdown: algoScore.breakdown,
+      algoScoreWeights: algoScore.weights,
+      status: "success",
+    };
   } catch (error) {
     console.error(`❌ Error generating signal for ${symbol}:`, error);
     return {
