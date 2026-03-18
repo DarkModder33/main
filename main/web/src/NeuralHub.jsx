@@ -114,10 +114,10 @@ function MarketCard({ symbol, data }) {
   );
 }
 
-export default function NeuralHub() {
-  const [profile, setProfile] = useState(() => userProfileStorage.load());
+  const [profile, setProfile] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("onboardingComplete"));
-  const [messages, setMessages] = useState(() => [withTimestamp(createWelcomeMessage(userProfileStorage.load()))]);
+  const [messages, setMessages] = useState([]);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [marketLoading, setMarketLoading] = useState(true);
@@ -129,9 +129,25 @@ export default function NeuralHub() {
 
   const focusAssets = useMemo(() => profile?.preferredAssets?.slice(0, 3) || ["BTC", "ETH", "SOL"], [profile]);
 
+  // Load profile on mount
   useEffect(() => {
     let active = true;
+    async function fetchProfile() {
+      const loaded = await userProfileStorage.load();
+      if (active) {
+        setProfile(loaded);
+        setMessages([withTimestamp(createWelcomeMessage(loaded))]);
+      }
+    }
+    fetchProfile();
+    return () => {
+      active = false;
+    };
+  }, []);
 
+  // Reload market data when focusAssets changes
+  useEffect(() => {
+    let active = true;
     async function loadMarketData() {
       setMarketLoading(true);
       setMarketError("");
@@ -148,17 +164,32 @@ export default function NeuralHub() {
         }
       }
     }
-
     loadMarketData();
     return () => {
       active = false;
     };
   }, [focusAssets]);
 
-  function handleOnboardingComplete(nextProfile) {
-    setProfile(nextProfile);
+  async function handleOnboardingComplete(nextProfile) {
+    // Always reload profile from storage (in case backend updated fields)
+    const loaded = await userProfileStorage.load();
+    setProfile(loaded);
     setShowOnboarding(false);
-    setMessages([withTimestamp(createWelcomeMessage(nextProfile))]);
+    setMessages([withTimestamp(createWelcomeMessage(loaded))]);
+  }
+
+  // Profile modal handlers
+  function handleOpenProfile() {
+    setShowProfileModal(true);
+  }
+  function handleCloseProfile() {
+    setShowProfileModal(false);
+  }
+  async function handleProfileSave(editedProfile) {
+    await userProfileStorage.save(editedProfile);
+    const loaded = await userProfileStorage.load();
+    setProfile(loaded);
+    setShowProfileModal(false);
   }
 
   async function submitMessage(rawPrompt) {
@@ -232,6 +263,11 @@ export default function NeuralHub() {
     return <GamifiedOnboarding onComplete={handleOnboardingComplete} />;
   }
 
+  // Wait for profile to load before rendering main UI
+  if (!profile) {
+    return <div style={{ color: COLORS.text, padding: 40 }}>Loading profile...</div>;
+  }
+
   return (
     <main
       style={{
@@ -283,16 +319,92 @@ export default function NeuralHub() {
             </div>
           </div>
 
-          <aside style={{ background: "rgba(15, 29, 46, 0.88)", border: `1px solid ${COLORS.border}`, borderRadius: 24, padding: 24, display: "grid", gap: 14 }}>
-            <div>
-              <div style={{ color: COLORS.textDim, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.14em" }}>Customer profile</div>
-              <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{profile?.firstName || "Trader"}</div>
-            </div>
-            <StatRow label="Risk mode" value={profile?.riskTolerance || "moderate"} />
-            <StatRow label="Trading style" value={profile?.tradingStyle || "swing"} />
-            <StatRow label="Goal" value={profile?.goal || "Execution-ready market planning"} />
-            <StatRow label="Asset focus" value={focusAssets.join(", ")} />
-          </aside>
+           <aside style={{ background: "rgba(15, 29, 46, 0.88)", border: `1px solid ${COLORS.border}`, borderRadius: 24, padding: 24, display: "grid", gap: 14 }}>
+             <div>
+               <div style={{ color: COLORS.textDim, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.14em" }}>Customer profile</div>
+               <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{profile?.firstName || "Trader"}</div>
+             </div>
+             <StatRow label="Risk mode" value={profile?.riskTolerance || "moderate"} />
+             <StatRow label="Trading style" value={profile?.tradingStyle || "swing"} />
+             <StatRow label="Goal" value={profile?.goal || "Execution-ready market planning"} />
+             <StatRow label="Asset focus" value={focusAssets.join(", ")} />
+             <button
+               type="button"
+               onClick={handleOpenProfile}
+               style={{ marginTop: 18, borderRadius: 10, border: `1px solid ${COLORS.accent}`, background: COLORS.bgAlt, color: COLORS.accent, padding: "10px 16px", fontWeight: 600, cursor: "pointer" }}
+             >
+               Profile
+             </button>
+           </aside>
+                      {showProfileModal && (
+                        <ProfileModal
+                          profile={profile}
+                          onClose={handleCloseProfile}
+                          onSave={handleProfileSave}
+                        />
+                      )}
+                // Simple profile review/edit modal
+                function ProfileModal({ profile, onClose, onSave }) {
+                  const [form, setForm] = useState({ ...profile });
+                  function handleChange(e) {
+                    const { name, value } = e.target;
+                    setForm((prev) => ({ ...prev, [name]: value }));
+                  }
+                  function handleAssetChange(e) {
+                    setForm((prev) => ({ ...prev, preferredAssets: e.target.value.split(",").map((a) => a.trim()).filter(Boolean) }));
+                  }
+                  function handleSubmit(e) {
+                    e.preventDefault();
+                    onSave(form);
+                  }
+                  return (
+                    <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <form onSubmit={handleSubmit} style={{ background: "#101D31", color: "#E6F1FF", borderRadius: 18, padding: 36, minWidth: 340, boxShadow: "0 8px 40px #000a" }}>
+                        <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 18 }}>Edit Profile</h2>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          First Name
+                          <input name="firstName" value={form.firstName || ""} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }} />
+                        </label>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          Risk Tolerance
+                          <select name="riskTolerance" value={form.riskTolerance || "moderate"} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }}>
+                            <option value="conservative">Conservative</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="aggressive">Aggressive</option>
+                          </select>
+                        </label>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          Trading Style
+                          <select name="tradingStyle" value={form.tradingStyle || "swing"} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }}>
+                            <option value="scalp">Scalp</option>
+                            <option value="swing">Swing</option>
+                            <option value="position">Position</option>
+                          </select>
+                        </label>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          Portfolio Value
+                          <input name="portfolioValue" type="number" value={form.portfolioValue || ""} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }} />
+                        </label>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          Preferred Assets (comma separated)
+                          <input name="preferredAssets" value={form.preferredAssets?.join(", ") || ""} onChange={handleAssetChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }} />
+                        </label>
+                        <label style={{ display: "block", marginBottom: 10 }}>
+                          Goal
+                          <input name="goal" value={form.goal || ""} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }} />
+                        </label>
+                        <label style={{ display: "block", marginBottom: 18 }}>
+                          Persona
+                          <input name="persona" value={form.persona || ""} onChange={handleChange} style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid #1C3350", background: "#12161E", color: "#E6F1FF" }} />
+                        </label>
+                        <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
+                          <button type="submit" style={{ background: '#00D9FF', color: '#090B10', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Save</button>
+                          <button type="button" onClick={onClose} style={{ background: 'transparent', color: '#E6F1FF', border: '1px solid #1C3350', borderRadius: 8, padding: '10px 18px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  );
+                }
         </header>
 
         {(providerStatus || fallbackMode || errorDetail) && (

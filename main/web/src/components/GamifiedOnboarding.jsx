@@ -69,8 +69,8 @@ function buildProfile(form) {
   };
 }
 
-function persistOnboarding(profile) {
-  userProfileStorage.save(profile);
+async function persistOnboarding(profile) {
+  await userProfileStorage.save(profile); // always syncs to backend as well
   localStorage.setItem("onboardingComplete", "true");
   localStorage.setItem("tradehax_onboarding", JSON.stringify(profile));
   localStorage.setItem(
@@ -159,9 +159,9 @@ export default function GamifiedOnboarding({ onComplete }) {
     setStep((prev) => Math.max(prev - 1, 0));
   }
 
-  function finish() {
+  async function finish() {
     const profile = buildProfile(form);
-    persistOnboarding(profile);
+    await persistOnboarding(profile);
     onComplete?.(profile);
   }
 

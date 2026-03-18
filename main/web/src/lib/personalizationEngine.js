@@ -19,29 +19,20 @@ const DEFAULT_USER_PROFILE = {
   lastUpdated: new Date().toISOString(),
 };
 
-/**
- * Load user profile from localStorage or API
- */
+// DEPRECATED: All profile logic is now handled by userProfileStorage in api-client.ts
+// These functions are retained for backward compatibility but should not be used.
 export function loadUserProfile() {
-  const stored = localStorage.getItem('userProfile');
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (e) {
-      console.error('Failed to load user profile:', e);
-    }
-  }
-  return { ...DEFAULT_USER_PROFILE };
+  console.warn('loadUserProfile is deprecated. Use userProfileStorage.load() from api-client.ts');
+  return null;
 }
 
-/**
- * Save user profile to localStorage and optionally to API
- */
 export function saveUserProfile(profile) {
-  localStorage.setItem('userProfile', JSON.stringify(profile));
-  // TODO: Sync to API endpoint
-  return profile;
+  console.warn('saveUserProfile is deprecated. Use userProfileStorage.save() from api-client.ts');
+  return null;
 }
+
+// --- Unified Profile Integration ---
+import { userProfileStorage } from './api-client';
 
 /**
  * Record trade outcome to build accuracy history
@@ -51,8 +42,9 @@ export function saveUserProfile(profile) {
  * @param {string} outcome - WIN or LOSS
  * @param {number} pnl - Profit/loss in dollars
  */
-export function recordTradeOutcome(asset, signal, confidence, outcome, pnl = 0) {
-  const profile = loadUserProfile();
+export async function recordTradeOutcome(asset, signal, confidence, outcome, pnl = 0) {
+  let profile = await userProfileStorage.load();
+  if (!profile) return null;
 
   const trade = {
     asset,
@@ -63,6 +55,7 @@ export function recordTradeOutcome(asset, signal, confidence, outcome, pnl = 0) 
     timestamp: new Date().toISOString(),
   };
 
+  profile.tradeHistory = profile.tradeHistory || [];
   profile.tradeHistory.push(trade);
 
   // Keep only last 100 trades
@@ -73,19 +66,22 @@ export function recordTradeOutcome(asset, signal, confidence, outcome, pnl = 0) 
   // Recalculate stats
   profile.winRate = calculateWinRate(profile.tradeHistory);
   profile.averageConfidence = calculateAverageConfidence(profile.tradeHistory);
+  profile.lastUpdated = new Date().toISOString();
 
-  saveUserProfile(profile);
+  await userProfileStorage.save(profile);
   return profile;
 }
 
 /**
  * Update user risk preference
  */
-export function setRiskTolerance(tolerance) {
-  const profile = loadUserProfile();
+export async function setRiskTolerance(tolerance) {
+  let profile = await userProfileStorage.load();
+  if (!profile) return null;
   if (['conservative', 'moderate', 'aggressive'].includes(tolerance)) {
     profile.riskTolerance = tolerance;
-    saveUserProfile(profile);
+    profile.lastUpdated = new Date().toISOString();
+    await userProfileStorage.save(profile);
   }
   return profile;
 }
@@ -93,24 +89,28 @@ export function setRiskTolerance(tolerance) {
 /**
  * Update user favorite assets
  */
-export function setFavoriteAssets(assets) {
-  const profile = loadUserProfile();
-  profile.favoriteAssets = assets;
-  saveUserProfile(profile);
+export async function setFavoriteAssets(assets) {
+  let profile = await userProfileStorage.load();
+  if (!profile) return null;
+  profile.preferredAssets = assets;
+  profile.lastUpdated = new Date().toISOString();
+  await userProfileStorage.save(profile);
   return profile;
 }
 
 /**
  * Update indicator preference weights
  */
-export function setIndicatorWeights(weights) {
-  const profile = loadUserProfile();
+export async function setIndicatorWeights(weights) {
+  let profile = await userProfileStorage.load();
+  if (!profile) return null;
   const normalized = normalizeWeights({
     ...profile.indicatorWeights,
     ...weights,
   });
   profile.indicatorWeights = normalized;
-  saveUserProfile(profile);
+  profile.lastUpdated = new Date().toISOString();
+  await userProfileStorage.save(profile);
   return profile;
 }
 
@@ -118,11 +118,12 @@ export function setIndicatorWeights(weights) {
  * Personalize signal based on user profile
  * Takes a generic signal and adjusts confidence/recommendation based on user history
  */
-export function personalizeSignal(baseSignal, userProfile = null) {
-  const profile = userProfile || loadUserProfile();
+export async function personalizeSignal(baseSignal, userProfile = null) {
+  const profile = userProfile || (await userProfileStorage.load());
+  if (!profile) return baseSignal;
 
   // Calculate user-specific accuracy for this asset
-  const assetTrades = profile.tradeHistory.filter(
+  const assetTrades = (profile.tradeHistory || []).filter(
     (t) => t.asset === baseSignal.asset
   );
   const assetWinRate = assetTrades.length > 0
@@ -130,7 +131,7 @@ export function personalizeSignal(baseSignal, userProfile = null) {
     : 0.5;
 
   // Calculate signal-type accuracy
-  const signalTrades = profile.tradeHistory.filter(
+  const signalTrades = (profile.tradeHistory || []).filter(
     (t) => t.signal === baseSignal.signal
   );
   const signalWinRate = signalTrades.length > 0
@@ -139,7 +140,7 @@ export function personalizeSignal(baseSignal, userProfile = null) {
 
   // Blend base confidence with user's historical accuracy
   const userAccuracyMultiplier =
-    assetWinRate * 0.4 + signalWinRate * 0.3 + profile.averageConfidence * 0.3;
+    assetWinRate * 0.4 + signalWinRate * 0.3 + (profile.averageConfidence || 0.5) * 0.3;
 
   const personalizedConfidence = Math.min(
     1,
@@ -170,14 +171,15 @@ export function personalizeSignal(baseSignal, userProfile = null) {
 /**
  * Get personalization insights about user preferences
  */
-export function getPersonalizationInsights(userProfile = null) {
-  const profile = userProfile || loadUserProfile();
+export async function getPersonalizationInsights(userProfile = null) {
+  const profile = userProfile || (await userProfileStorage.load());
+  if (!profile) return null;
 
   const insights = {
-    totalTrades: profile.tradeHistory.length,
+    totalTrades: (profile.tradeHistory || []).length,
     winRate: profile.winRate,
-    favoriteAsset: findMostSuccessfulAsset(profile.tradeHistory),
-    bestSignalType: findBestSignalType(profile.tradeHistory),
+    favoriteAsset: findMostSuccessfulAsset(profile.tradeHistory || []),
+    bestSignalType: findBestSignalType(profile.tradeHistory || []),
     strongestIndicator: findStrongestIndicator(profile),
     recommendedAdjustments: [],
   };
@@ -195,7 +197,7 @@ export function getPersonalizationInsights(userProfile = null) {
     );
   }
 
-  const momentumWeight = profile.indicatorWeights.momentum;
+  const momentumWeight = profile.indicatorWeights?.momentum;
   if (insights.strongestIndicator === 'sentiment' && momentumWeight > 0.3) {
     insights.recommendedAdjustments.push(
       'You succeed more with sentiment, consider reducing momentum weight.'
@@ -308,15 +310,16 @@ function findStrongestIndicator(profile) {
 /**
  * Export user profile for sharing
  */
-export function exportUserProfile(userProfile = null) {
-  const profile = userProfile || loadUserProfile();
+export async function exportUserProfile(userProfile = null) {
+  const profile = userProfile || (await userProfileStorage.load());
+  if (!profile) return null;
   return {
     version: 1,
     riskTolerance: profile.riskTolerance,
     tradingStyle: profile.tradingStyle,
     indicatorWeights: profile.indicatorWeights,
     stats: {
-      totalTrades: profile.tradeHistory.length,
+      totalTrades: (profile.tradeHistory || []).length,
       winRate: profile.winRate,
     },
   };
@@ -325,18 +328,19 @@ export function exportUserProfile(userProfile = null) {
 /**
  * Import user profile from shared config
  */
-export function importUserProfile(configString) {
+export async function importUserProfile(configString) {
   try {
     const imported = JSON.parse(configString);
-    const profile = loadUserProfile();
+    let profile = await userProfileStorage.load();
+    if (!profile) return null;
     profile.riskTolerance = imported.riskTolerance || profile.riskTolerance;
     profile.tradingStyle = imported.tradingStyle || profile.tradingStyle;
     profile.indicatorWeights = imported.indicatorWeights || profile.indicatorWeights;
-    saveUserProfile(profile);
+    profile.lastUpdated = new Date().toISOString();
+    await userProfileStorage.save(profile);
     return profile;
   } catch (e) {
     console.error('Failed to import profile:', e);
     return null;
   }
 }
-

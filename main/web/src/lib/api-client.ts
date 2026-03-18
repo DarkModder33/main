@@ -55,15 +55,26 @@ export interface CryptoData {
 }
 
 export interface UserProfile {
-  userId?: string;
-  riskTolerance?: 'conservative' | 'moderate' | 'aggressive';
-  portfolioValue?: number;
-  preferredAssets?: string[];
-  tradingStyle?: 'scalp' | 'swing' | 'position';
+  userId: string;
+  firstName: string;
+  experienceLevel: string;
+  riskTolerance: 'conservative' | 'moderate' | 'aggressive';
+  tradingStyle: 'scalp' | 'swing' | 'position';
+  portfolioValue: number;
+  preferredAssets: string[];
+  goal: string;
+  persona: string;
+  onboardingCompletedAt: number;
+  avatarUrl?: string;
   signalAccuracy?: {
     overall: number;
     byAsset: Record<string, number>;
   };
+  tradeHistory?: Array<{ asset: string; signal: string; result: string; confidence: number }>;
+  winRate?: number;
+  averageConfidence?: number;
+  consent?: { allowLlmTraining: boolean; allowPersonalization: boolean };
+  // ...future fields
 }
 
 export interface ChatContext {
@@ -96,7 +107,6 @@ export class TradeHaxAPI {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
     return new URL(path, origin).toString();
   }
-
   /**
    * Send chat message to AI with retry logic
    */
@@ -124,7 +134,6 @@ export class TradeHaxAPI {
       }
     );
   }
-
   /**
    * Fetch live crypto data
    */
@@ -253,7 +262,6 @@ export class TradeHaxAPI {
       console.warn('Profile sync failed:', error);
     }
   }
-
   /**
    * Parse AI response into structured format
    */
@@ -331,15 +339,93 @@ export const apiClient = new TradeHaxAPI();
 
 // Export helper for localStorage-based user profiles
 export const userProfileStorage = {
-  save(profile: UserProfile): void {
+  /**
+   * Save profile to both localStorage and backend (PUT). Always await remote, fallback to local.
+   */
+  async save(profile: UserProfile): Promise<void> {
     try {
       localStorage.setItem('tradehax_user_profile', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Failed to save user profile locally:', error);
+    }
+    try {
+      await userProfileStorage.saveRemote(profile);
+    } catch (error) {
+      // Network errors are non-fatal for local persistence
+      console.warn('Remote profile save failed:', error);
+    }
+  },
+
+  /**
+   * Load profile from backend if possible, fallback to localStorage.
+   */
+   async load(): Promise<UserProfile | null> {
+     let profile = null;
+     try {
+       profile = await userProfileStorage.loadRemote();
+       if (profile) {
+         profile = userProfileStorage.migrateProfile(profile);
+         return profile;
+       }
+     } catch (error) {
+       // Ignore, fallback to local
+     }
+     try {
+       const stored = localStorage.getItem('tradehax_user_profile');
+       profile = stored ? JSON.parse(stored) : null;
+       if (profile) {
+         profile = userProfileStorage.migrateProfile(profile);
+         return profile;
+       }
+       return null;
+     } catch (error) {
+       console.error('Failed to load user profile locally:', error);
+       return null;
+     }
+   },
+  /**
+   * Migrate legacy/incomplete profiles to the unified schema.
+   */
+  migrateProfile(profile: any): UserProfile {
+    if (!profile) return null;
+    // Fill missing fields with defaults
+    return {
+      userId: profile.userId || `guest-${(profile.firstName || 'trader').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      firstName: profile.firstName || 'Trader',
+      experienceLevel: profile.experienceLevel || 'intermediate',
+      riskTolerance: profile.riskTolerance || 'moderate',
+      tradingStyle: profile.tradingStyle || 'swing',
+      portfolioValue: typeof profile.portfolioValue === 'number' ? profile.portfolioValue : 25000,
+      preferredAssets: Array.isArray(profile.preferredAssets) ? profile.preferredAssets : ['BTC', 'ETH', 'SOL'],
+      goal: profile.goal || 'Generate structured trading plans with disciplined risk',
+      persona: profile.persona || 'Execution Coach',
+      onboardingCompletedAt: profile.onboardingCompletedAt || Date.now(),
+      avatarUrl: profile.avatarUrl,
+      signalAccuracy: profile.signalAccuracy,
+      tradeHistory: profile.tradeHistory,
+      winRate: profile.winRate,
+      averageConfidence: profile.averageConfidence,
+      consent: profile.consent,
+    };
+  },
+
+  /**
+   * Legacy sync save (local only, not recommended)
+   */
+  saveSync(profile: UserProfile): void {
+    try {
+      localStorage.setItem('tradehax_user_profile', JSON.stringify(profile));
+      // Async sync to backend (fire and forget)
+      userProfileStorage.saveRemote(profile).catch(() => {});
     } catch (error) {
       console.error('Failed to save user profile:', error);
     }
   },
 
-  load(): UserProfile | null {
+  /**
+   * Legacy sync load (local only, not recommended)
+   */
+  loadSync(): UserProfile | null {
     try {
       const stored = localStorage.getItem('tradehax_user_profile');
       return stored ? JSON.parse(stored) : null;
@@ -356,5 +442,31 @@ export const userProfileStorage = {
       console.error('Failed to clear user profile:', error);
     }
   },
-};
 
+  async saveRemote(profile: UserProfile): Promise<void> {
+    try {
+      await fetch('/api/account/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+    } catch (error) {
+      // Network errors are non-fatal for local persistence
+      console.warn('Remote profile save failed:', error);
+    }
+  },
+
+  async loadRemote(): Promise<UserProfile | null> {
+    try {
+      const res = await fetch('/api/account/profile');
+      if (!res.ok) return null;
+      const profile = await res.json();
+      if (profile) {
+        localStorage.setItem('tradehax_user_profile', JSON.stringify(profile));
+      }
+      return profile;
+    } catch (error) {
+      return null;
+    }
+  },
+};
