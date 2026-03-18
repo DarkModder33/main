@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { supabaseAdmin } from "../lib/supabase-admin.js";
 
+const projectUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
@@ -22,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({
         ok: false,
         provider: "supabase",
-        projectUrl: process.env.VITE_SUPABASE_URL,
+        projectUrl,
         error: error.message,
       });
     }
@@ -30,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       ok: true,
       provider: "supabase",
-      projectUrl: process.env.VITE_SUPABASE_URL,
+      projectUrl,
       latencyMs: Date.now() - started,
       buckets: data.map((bucket) => ({ id: bucket.id, name: bucket.name, public: bucket.public })),
       bucketCount: data.length,
@@ -40,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({
       ok: false,
       provider: "supabase",
-      projectUrl: process.env.VITE_SUPABASE_URL,
+      projectUrl,
       error: error?.message || "Unknown error",
     });
   }

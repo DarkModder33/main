@@ -95,6 +95,7 @@ export default function Page() {
 Add these vars to `web/.env.local`:
 
 - `VITE_SUPABASE_URL`
+- `SUPABASE_URL` (server-side fallback)
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `VITE_SUPABASE_ANON_KEY` (optional fallback)
 - `SUPABASE_SECRET_KEY` (server-only)

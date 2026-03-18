@@ -5,8 +5,8 @@ const REQUIRED_KEYS = [
   'STRIPE_WEBHOOK_SECRET',
   'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
   'HUGGINGFACE_API_KEY',
-  'SUPABASE_ANON_KEY',
   'SUPABASE_URL',
+  'SUPABASE_SECRET_KEY',
   'NEXTAUTH_SECRET',
   'JWT_SECRET',
   'TRADEHAX_ADMIN_KEY',
@@ -23,6 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   for (const key of REQUIRED_KEYS) {
     results[key] = process.env[key] ? 'OK' : 'MISSING';
   }
+
+  results.SUPABASE_CLIENT_KEY =
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
+      ? 'OK'
+      : 'MISSING';
 
   // Optionally, add external service checks here (e.g., ping Stripe, Supabase)
 

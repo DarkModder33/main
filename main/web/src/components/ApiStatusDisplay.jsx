@@ -1,50 +1,4 @@
-// health-checker.ts
-const endpoints = [
-  { name: 'Hugging Face', url: process.env.HF_INFERENCE_API_ENDPOINT, token: process.env.NEXT_PUBLIC_HF_API_TOKEN },
-  { name: 'OpenAI', url: 'https://api.openai.com/v1', token: process.env.OPENAI_API_KEY },
-  { name: 'Supabase', url: process.env.VITE_SUPABASE_URL, token: process.env.VITE_SUPABASE_ANON_KEY },
-  // ...add more as needed
-];
-
-async function checkEndpoint(ep) {
-  if (!ep.token) return { name: ep.name, status: 'missing token' };
-  try {
-    const res = await fetch(ep.url, { headers: { Authorization: `Bearer ${ep.token}` } });
-    return { name: ep.name, status: res.ok ? 'connected' : `error ${res.status}` };
-  } catch (err) {
-    return { name: ep.name, status: 'error', error: err.message };
-  }
-}
-
-async function runHealthChecks() {
-  const results = await Promise.all(endpoints.map(checkEndpoint));
-  console.table(results);
-}
-
-runHealthChecks();// health-checker.ts
-const endpoints = [
-  { name: 'Hugging Face', url: process.env.HF_INFERENCE_API_ENDPOINT, token: process.env.NEXT_PUBLIC_HF_API_TOKEN },
-  { name: 'OpenAI', url: 'https://api.openai.com/v1', token: process.env.OPENAI_API_KEY },
-  { name: 'Supabase', url: process.env.VITE_SUPABASE_URL, token: process.env.VITE_SUPABASE_ANON_KEY },
-  // ...add more as needed
-];
-
-async function checkEndpoint(ep) {
-  if (!ep.token) return { name: ep.name, status: 'missing token' };
-  try {
-    const res = await fetch(ep.url, { headers: { Authorization: `Bearer ${ep.token}` } });
-    return { name: ep.name, status: res.ok ? 'connected' : `error ${res.status}` };
-  } catch (err) {
-    return { name: ep.name, status: 'error', error: err.message };
-  }
-}
-
-async function runHealthChecks() {
-  const results = await Promise.all(endpoints.map(checkEndpoint));
-  console.table(results);
-}
-
-runHealthChecks();import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const ENDPOINTS = [
   { name: 'Hugging Face', url: 'https://api-inference.huggingface.co/models' },
@@ -59,6 +13,8 @@ function ApiStatusDisplay() {
   const [statuses, setStatuses] = useState([]);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function checkAll() {
       const results = await Promise.all(
         ENDPOINTS.map(async (ep) => {
@@ -70,9 +26,17 @@ function ApiStatusDisplay() {
           }
         })
       );
-      setStatuses(results);
+
+      if (!cancelled) {
+        setStatuses(results);
+      }
     }
+
     checkAll();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -99,4 +63,3 @@ function ApiStatusDisplay() {
 }
 
 export default ApiStatusDisplay;
-
