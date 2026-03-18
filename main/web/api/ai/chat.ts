@@ -636,8 +636,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
   // Restrict CORS in production
   const allowedOrigins = [
+    'https://tradehax.net',
     'https://www.tradehax.net',
-    'https://vallcallya-p4dktjyoj-digitaldynasty.vercel.app',
+    'https://tradehaxai.tech',
+    'https://www.tradehaxai.tech',
+    'https://web-8lg3bz459-digitaldynasty.vercel.app',
   ];
   const origin = req.headers.origin || '';
   const isProd = process.env.NODE_ENV === 'production';
@@ -651,14 +654,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
-  }
-
-  // Require API key for POST in production
-  if (isProd && req.method === 'POST') {
-    const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
-    if (!apiKey || apiKey !== process.env.TRADEHAX_ADMIN_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
   }
 
   if (req.method !== 'POST') {

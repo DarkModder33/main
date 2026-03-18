@@ -20,6 +20,14 @@ export interface ChatResponse {
   model: string;
   timestamp: number;
   cached?: boolean;
+  providerStatus?: {
+    huggingface: boolean;
+    openai: boolean;
+    lastChecked?: number | null;
+    error?: string;
+  };
+  fallbackMode?: boolean;
+  errorDetail?: string;
 }
 
 export interface MarketSnapshot {
@@ -65,6 +73,10 @@ export interface ChatContext {
   marketSnapshot?: MarketSnapshot[];
 }
 
+interface SessionRecord {
+  sessionId: string;
+}
+
 export class TradeHaxAPI {
   private baseUrl: string;
   private retryCount: number;
@@ -76,16 +88,39 @@ export class TradeHaxAPI {
     this.retryDelay = retryDelay;
   }
 
+  private resolveUrl(path: string): string {
+    if (this.baseUrl) {
+      return new URL(path, this.baseUrl).toString();
+    }
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    return new URL(path, origin).toString();
+  }
+
   /**
    * Send chat message to AI with retry logic
    */
   async chat(messages: ChatMessage[], context?: ChatContext): Promise<ChatResponse> {
+    const mergedContext: ChatContext = { ...(context || {}) };
+    const storedProfile = userProfileStorage.load();
+    if (!mergedContext.userProfile && storedProfile) {
+      mergedContext.userProfile = storedProfile;
+    }
+
+    const sessionId = await this.ensureSession(mergedContext.userProfile?.userId);
+    if (sessionId) {
+      mergedContext.sessionId = sessionId;
+      if (mergedContext.userProfile) {
+        await this.syncProfile(sessionId, mergedContext.userProfile);
+      }
+    }
+
     return this.fetchWithRetry<ChatResponse>(
-      `${this.baseUrl}/api/ai/chat`,
+      this.resolveUrl('/api/ai/chat'),
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, context }),
+        body: JSON.stringify({ messages, context: mergedContext }),
       }
     );
   }
@@ -94,7 +129,7 @@ export class TradeHaxAPI {
    * Fetch live crypto data
    */
   async getCryptoData(symbol: string, source?: 'coingecko' | 'binance'): Promise<CryptoData> {
-    const url = new URL(`${this.baseUrl}/api/data/crypto`);
+    const url = new URL(this.resolveUrl('/api/data/crypto'));
     url.searchParams.set('symbol', symbol);
     if (source) url.searchParams.set('source', source);
 
@@ -123,7 +158,7 @@ export class TradeHaxAPI {
    */
   async healthCheck(): Promise<{ ok: boolean; timestamp: number }> {
     try {
-      const response = await fetch(`${this.baseUrl}/__health`);
+      const response = await fetch(this.resolveUrl('/api/ai/health'));
       return {
         ok: response.ok,
         timestamp: Date.now()
@@ -175,6 +210,48 @@ export class TradeHaxAPI {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async ensureSession(userId?: string): Promise<string | null> {
+    if (typeof window === 'undefined') return null;
+
+    const existing = window.localStorage.getItem('tradehax_session_id');
+    if (existing) return existing;
+
+    try {
+      const session = await this.fetchWithRetry<SessionRecord>(
+        this.resolveUrl('/api/sessions?action=create'),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      if (session?.sessionId) {
+        window.localStorage.setItem('tradehax_session_id', session.sessionId);
+        return session.sessionId;
+      }
+    } catch (error) {
+      console.warn('Session bootstrap failed:', error);
+    }
+
+    return null;
+  }
+
+  private async syncProfile(sessionId: string, profile: UserProfile): Promise<void> {
+    try {
+      await this.fetchWithRetry(
+        this.resolveUrl(`/api/sessions?action=profile&sessionId=${encodeURIComponent(sessionId)}`),
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profile),
+        }
+      );
+    } catch (error) {
+      console.warn('Profile sync failed:', error);
+    }
   }
 
   /**
