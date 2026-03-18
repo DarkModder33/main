@@ -43,31 +43,10 @@
       ]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/tradehax",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/trading",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/music",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/services",
-      "destination": "/index.html"
-    }
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
   ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
