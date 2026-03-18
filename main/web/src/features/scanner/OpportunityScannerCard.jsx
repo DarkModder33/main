@@ -36,8 +36,11 @@ export default function OpportunityScannerCard() {
 
   const top = data?.opportunities?.slice(0, 3) || [];
 
+  // Accessibility: add ARIA roles and labels
   return (
     <div
+      role="region"
+      aria-label="Unusual Signal Scanner"
       style={{
         marginTop: 16,
         border: `1px solid ${CARD_COLORS.border}`,
@@ -50,7 +53,7 @@ export default function OpportunityScannerCard() {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <div>
-          <div style={{ color: CARD_COLORS.text, fontWeight: 700 }}>Unusual Signal Scanner</div>
+          <div style={{ color: CARD_COLORS.text, fontWeight: 700, fontSize: 18 }} id="scanner-title">Unusual Signal Scanner</div>
           <div style={{ color: CARD_COLORS.dim, fontSize: 12 }}>
             Ranked crypto anomalies by flow + volatility pressure
           </div>
@@ -59,6 +62,8 @@ export default function OpportunityScannerCard() {
           onClick={refresh}
           disabled={loading}
           aria-label="Refresh Scanner"
+          aria-busy={loading}
+          aria-describedby="scanner-title"
           style={{
             border: `1px solid ${CARD_COLORS.accent}55`,
             background: "transparent",
@@ -73,28 +78,34 @@ export default function OpportunityScannerCard() {
             fontSize: 16,
           }}
         >
-          {loading ? "Scanning..." : "Refresh"}
+          {loading ? <span aria-live="polite">Scanning...</span> : "Refresh"}
         </button>
       </div>
 
-      {error ? (
-        <div style={{ color: "#ff6b6b", marginTop: 10, fontSize: 13 }}>Scanner error: {error}</div>
-      ) : null}
+      {/* Error State */}
+      {error && (
+        <div role="alert" style={{ color: "#ff6b6b", marginTop: 10, fontSize: 13 }}>Scanner error: {error}</div>
+      )}
 
-      {!error && !top.length && !loading ? (
+      {/* Empty State */}
+      {!error && !top.length && !loading && (
         <div style={{ color: CARD_COLORS.dim, marginTop: 10, fontSize: 13 }}>No elevated opportunities right now.</div>
-      ) : null}
+      )}
 
+      {/* Main Content */}
       <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-        {data?.regime?.label ? (
+        {data?.regime?.label && (
           <div style={{ color: CARD_COLORS.dim, fontSize: 12 }}>
             Regime: {data.regime.label} | Scanned: {data.totalScanned} | Flagged: {data.totalFlagged}
           </div>
-        ) : null}
+        )}
 
         {top.map((item) => (
           <div
             key={item.symbol}
+            tabIndex={0}
+            role="listitem"
+            aria-label={`Market ${item.symbol}, Signal ${item.signalLabel}, Score ${item.score}`}
             style={{
               border: `1px solid ${CARD_COLORS.border}`,
               borderRadius: 10,
@@ -103,15 +114,19 @@ export default function OpportunityScannerCard() {
               background: "#0E1117",
               WebkitBackgroundClip: 'padding-box',
               minHeight: 48,
+              outline: 'none',
             }}
+            onKeyDown={e => { if (e.key === 'Enter') { /* future: open details */ } }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong style={{ color: CARD_COLORS.text }}>{item.symbol}</strong>
               <span
+                title={`Signal: ${item.signalLabel}\nScore: ${item.score}\nReliability: ${item.reliability}`}
                 style={{
                   color: item.signalLabel === "HIGH" ? CARD_COLORS.green : CARD_COLORS.amber,
                   fontSize: 12,
                   fontWeight: 700,
+                  cursor: 'help',
                 }}
               >
                 {item.signalLabel} | Score {item.score} | R {item.reliability}
@@ -126,10 +141,17 @@ export default function OpportunityScannerCard() {
             {item.reasons?.length ? (
               <div style={{ color: CARD_COLORS.text, fontSize: 12, marginTop: 6 }}>{item.reasons[0]}</div>
             ) : null}
+            {/* Feedback button for analytics/AI improvement */}
+            <button
+              style={{ marginTop: 8, fontSize: 11, color: CARD_COLORS.accent, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              aria-label={`Give feedback on ${item.symbol}`}
+              onClick={() => window.dispatchEvent(new CustomEvent('openFeedback', { detail: { symbol: item.symbol } }))}
+            >
+              Feedback
+            </button>
           </div>
         ))}
       </div>
     </div>
   );
 }
-

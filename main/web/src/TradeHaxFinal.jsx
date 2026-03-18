@@ -844,7 +844,7 @@ export default function TradeHaxGPT() {
       </div>
 
       {/* ── HEADER ──────────────────────────────────────────────────────────── */}
-      <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:isMobile?"10px 12px":"10px 20px", borderBottom:`1px solid ${C.border}`, background:C.surface, flexShrink:0, gap:isMobile?10:0, flexWrap:isMobile?"wrap":"nowrap" }}>
+      <header style={{ display:"flex", alignItems:"center", justifyContent:"flex-start", padding:isMobile?"10px 12px":"10px 20px", borderBottom:`1px solid ${C.border}`, background:C.surface, flexShrink:0, gap:isMobile?10:0, flexWrap:isMobile?"wrap":"nowrap" }}>
         <div style={{ display:"flex", alignItems:"center", gap:16, minWidth:isMobile?"100%":"auto" }}>
           <div>
             <div style={{ fontFamily:"'Orbitron',monospace", fontSize:18, fontWeight:900, color:C.gold, letterSpacing:"0.18em", textShadow:`0 0 24px ${C.gold}55` }}>
@@ -854,51 +854,6 @@ export default function TradeHaxGPT() {
               GPT APEX EDITION · tradehax.net
             </div>
           </div>
-          <div style={{ width:1, height:32, background:C.border }} />
-          <div style={{ display:"flex", gap:8 }}>
-            <Pill c={phaseColor}>{phase}</Pill>
-            {markets.length > 0 && <Pill c={C.blue}>{markets.length} MARKETS</Pill>}
-          </div>
-        </div>
-
-        {/* Stats strip */}
-        <div style={{ display:"flex", gap:isMobile?12:20, alignItems:"center", width:isMobile?"100%":"auto", justifyContent:isMobile?"space-between":"flex-end", flexWrap:isMobile?"wrap":"nowrap", overflowX:isMobile?"auto":"visible" }}>
-          {[
-            { l:paperMode?"PAPER P&L":"P&L", v:`${pnl.realized >= 0 ? "+" : ""}$${pnl.realized.toFixed(0)}`, c: pnl.realized >= 0 ? C.green : C.rose },
-            { l:"TRADES", v:pnl.trades, c:C.text },
-            { l:"WIN RATE", v:pnl.trades > 0 ? pct(pnl.wins/pnl.trades) : "—", c:C.gold },
-            { l:"GRADE A", v:stats.gradeA, c:C.green },
-            { l:"ARB OPS", v:stats.arbOps, c:C.violet },
-          ].map(({ l,v,c }) => (
-            <div key={l} style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Fira Code',monospace", fontSize:9, color:C.textDim, letterSpacing:"0.08em" }}>{l}</div>
-              <div style={{ fontFamily:"'Orbitron',monospace", fontSize:13, fontWeight:700, color:c }}>{v}</div>
-            </div>
-          ))}
-          <div className="hide-mobile" style={{ width:1, height:32, background:C.border }} />
-          <button
-            onClick={() => {
-              setPaperMode(p => !p);
-              addChat("assistant", paperMode
-                ? "🔴 **LIVE TRADING ACTIVATED** — Real orders will be executed. Connect your wallet and ensure you have funds ready."
-                : "📊 **VIEW-ONLY MODE ACTIVATED** — All trades are simulated for analysis purposes only. No real funds at risk.");
-            }}
-            title={paperMode ? "Switch to Live Trading" : "Switch to Paper Trading"}
-            style={{ background:paperMode?`${C.blue}15`:`${C.rose}15`, border:`1px solid ${paperMode?C.blue+"33":C.rose+"33"}`, color:paperMode?C.blue:C.rose, padding:"6px 14px", cursor:"pointer", fontFamily:"'Fira Code',monospace", fontSize:10, borderRadius:6, letterSpacing:"0.08em", display:"flex", alignItems:"center", gap:6 }}
-          >
-            <span style={{ fontSize:14 }}>{paperMode ? "📊" : "🔴"}</span>
-            <span>{paperMode ? "VIEW-ONLY" : "LIVE"}</span>
-          </button>
-          <div className="hide-mobile" style={{ width:1, height:32, background:C.border }} />
-          <Tag c={wallet ? C.green : C.rose}>
-            {wallet ? `✓ ${hsh(wallet)}` : "NO WALLET"}
-          </Tag>
-          <button
-            onClick={() => setChatPanelOpen(p => !p)}
-            style={{ background:`${C.gold}15`, border:`1px solid ${C.gold}33`, color:C.gold, padding:"6px 14px", cursor:"pointer", fontFamily:"'Fira Code',monospace", fontSize:10, borderRadius:6, letterSpacing:"0.08em" }}
-          >
-            {chatPanelOpen ? "◁ HIDE GPT" : "▷ SHOW GPT"}
-          </button>
         </div>
       </header>
 
@@ -962,13 +917,6 @@ export default function TradeHaxGPT() {
                     <div style={{ fontSize:12, color:C.textSub, marginBottom:24 }}>
                       Hit the ⟳ button to scan live Polymarket data
                     </div>
-                    <button onClick={() => scan()} disabled={loading} style={{
-                      background:`${C.gold}18`, border:`1px solid ${C.gold}44`, color:C.gold,
-                      padding:"12px 32px", cursor:"pointer", fontFamily:"'Orbitron',monospace",
-                      fontSize:11, borderRadius:8, letterSpacing:"0.12em",
-                    }}>
-                      ⟳ RUN FULL SCAN
-                    </button>
                   </div>
                 )}
 
@@ -1003,15 +951,9 @@ export default function TradeHaxGPT() {
                           {m.ws>0.4?`🐋${(m.ws*100).toFixed(0)}%`:"—"}
                         </span>
                         <RSIMeter val={m.rsi||50} />
-                        <div style={{ display:"flex", gap:5, alignItems:"center" }}>
-                          <Tag c={AC[m.action]||C.textDim} sm>{m.action}</Tag>
-                          {m.action !== "HOLD" && (
-                            <button onClick={e => { e.stopPropagation(); placeOrder(m, m.action==="BUY_NO"?"BUY_NO":"BUY_YES"); }}
-                              style={{ background:`${C.green}15`, border:`1px solid ${C.green}33`, color:C.green, padding:"2px 7px", cursor:"pointer", fontFamily:"inherit", fontSize:10, borderRadius:4 }}>
-                              +
-                            </button>
-                          )}
-                        </div>
+                         <div style={{ display:"flex", gap:5, alignItems:"center" }}>
+                           <Tag c={AC[m.action]||C.textDim} sm>{m.action}</Tag>
+                         </div>
                       </div>
                     ))}
                   </div>
@@ -1487,3 +1429,5 @@ export default function TradeHaxGPT() {
     </div>
   );
 }
+
+
