@@ -7,7 +7,6 @@ import { useChatCommandControls } from "@/components/landing/hub/hooks/useChatCo
 import { useChatUtilityActions } from "@/components/landing/hub/hooks/useChatUtilityActions";
 import { useCommandPaletteControls } from "@/components/landing/hub/hooks/useCommandPaletteControls";
 import { useCorePreferences } from "@/components/landing/hub/hooks/useCorePreferences";
-import { useKidsModeLock } from "@/components/landing/hub/hooks/useKidsModeLock";
 import { useMarketFeed } from "@/components/landing/hub/hooks/useMarketFeed";
 import { useMemoryCardControls } from "@/components/landing/hub/hooks/useMemoryCardControls";
 import { useMessageBranchControls } from "@/components/landing/hub/hooks/useMessageBranchControls";
@@ -469,27 +468,6 @@ export const AINeuralHub = () => {
   const [isPaying, setIsPaying] = useState(false);
   const [selectedChatModel, setSelectedChatModel] = useState<string>(CHAT_MODELS[0].id);
   const [openModeEnabled, setOpenModeEnabled] = useState(true);
-  const {
-    kidsModeEnabled,
-    kidsModePin,
-    kidsModePinDraft,
-    setKidsModePinDraft,
-    kidsModePinConfirm,
-    setKidsModePinConfirm,
-    kidsModeUnlockInput,
-    setKidsModeUnlockInput,
-    showKidsUnlockPrompt,
-    kidsModePinError,
-    saveKidsModePin,
-    clearKidsModePin,
-    attemptKidsModeUnlock,
-    cancelKidsModeUnlock,
-    toggleKidsMode,
-  } = useKidsModeLock({
-    setOpenModeEnabled,
-    setBeginnerFocusMode,
-    setShowOperatorDock,
-  });
   const [guideName, setGuideName] = useState("Trader");
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
   const [riskStance, setRiskStance] = useState<RiskStance>("balanced");
@@ -790,12 +768,8 @@ export const AINeuralHub = () => {
         : "NEW_SEEKER";
 
   const secureSessionLabel = connected ? "Chain-account signed secure session" : "Anon sandbox session (privacy-first)";
-  const effectiveOpenMode = openModeEnabled && !kidsModeEnabled;
-  const modeLabel = kidsModeEnabled
-    ? "Kids Mode Safety"
-    : effectiveOpenMode
-      ? "Mystic Open Mode"
-      : "Guardian Standard Mode";
+  const effectiveOpenMode = openModeEnabled;
+  const modeLabel = effectiveOpenMode ? "Mystic Open Mode" : "Guardian Standard Mode";
   const selectedPersona = PERSONA_PRESETS.find((preset) => preset.id === personaPreset) || PERSONA_PRESETS[0];
   const selectedTheme = PERSONA_THEME[personaPreset];
   const shortMemoryCards = memoryCards.filter((card) => card.scope === "short").slice(0, 4);
@@ -908,9 +882,7 @@ export const AINeuralHub = () => {
 
     return [
       `You are ${guideName}, the user's mystical-but-practical neural guide for TradeHax.`,
-      kidsModeEnabled
-        ? "Kids mode is enabled: use age-appropriate language, avoid explicit/adult content, avoid profanity, prioritize safe educational guidance, and explain ideas in short simple steps."
-        : "",
+      "",
       `Persona: ${selectedPersona.label}. ${selectedPersona.prompt}`,
       "Build long-term trust: remember user preference cues from this session and keep tone calm, secure, and empowering.",
       styleInstruction,
@@ -921,11 +893,9 @@ export const AINeuralHub = () => {
       videoContext,
       memoryContext,
       "Never promise returns. Always include risk controls, invalidation logic, and one concrete next step.",
-      kidsModeEnabled
-        ? "Mode: Kids Safe. Keep it playful, clear, and educational while preserving safety and privacy."
-        : effectiveOpenMode
-          ? "Mode: Mystic Open. Be direct and creative while preserving safety and privacy."
-          : "Mode: Guardian Standard. Be conservative, compliance-friendly, and explicit about uncertainty.",
+      effectiveOpenMode
+        ? "Mode: Mystic Open. Be direct and creative while preserving safety and privacy."
+        : "Mode: Guardian Standard. Be conservative, compliance-friendly, and explicit about uncertainty.",
     ].join(" ");
   }
 
@@ -1551,12 +1521,8 @@ export const AINeuralHub = () => {
     };
 
     const selectedRuntime = runtimeByModel[selectedModel] ?? { style: "general" as const, odinProfile: "standard" as const };
-    const runtime = kidsModeEnabled
-      ? { style: "general" as const, odinProfile: "standard" as const }
-      : selectedRuntime;
-    const safePrompt = kidsModeEnabled
-      ? `Kid-safe educational visual. No violence, no explicit content. ${imgPrompt}`
-      : imgPrompt;
+    const runtime = selectedRuntime;
+    const safePrompt = imgPrompt;
 
     try {
       const res = await fetch("/api/ai/generate-image", {
@@ -1567,7 +1533,7 @@ export const AINeuralHub = () => {
           style: runtime.style,
           odinProfile: runtime.odinProfile,
           model: selectedModel,
-          safetyMode: kidsModeEnabled ? "standard" : effectiveOpenMode ? "open" : "standard",
+          safetyMode: effectiveOpenMode ? "open" : "standard",
         })
       });
       const data = await res.json();
@@ -1659,25 +1625,10 @@ export const AINeuralHub = () => {
 
           <button
             onClick={() => setOpenModeEnabled((prev) => !prev)}
-            disabled={kidsModeEnabled}
-            className="self-end rounded-full border border-fuchsia-500/30 bg-fuchsia-600/10 px-3 py-1 text-[9px] sm:text-[10px] font-mono uppercase text-fuchsia-200 hover:border-fuchsia-400/60 disabled:cursor-not-allowed disabled:opacity-50"
-            title={kidsModeEnabled ? "Kids Mode is enabled; uncensored mode is locked off" : "Toggle uncensored open mode for chat and image generation"}
+            className="self-end rounded-full border border-fuchsia-500/30 bg-fuchsia-600/10 px-3 py-1 text-[9px] sm:text-[10px] font-mono uppercase text-fuchsia-200 hover:border-fuchsia-400/60"
+            title="Toggle uncensored open mode for chat and image generation"
           >
-            {kidsModeEnabled ? "KIDS_LOCKED" : effectiveOpenMode ? "UNCENSORED_ON" : "STANDARD_MODE"}
-          </button>
-
-          <button
-            onClick={() => {
-              const status = toggleKidsMode();
-              if (status) setChatStatus(status);
-            }}
-            className={`self-end rounded-full border px-3 py-1 text-[9px] sm:text-[10px] font-mono uppercase transition-colors ${kidsModeEnabled
-                ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
-                : "border-emerald-500/30 bg-emerald-600/10 text-emerald-200 hover:border-emerald-400/60"
-              }`}
-            title="Toggle kid-safe mode with extra safeguards and simple language"
-          >
-            {kidsModeEnabled ? "KIDS_MODE_ON" : "KIDS_MODE_OFF"}
+            {effectiveOpenMode ? "UNCENSORED_ON" : "STANDARD_MODE"}
           </button>
         </div>
       </div>
@@ -1686,96 +1637,7 @@ export const AINeuralHub = () => {
         <p className="font-semibold uppercase tracking-wide">Quick start</p>
         <p className="mt-1">
           1) Open <strong>AI_CHAT</strong>, 2) ask your goal in simple words, 3) use IMAGE_TOOL or MARKET_TOOLS as needed.
-          {kidsModeEnabled ? " Kids Mode is active: responses stay simpler and safety-first." : ""}
         </p>
-
-        <div className="mt-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-300">Kids Mode Parent Lock</p>
-            <span className="rounded-full border border-white/15 bg-black/40 px-2 py-0.5 text-[9px] uppercase text-zinc-300">
-              {kidsModePin ? "PIN_SET" : "NO_PIN"}
-            </span>
-          </div>
-
-          {!kidsModePin ? (
-            <div className="mt-2 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
-              <input
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={kidsModePinDraft}
-                onChange={(event) => setKidsModePinDraft(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                placeholder="Set PIN (4-8 digits)"
-                className="rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-cyan-300/55"
-              />
-              <input
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={kidsModePinConfirm}
-                onChange={(event) => setKidsModePinConfirm(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                placeholder="Confirm PIN"
-                className="rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-cyan-300/55"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const status = saveKidsModePin();
-                  if (status) setChatStatus(status);
-                }}
-                className="rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1 text-[10px] font-semibold uppercase text-cyan-100"
-              >
-                Save PIN
-              </button>
-            </div>
-          ) : (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setChatStatus(clearKidsModePin())}
-                className="rounded-full border border-rose-300/30 bg-rose-500/10 px-3 py-1 text-[10px] font-semibold uppercase text-rose-100"
-              >
-                Remove PIN
-              </button>
-              <p className="text-[10px] text-zinc-400">Disabling Kids Mode now requires this PIN.</p>
-            </div>
-          )}
-
-          {showKidsUnlockPrompt && (
-            <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto_auto]">
-              <input
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={kidsModeUnlockInput}
-                onChange={(event) => setKidsModeUnlockInput(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                placeholder="Enter PIN to disable Kids Mode"
-                className="rounded-md border border-emerald-300/25 bg-black/50 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-emerald-300/60"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const status = attemptKidsModeUnlock();
-                  if (status) setChatStatus(status);
-                }}
-                className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-semibold uppercase text-emerald-100"
-              >
-                Unlock
-              </button>
-              <button
-                type="button"
-                onClick={cancelKidsModeUnlock}
-                className="rounded-full border border-white/15 bg-black/35 px-3 py-1 text-[10px] uppercase text-zinc-300"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {kidsModePinError && (
-            <p className="mt-2 text-[10px] text-rose-300">{kidsModePinError}</p>
-          )}
-        </div>
       </div>
 
       <div className={`mb-8 grid gap-3 rounded-2xl border ${selectedTheme.heroBorder} ${selectedTheme.heroGradient} p-4 md:grid-cols-[1.1fr_1fr]`}>
