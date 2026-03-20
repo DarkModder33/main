@@ -763,6 +763,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
     // --- Build System Prompt ---
     let systemPrompt = buildSystemPrompt(messages[messages.length - 1].content, context, marketSnapshot);
+    if (body.mode === 'odin') {
+      systemPrompt = `ODIN MODE: Give direct, execution-ready output with clear entries, invalidation, and risk sizing. No filler.\n\n${systemPrompt}`;
+    } else if (body.mode === 'advanced') {
+      systemPrompt = `ADVANCED HF ENSEMBLE MODE: Combine momentum, structure, and risk controls in concise steps.\n\n${systemPrompt}`;
+    }
     // --- Provider Selection Logic ---
         let provider: 'huggingface' | 'openai' | 'demo' = 'huggingface';
     let invoke: () => Promise<string> = () => callHuggingFace([{ role: 'user', content: systemPrompt }], temperature);

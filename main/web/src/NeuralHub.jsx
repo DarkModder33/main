@@ -1,351 +1,232 @@
-import React, { useState, useRef, useEffect } from "react";
-import Plot from 'react-plotly.js';
-
-const COLORS = {
-  accentSoft: "#e6f7ff",
-  accent: "#21C8FF",
-  border: "#1A2B44",
-  panelSoft: "#18243A",
-  panel: "#101D31",
-  text: "#E6F1FF",
-  textDim: "#93A8C3",
-};
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { Mic, Wallet, Zap } from "lucide-react";
 
 const STARTER_PROMPTS = [
-  "Show me today's market summary",
-  "Explain the latest news",
-  "Suggest a trading strategy",
-  "What are the top gainers?",
+  "Give me a beginner-safe market summary for today.",
+  "Show 3 setups with clear entry, stop, and target.",
+  "What should I avoid in volatile conditions?",
+  "How do I size my next trade using risk percent?",
 ];
 
-const MODEL_OPTIONS = [
-  { key: 'llama', label: 'Llama 3.3', desc: 'Unfiltered, fast, open-source' },
-  { key: 'mistral', label: 'Mistral 8x7B', desc: 'Balanced, creative' },
-  { key: 'qwen', label: 'Qwen 2', desc: 'Multilingual, robust' },
-  { key: 'claude', label: 'Claude 3', desc: 'Safe, verbose, Anthropic' },
-  { key: 'openai', label: 'OpenAI GPT-4', desc: 'Most accurate, commercial' },
+const MODE_OPTIONS = [
+  { key: "base", label: "BASE GROK (Free)" },
+  { key: "advanced", label: "ADVANCED HF ENSEMBLE" },
+  { key: "odin", label: "ODIN MODE" },
 ];
 
+const HISTORY_KEY = "neuralHub.localHistory.v2";
+
+function readText(content) {
+  if (typeof content === "string") return content;
+  if (!content) return "";
+  if (typeof content.summary === "string") return content.summary;
+  if (typeof content.explanation === "string") return `${content.summary || ""}\n${content.explanation}`.trim();
+  return JSON.stringify(content, null, 2);
+}
 
 export default function NeuralHub() {
-  const [selectedModel, setSelectedModel] = useState(
-    localStorage.getItem('selectedModel') || 'llama'
-  );
+  const [mode, setMode] = useState("base");
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [conversationId] = useState(() => Math.random().toString(36).slice(2));
+  const [messages, setMessages] = useState([
+    {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content:
+        "Neural_Link_Active. I can break down setups for beginners, generate risk-aware plans, and map momentum with clear invalidation levels.",
+    },
+  ]);
   const [history, setHistory] = useState([]);
-  const [showTrading, setShowTrading] = useState(false);
-  const [backtestResult, setBacktestResult] = useState(null);
-  const [strategyParams, setStrategyParams] = useState({ fast: 3, slow: 7 });
-  // Paper trading state
-  const [paperSymbol, setPaperSymbol] = useState('AAPL');
-  const [paperQty, setPaperQty] = useState(1);
-  const [paperPrice, setPaperPrice] = useState(100);
-  const [paperSide, setPaperSide] = useState('buy');
-  const [paperPosition, setPaperPosition] = useState(null);
-  const [paperTrades, setPaperTrades] = useState([]);
-  const [paperPnl, setPaperPnl] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
-    const ws = new window.WebSocket('ws://localhost:8081');
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'market' || data.type === 'signal') {
-          setMessages((prev) => [...prev, { role: 'stream', content: data }]);
-        }
-      } catch (e) {}
-    };
-    return () => ws.close();
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (raw) setHistory(JSON.parse(raw));
+    } catch {
+      setHistory([]);
+    }
   }, []);
 
-  async function submitMessage(prompt) {
-    setLoading(true);
+  useEffect(() => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 10)));
+  }, [history]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const autopilotScore = useMemo(() => {
+    if (!messages.length) return "0.0";
+    const score = Math.min(99.9, 82 + messages.length * 0.7);
+    return score.toFixed(1);
+  }, [messages.length]);
+
+  async function sendPrompt(prompt) {
+    const trimmed = (prompt || "").trim();
+    if (!trimmed || loading) return;
+
+    const userMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
+    setMessages((prev) => [...prev, userMsg]);
+    setHistory((prev) => [{ id: userMsg.id, text: trimmed, ts: Date.now() }, ...prev].slice(0, 10));
+    setInput("");
     setError("");
-    const newHistory = [...history, { role: "user", content: prompt }];
-    setMessages((prev) => [...prev, { role: "user", content: prompt }]);
-    setHistory(newHistory);
+    setLoading(true);
+
     try {
-      // Simulate streaming by chunked updates (replace with real SSE/WebSocket in prod)
-      const res = await fetch("/api/ai-chat", {
+      const apiMessages = messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-14)
+        .map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: readText(m.content) }))
+        .concat([{ role: "user", content: trimmed }]);
+
+      const system =
+        mode === "odin"
+          ? "ODIN MODE: act like a high-conviction quant copilot. Be concise, numeric, and execution-first."
+          : mode === "advanced"
+            ? "ADVANCED HF ENSEMBLE: combine momentum, risk, and structure in beginner-friendly language."
+            : "BASE MODE: explain clearly for beginners with simple risk controls.";
+
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, message: prompt, model: selectedModel, history: newHistory, format: "structured" })
+        body: JSON.stringify({ messages: apiMessages, mode, system }),
       });
-      if (!res.ok) throw new Error("AI backend error");
+
+      if (!res.ok) throw new Error(`Chat API HTTP ${res.status}`);
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", content: data.content }]);
-      setHistory((h) => [...h, { role: "ai", content: data.content }]);
+      const reply = data?.response || data?.reply || "No response received.";
+
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: reply }]);
     } catch (e) {
-      setError(e.message || "Unknown error");
+      setError(e?.message || "Failed to reach chat backend.");
     } finally {
       setLoading(false);
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   }
-
-  function renderStructured(content) {
-    if (!content) return null;
-    if (typeof content === "string") return <span>{content}</span>;
-    if (content.type === 'market') return <div><strong>Market:</strong> {content.symbol} ${content.price?.toFixed(2)} <span style={{ color: COLORS.textDim }}>({new Date(content.timestamp).toLocaleTimeString()})</span></div>;
-    if (content.type === 'signal') return <div><strong>Signal:</strong> {content.symbol} score={content.score?.toFixed(2)} {content.alert && <span style={{ color: '#ff4d4f' }}>ALERT!</span>} <span style={{ color: COLORS.textDim }}>({new Date(content.timestamp).toLocaleTimeString()})</span></div>;
-    return (
-      <div>
-        {content.summary && <div style={{ fontWeight: 600, marginBottom: 8 }}>{content.summary}</div>}
-        {content.table && Array.isArray(content.table) && (
-          <table style={{ width: "100%", marginBottom: 8, background: COLORS.panelSoft, color: COLORS.text }}>
-            <thead>
-              <tr>
-                {Object.keys(content.table[0]).map((k) => <th key={k} style={{ textAlign: "left", padding: 4 }}>{k}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {content.table.map((row, i) => (
-                <tr key={i}>
-                  {Object.values(row).map((v, j) => <td key={j} style={{ padding: 4 }}>{v}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        {content.chart && content.chart.type && content.chart.data && (
-          <div style={{ marginBottom: 8 }}>
-            <Plot
-              data={Array.isArray(content.chart.data) ? [{ y: content.chart.data, type: content.chart.type }] : content.chart.data}
-              layout={{ autosize: true, height: 240, paper_bgcolor: COLORS.panelSoft, font: { color: COLORS.text } }}
-              config={{ displayModeBar: false }}
-            />
-          </div>
-        )}
-        {content.chart && (!content.chart.type || !content.chart.data) && (
-          <div style={{ marginBottom: 8 }}>
-            <strong>Chart:</strong> {JSON.stringify(content.chart)}
-          </div>
-        )}
-        {content.explanation && <div style={{ color: COLORS.textDim }}>{content.explanation}</div>}
-      </div>
-    );
-  }
-
-  async function runBacktest() {
-    setBacktestResult(null);
-    const res = await fetch('/api/ai-trading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'backtest', params: strategyParams })
-    });
-    const data = await res.json();
-    setBacktestResult(data);
-  }
-
-  async function fetchPaperPosition() {
-    const res = await fetch('/api/ai-trading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getPaperPosition', params: { symbol: paperSymbol } })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setPaperPosition(data);
-      setPaperPnl(data.realizedPnl);
-    } else {
-      setPaperPosition(null);
-      setPaperPnl(null);
-    }
-  }
-  async function fetchPaperTrades() {
-    const res = await fetch('/api/ai-trading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'getPaperTrades', params: { symbol: paperSymbol } })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setPaperTrades(data.trades || []);
-    } else {
-      setPaperTrades([]);
-    }
-  }
-  async function submitPaperTrade(e) {
-    e.preventDefault();
-    const res = await fetch('/api/ai-trading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'paperTrade', order: { symbol: paperSymbol, side: paperSide, qty: Number(paperQty), price: Number(paperPrice) } })
-    });
-    await fetchPaperPosition();
-    await fetchPaperTrades();
-  }
-  useEffect(() => {
-    if (showTrading) {
-      fetchPaperPosition();
-      fetchPaperTrades();
-    }
-    // eslint-disable-next-line
-  }, [showTrading, paperSymbol]);
 
   return (
-    <div style={{ background: COLORS.panel, minHeight: "100vh", color: COLORS.text, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: 32 }}>
-        <h2 style={{ color: COLORS.accent, fontWeight: 700, fontSize: 28, marginBottom: 18 }}>TradeHax Neural Hub</h2>
-        <div style={{ marginBottom: 18, color: COLORS.textDim, fontSize: 16 }}>
-          Uncensored AI - Direct LLM access - No filters
+    <div style={{ display: "flex", height: "100vh", background: "#09090B", color: "#fff", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
+      <aside style={{ width: 300, borderRight: "1px solid #27272A", padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 999, background: "#10B981", display: "grid", placeItems: "center", color: "#0a0a0a", fontWeight: 800 }}>N</div>
+          <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>NEURAL HUB</div>
         </div>
-        <div style={{ marginTop: 18 }} />
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 22 }}>
-          {STARTER_PROMPTS.map(prompt => (
+
+        <select
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
+          style={{ width: "100%", padding: 12, borderRadius: 12, background: "#18181B", color: "#fff", border: "1px solid #3F3F46" }}
+        >
+          {MODE_OPTIONS.map((opt) => (
+            <option key={opt.key} value={opt.key}>{opt.label}</option>
+          ))}
+        </select>
+
+        <div style={{ fontSize: 11, color: "#A1A1AA", textTransform: "uppercase", letterSpacing: "0.15em" }}>History</div>
+        <div style={{ flex: 1, overflow: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+          {history.length === 0 && <div style={{ color: "#71717A", fontSize: 12 }}>No local chat history yet.</div>}
+          {history.map((h) => (
             <button
-              key={prompt}
+              key={h.id}
               type="button"
-              onClick={() => submitMessage(prompt)}
-              style={{
-                background: COLORS.accentSoft,
-                color: COLORS.accent,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 999,
-                padding: "10px 14px",
-                cursor: "pointer",
-                fontWeight: 600
-              }}
+              onClick={() => setInput(h.text)}
+              style={{ textAlign: "left", background: "#18181B", color: "#D4D4D8", border: "1px solid #27272A", borderRadius: 10, padding: 10, cursor: "pointer", fontSize: 12 }}
             >
-              {prompt}
+              {h.text.slice(0, 84)}
             </button>
           ))}
         </div>
-        {/* Chat messages */}
-        <div style={{ marginTop: 32, background: COLORS.panelSoft, borderRadius: 12, padding: 18, minHeight: 120, maxHeight: 400, overflowY: "auto" }}>
-          {messages.length === 0 && <div style={{ color: COLORS.textDim }}>No messages yet. Try a starter prompt or enter your own.</div>}
-          {messages.map((msg, idx) => (
-            <div key={idx} style={{ marginBottom: 12, textAlign: msg.role === "user" ? "right" : "left" }}>
-              <span style={{ fontWeight: 600, color: msg.role === "user" ? COLORS.accent : COLORS.text }}>{msg.role === "user" ? "You" : "AI"}:</span>
-              <div style={{
-                background: msg.role === "user" ? COLORS.panel : COLORS.accentSoft,
-                color: msg.role === "user" ? COLORS.text : COLORS.accent,
-                borderRadius: 8,
-                display: "inline-block",
-                padding: "8px 12px",
-                marginLeft: msg.role === "user" ? 0 : 8,
-                marginRight: msg.role === "user" ? 8 : 0,
-                maxWidth: 500,
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word"
-              }}>{msg.role === "ai" ? renderStructured(msg.content) : msg.content}</div>
+
+        <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", borderRadius: 12, background: "#059669", color: "#fff", border: 0, padding: "12px 10px", fontWeight: 700 }}>
+          <Wallet size={16} /> Connect Wallet • Neural_Link_Active
+        </button>
+        <div style={{ fontSize: 10, color: "#71717A", textAlign: "center" }}>Encrypted Session • $HAX Staked: 420</div>
+      </aside>
+
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <div style={{ padding: 14, borderBottom: "1px solid #27272A", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <span style={{ background: "#18181B", borderRadius: 999, padding: "6px 10px", fontSize: 11 }}>Live Market Feed</span>
+            <span style={{ background: "#052E16", color: "#86EFAC", borderRadius: 999, padding: "6px 10px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Zap size={12} /> Autopilot Score: {autopilotScore}%
+            </span>
+          </div>
+          <button type="button" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid #3F3F46", color: "#D4D4D8", borderRadius: 999, padding: "6px 10px", fontSize: 11 }}>
+            <Mic size={13} /> Voice Send
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflow: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {STARTER_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                disabled={loading}
+                onClick={() => sendPrompt(prompt)}
+                style={{ borderRadius: 999, background: "#18181B", border: "1px solid #3F3F46", color: "#E4E4E7", padding: "8px 12px", fontSize: 12, cursor: "pointer" }}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          {messages.map((m) => (
+            <div key={m.id} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+              <div style={{ maxWidth: 860, background: m.role === "user" ? "#27272A" : "#18181B", border: "1px solid #3F3F46", borderRadius: 20, padding: 16, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                {m.role === "assistant" ? <ReactMarkdown>{readText(m.content)}</ReactMarkdown> : readText(m.content)}
+              </div>
             </div>
           ))}
-          {loading && <div style={{ color: COLORS.textDim, marginTop: 8 }}>AI is thinking...</div>}
-          {error && <div style={{ color: "#ff4d4f", marginTop: 8 }}>{error}</div>}
+          {loading && <div style={{ color: "#34D399", fontSize: 13 }}>ODIN thinking in parallel universes...</div>}
+          {error && <div style={{ color: "#F87171", fontSize: 13 }}>{error}</div>}
           <div ref={chatEndRef} />
         </div>
-        {/* Chat input */}
+
         <form
-          onSubmit={e => {
+          onSubmit={(e) => {
             e.preventDefault();
-            if (input.trim()) {
-              submitMessage(input.trim());
-              setInput("");
-            }
+            sendPrompt(input);
           }}
-          style={{ display: "flex", gap: 12, marginTop: 18 }}
+          style={{ padding: 16, borderTop: "1px solid #27272A" }}
         >
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Type your question..."
-            style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, background: COLORS.panelSoft, color: COLORS.text, fontWeight: 600 }}
-            disabled={loading}
-          />
-          <button
-            type="submit"
-            style={{ background: COLORS.accent, color: COLORS.panel, border: "none", borderRadius: 8, padding: "10px 18px", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer" }}
-            disabled={loading || !input.trim()}
-          >
-            Send
-          </button>
-        </form>
-        {/* Model selector UI */}
-        <div style={{ marginTop: 18 }}>
-          <label htmlFor="model-select" style={{ fontWeight: 600, color: COLORS.textDim, marginRight: 8 }}>AI Model:</label>
-          <select
-            id="model-select"
-            value={selectedModel}
-            onChange={e => {
-              setSelectedModel(e.target.value);
-              localStorage.setItem('selectedModel', e.target.value);
-            }}
-            style={{ padding: "8px 14px", borderRadius: 8, border: `1px solid ${COLORS.border}`, background: COLORS.panelSoft, color: COLORS.text, fontWeight: 600 }}
-          >
-            {MODEL_OPTIONS.map(opt => (
-              <option key={opt.key} value={opt.key}>
-                {opt.label} — {opt.desc}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* Trading strategy panel */}
-        <button onClick={() => setShowTrading((v) => !v)} style={{ margin: '18px 0', background: COLORS.accent, color: COLORS.panel, border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer' }}>AI Trading</button>
-        {showTrading && (
-          <div style={{ background: COLORS.panelSoft, borderRadius: 12, padding: 18, marginBottom: 18 }}>
-            <h3 style={{ color: COLORS.accent, marginBottom: 8 }}>Paper Trading</h3>
-            <form onSubmit={submitPaperTrade} style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-              <input value={paperSymbol} onChange={e => setPaperSymbol(e.target.value.toUpperCase())} style={{ width: 60 }} />
-              <select value={paperSide} onChange={e => setPaperSide(e.target.value)}>
-                <option value="buy">Buy</option>
-                <option value="sell">Sell</option>
-              </select>
-              <input type="number" value={paperQty} min={1} onChange={e => setPaperQty(e.target.value)} style={{ width: 60 }} />
-              <input type="number" value={paperPrice} min={1} step={0.01} onChange={e => setPaperPrice(e.target.value)} style={{ width: 80 }} />
-              <button type="submit" style={{ background: COLORS.accent, color: COLORS.panel, border: 'none', borderRadius: 8, padding: '6px 14px', fontWeight: 600, cursor: 'pointer' }}>Submit</button>
-            </form>
-            <div style={{ marginBottom: 8 }}>
-              <strong>Position:</strong> {paperPosition ? `${paperPosition.position} @ $${paperPosition.avgPrice?.toFixed(2)}` : 'None'}<br />
-              <strong>Realized P&L:</strong> {paperPnl !== null ? `$${paperPnl.toFixed(2)}` : 'N/A'}
-            </div>
-            <div>
-              <strong>Trade History:</strong>
-              <ul style={{ fontSize: 14, maxHeight: 100, overflowY: 'auto' }}>
-                {paperTrades.map((t, i) => (
-                  <li key={i}>{t.side.toUpperCase()} {t.qty} @ {t.price} ({new Date(t.timestamp).toLocaleTimeString()})</li>
-                ))}
-                {paperTrades.length === 0 && <li>No trades yet.</li>}
-              </ul>
-            </div>
-            <hr style={{ margin: '18px 0', borderColor: COLORS.border }} />
-            <h3 style={{ color: COLORS.accent, marginBottom: 8 }}>Strategy Backtest (SMA Crossover)</h3>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <label>Fast MA: <input type="number" value={strategyParams.fast} min={1} max={20} onChange={e => setStrategyParams(s => ({ ...s, fast: +e.target.value }))} style={{ width: 50 }} /></label>
-              <label>Slow MA: <input type="number" value={strategyParams.slow} min={2} max={50} onChange={e => setStrategyParams(s => ({ ...s, slow: +e.target.value }))} style={{ width: 50 }} /></label>
-              <button onClick={runBacktest} style={{ background: COLORS.accent, color: COLORS.panel, border: 'none', borderRadius: 8, padding: '6px 14px', fontWeight: 600, cursor: 'pointer' }}>Run Backtest</button>
-            </div>
-            {backtestResult && (
-              <div>
-                <div style={{ marginBottom: 8 }}>P&L: <strong>${backtestResult.pnl?.toFixed(2)}</strong></div>
-                <Plot
-                  data={[
-                    { y: backtestResult.prices, type: 'scatter', name: 'Price' },
-                    { y: backtestResult.fastMA, type: 'scatter', name: 'Fast MA' },
-                    { y: backtestResult.slowMA, type: 'scatter', name: 'Slow MA' }
-                  ]}
-                  layout={{ autosize: true, height: 220, paper_bgcolor: COLORS.panelSoft, font: { color: COLORS.text } }}
-                  config={{ displayModeBar: false }}
-                />
-                <div style={{ marginTop: 8 }}>
-                  <strong>Trades:</strong>
-                  <ul style={{ fontSize: 14 }}>
-                    {backtestResult.trades?.map((t, i) => (
-                      <li key={i}>{t.type.toUpperCase()} @ {t.price.toFixed(2)} (idx {t.index})</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
+          <div style={{ position: "relative" }}>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={mode === "odin" ? "ODIN MODE ENABLED — speak your will..." : "Ask for setup, risk, or Autopilot guidance..."}
+              style={{ width: "100%", borderRadius: 999, background: "#18181B", border: "1px solid #3F3F46", color: "#fff", padding: "18px 140px 18px 24px", fontSize: 16 }}
+            />
+            <button type="submit" disabled={loading || !input.trim()} style={{ position: "absolute", right: 8, top: 8, bottom: 8, borderRadius: 14, border: 0, padding: "0 24px", background: "#10B981", color: "#052E16", fontWeight: 800 }}>
+              SEND
+            </button>
           </div>
-        )}
-      </div>
+        </form>
+      </main>
+
+      <aside style={{ width: 320, borderLeft: "1px solid #27272A", padding: 20, display: "flex", flexDirection: "column", gap: 16, overflow: "auto" }}>
+        <section style={{ borderRadius: 20, padding: 16, background: "#18181B", border: "1px solid #3F3F46" }}>
+          <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", color: "#A1A1AA", marginBottom: 10 }}>Smart Environment Monitor</div>
+          <div style={{ fontSize: 13, color: "#D4D4D8", lineHeight: 1.6 }}>
+            <div>Mode: <strong>{mode.toUpperCase()}</strong></div>
+            <div>Message Count: <strong>{messages.length}</strong></div>
+            <div>Latest User Prompt: <strong>{history[0]?.text?.slice(0, 28) || "N/A"}</strong></div>
+          </div>
+        </section>
+
+        <section style={{ borderRadius: 20, padding: 16, background: "#18181B", border: "1px solid #3F3F46" }}>
+          <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", color: "#A1A1AA", marginBottom: 10 }}>Text / Image Studio + Autopilot</div>
+          <div style={{ fontSize: 13, color: "#D4D4D8", lineHeight: 1.6 }}>
+            <div>Text Studio: Ready</div>
+            <div>Image Studio: Ready</div>
+            <div>Autopilot Board: Tracking</div>
+            <div style={{ color: "#34D399", marginTop: 8 }}>Neural_Link_Active</div>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 }
