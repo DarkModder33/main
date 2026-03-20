@@ -534,8 +534,8 @@ Bankroll: $${bank} | Kelly Fraction: ${(kf*100).toFixed(0)}%
 ## LIVE MARKET DATA (from scan):
 ${ctx || "No scan data yet. Ask the user to hit SCAN to load live markets."}`;
 
-const AI_ENDPOINT = (process.env.NEXT_PUBLIC_AI_CHAT_ENDPOINT || "").trim();
-const AI_MODEL = (process.env.NEXT_PUBLIC_AI_MODEL || "tradehax-local-quant-v1").trim();
+// AI Endpoint: Use local API if available, with graceful degradation
+const AI_ENDPOINT = "/api/signals/ai-signals";
 
 const parseJsonSafe = (raw, fallback = null) => {
   if (!raw || typeof raw !== "string") return fallback;
@@ -576,14 +576,18 @@ const buildLocalChatReply = ({ msg, markets, bankroll, kFrac, wallet }) => {
 };
 
 const requestAdapter = async (payload) => {
-  if (!AI_ENDPOINT) return null;
-  const r = await fetch(AI_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: AI_MODEL, ...payload })
-  });
-  if (!r.ok) throw new Error(`AI adapter HTTP ${r.status}`);
-  return r.json();
+  try {
+    const r = await fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    console.warn("AI adapter failed:", e);
+    return null;
+  }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -652,6 +656,28 @@ export default function PolymarketTerminal() {
       : 0
   }), [markets]);
 
+  // Signal generation via optional adapter, with local quant fallback
+  const generateAISignals = async (mkts) => {
+    const fallback = { signals: buildLocalSignals(mkts) };
+    const ctx = mkts.slice(0, 6).map(m => ({
+      q: m.question?.slice(0, 65), yes: pct(m.yes), tp: pct(m.tp),
+      ev: f3(m.ev), kelly: usd(m.kelly), grade: m.grade,
+      arb: m.gab?.active ? pct(m.gab.edge) : "N",
+      whale: f2(m.ws), action: m.action,
+      fib: m.fib?.find(f => f.near)?.label || "—", rsi: m.rsi?.toFixed(0) || "—"
+    }));
+
+    try {
+      const d = await requestAdapter({ mode: "signals", context: ctx });
+      if (Array.isArray(d?.signals)) return { signals: d.signals };
+      const parsed = parseJsonSafe(d?.content, null);
+      if (Array.isArray(parsed?.signals)) return { signals: parsed.signals };
+      return fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   // ── Full scan pipeline
   const scan = useCallback(async (loader = true) => {
     if (loader) setLoading(true);
@@ -675,27 +701,6 @@ export default function PolymarketTerminal() {
     if (loader) setLoading(false);
   }, []);
 
-  // Signal generation via optional adapter, with local quant fallback
-  const generateAISignals = async (mkts) => {
-    const fallback = { signals: buildLocalSignals(mkts) };
-    const ctx = mkts.slice(0, 6).map(m => ({
-      q: m.question?.slice(0, 65), yes: pct(m.yes), tp: pct(m.tp),
-      ev: f3(m.ev), kelly: usd(m.kelly), grade: m.grade,
-      arb: m.gab?.active ? pct(m.gab.edge) : "N",
-      whale: f2(m.ws), action: m.action,
-      fib: m.fib?.find(f => f.near)?.label || "—", rsi: m.rsi?.toFixed(0) || "—"
-    }));
-
-    try {
-      const d = await requestAdapter({ mode: "signals", context: ctx });
-      if (Array.isArray(d?.signals)) return { signals: d.signals };
-      const parsed = parseJsonSafe(d?.content, null);
-      if (Array.isArray(parsed?.signals)) return { signals: parsed.signals };
-      return fallback;
-    } catch {
-      return fallback;
-    }
-  };
 
   // Order placement
   const placeOrder = (m, side) => {

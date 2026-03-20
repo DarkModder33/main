@@ -18,9 +18,23 @@ import { validateResponse, detectHallucinations, extractTradingParameters } from
 import { processConsoleCommand, recordResponseMetric, shouldAutoRejectResponse, getConsoleConfig } from './console.js';
 import { logResponseToDatabase } from '../db/metrics-service.js';
 
-const HF_API_KEY = process.env.HUGGINGFACE_API_KEY || '';
+const HF_API_TOKENS = Array.from(new Set([
+  process.env.HUGGINGFACE_API_KEY,
+  process.env.HF_API_TOKEN,
+  process.env.HF_API_TOKEN_REICH,
+  process.env.HF_API_TOKEN_ALT1,
+  process.env.HF_API_TOKEN_ALT2,
+  process.env.HF_API_TOKEN_ALT3,
+].filter((v): v is string => !!v && v.trim().length > 0)));
+const HF_API_KEY = HF_API_TOKENS[0] || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-const HF_MODEL = 'meta-llama/Llama-3.3-70B-Instruct';
+const HF_MODEL = process.env.HF_MODEL_ID || 'meta-llama/Llama-3.3-70B-Instruct';
+const HF_FALLBACK_MODELS = (process.env.HF_FALLBACK_MODELS || '')
+  .split(',')
+  .map((m) => m.trim())
+  .filter(Boolean);
+const HF_MODELS = Array.from(new Set([HF_MODEL, ...HF_FALLBACK_MODELS]));
+let LAST_HF_MODEL_USED = HF_MODELS[0] || HF_MODEL;
 
 // In-memory cache for deduplication
 const requestCache = new Map<string, { response: any; timestamp: number }>();
@@ -134,46 +148,56 @@ async function getGuardedProviderResponse(
  * Call HuggingFace Inference API (Free Tier)
  */
 async function callHuggingFace(messages: ChatMessage[], temperature = 0.7): Promise<string> {
-  if (!HF_API_KEY) throw new Error('No HF key');
+  if (!HF_API_TOKENS.length) throw new Error('No HF key');
 
   const prompt = formatForLlama(messages);
+  let lastErr = 'Unknown HF error';
 
-  const response = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${HF_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      inputs: prompt,
-      parameters:
+  for (const modelId of HF_MODELS) {
+    for (const token of HF_API_TOKENS) {
+      const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters:
  {
-        temperature,
-        max_new_tokens: 1024,
-        return_full_text: false,
-        do_sample: true,
-        top_p: 0.9,
-      },
-    }),
-  });
+            temperature,
+            max_new_tokens: 1024,
+            return_full_text: false,
+            do_sample: true,
+            top_p: 0.9,
+          },
+        }),
+      });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`HF API error ${response.status}: ${errorText}`);
+      if (!response.ok) {
+        lastErr = await response.text();
+        continue;
+      }
+
+      const data = await response.json();
+
+      // Handle both array and object response formats
+      if (Array.isArray(data) && data[0]?.generated_text) {
+        LAST_HF_MODEL_USED = modelId;
+        return data[0].generated_text;
+      }
+      if (data.generated_text) {
+        LAST_HF_MODEL_USED = modelId;
+        return data.generated_text;
+      }
+      if (data.error) {
+        lastErr = String(data.error);
+        continue;
+      }
+    }
   }
 
-  const data = await response.json();
-
-  // Handle both array and object response formats
-  if (Array.isArray(data) && data[0]?.generated_text) {
-    return data[0].generated_text;
-  } else if (data.generated_text) {
-    return data.generated_text;
-  } else if (data.error) {
-    throw new Error(`HF error: ${data.error}`);
-  }
-
-  throw new Error('Unexpected HF response format');
+  throw new Error(`HF API error: ${lastErr}`);
 }
 
 /**
@@ -560,12 +584,12 @@ async function checkProviderHealth() {
   PROVIDER_STATUS.lastChecked = Date.now();
   PROVIDER_STATUS.error = '';
   // HuggingFace
-  if (HF_API_KEY) {
+  if (HF_API_TOKENS.length) {
     try {
-      const resp = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+      const resp = await fetch(`https://api-inference.huggingface.co/models/${HF_MODELS[0] || HF_MODEL}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${HF_API_KEY}`,
+          'Authorization': `Bearer ${HF_API_TOKENS[0]}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ inputs: 'health check', parameters: { max_new_tokens: 1 } }),
@@ -664,7 +688,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // --- Runtime Logging ---
     console.log(`[AI_CHAT] ${new Date().toISOString()} | ${req.method} ${req.url}`);
-    if (!HF_API_KEY) console.warn('[WARN] HUGGINGFACE_API_KEY missing');
+    if (!HF_API_TOKENS.length) console.warn('[WARN] HUGGINGFACE API token missing');
     if (!OPENAI_API_KEY) console.warn('[WARN] OPENAI_API_KEY missing');
     if (!PROVIDER_STATUS.huggingface && !PROVIDER_STATUS.openai) {
       console.error('[ERROR] No AI providers available!');
@@ -797,7 +821,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } = {
       response: rawResponse.response,
       provider,
-      model: HF_MODEL,
+      model: provider === 'huggingface' ? LAST_HF_MODEL_USED : provider === 'openai' ? 'gpt-4-turbo-preview' : 'demo-response-engine',
       timestamp: Date.now(),
       cached: false,
       guardrailRetryCount: rawResponse.retried ? 1 : 0,
@@ -816,7 +840,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         userMessage: messages[messages.length - 1]?.content || '',
         aiResponse: rawResponse.response,
         provider,
-        model: HF_MODEL,
+        model: provider === 'huggingface' ? LAST_HF_MODEL_USED : provider === 'openai' ? 'gpt-4-turbo-preview' : 'demo-response-engine',
         responseTimeMs: responseTime,
         validationScore: 1,
         isValid: true,
