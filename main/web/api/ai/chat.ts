@@ -453,6 +453,8 @@ function ensureStructuredResponse(raw: string, userMsg: string, context?: ChatCo
  */
 function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: MarketSnapshot[] = [], providerDraft?: string): string {
   const lower = userMsg.toLowerCase();
+  const tickerMatch = userMsg.match(/\b[A-Z]{2,5}\b/);
+  const requestedTicker = tickerMatch?.[0];
   const profile = context?.userProfile;
   const risk = profile?.riskTolerance || 'moderate';
   const style = profile?.tradingStyle || (detectIntent(userMsg) === 'scalp' ? 'scalp' : 'swing');
@@ -473,10 +475,11 @@ function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: 
         ? 'ETH'
         : lower.includes('sol') || lower.includes('solana')
           ? 'SOL'
-          : 'Market';
+          : requestedTicker || 'Market';
 
   const isRiskQuestion =
     lower.includes('risk') || lower.includes('stop') || lower.includes('drawdown') || lower.includes('size');
+  const isParabolic = lower.includes('parabolic') || lower.includes('deploy') || lower.includes('breakout');
 
   const profileSize = typeof profile?.portfolioValue === 'number'
     ? Math.max(0.5, Math.min(3, +(profile.portfolioValue >= 100000 ? 1 : profile.portfolioValue >= 25000 ? 1.5 : 2).toFixed(2)))
@@ -489,6 +492,40 @@ function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: 
   const providerNote = providerDraft && !providerDraft.includes('**Signal**:')
     ? `\n\nOperator note: model draft was normalized into TradeHax structured format for execution clarity.`
     : '';
+
+  if (isParabolic) {
+    const baseFromSnapshot = liveSnapshot.find((s) => s.symbol === subject)?.price;
+    const baseSeed = Math.abs(subject.split('').reduce((n, ch) => n + ch.charCodeAt(0), 0));
+    const basePrice = typeof baseFromSnapshot === 'number' ? baseFromSnapshot : 40 + (baseSeed % 260);
+    const atr = Math.max(0.6, +(basePrice * 0.018).toFixed(2));
+    const entry = +basePrice.toFixed(2);
+    const stop = +(entry - atr * 1.5).toFixed(2);
+    const target = +(entry + (entry - stop) * 3).toFixed(2);
+    const size = risk === 'aggressive' ? '2.0%' : risk === 'conservative' ? '0.8%' : '1.2%';
+
+    return `**Signal**: PARABOLIC DEPLOY ${subject} 74% (Execution Mode)
+
+**Price Target**: ${target} (3R objective from momentum trigger)
+
+**Market Context**: ${marketContext}
+
+**Reasoning**:
+• Momentum Regime: Expansion bias if trigger candle closes above local structure (weight: 35%)
+• Volatility Fit: ATR-derived stop keeps risk normalized across instruments (weight: 35%)
+• Execution Discipline: 3R profile improves expectancy if invalidation is honored (weight: 30%)
+
+**Execution Playbook**:
+• Entry: ${entry}
+• Take-profit: ${target}
+• Invalidation: ${stop}
+
+**Risk Management**:
+• Stop-loss: ${stop}
+• Position size: ${size} portfolio risk per trade
+• Max drawdown: Pause after two failed parabolic attempts in one session
+
+**Confidence**: High-moderate if confirmation candle closes with rising participation.${providerNote}`;
+  }
 
   if (subject === 'BTC') {
     return `**Signal**: HOLD 65% (Execution Mode)
