@@ -52,6 +52,14 @@ interface ChatRequest {
   mode?: 'uncensored' | string;
 }
 
+interface ChatResponseMeta {
+  requestedMode: 'base' | 'advanced' | 'odin';
+  effectiveMode: 'base' | 'advanced' | 'odin';
+  gated: boolean;
+  providerPath: 'huggingface' | 'openai' | 'demo';
+  latencyMs: number;
+}
+
 interface ChatResponse {
   response: string;
   provider: 'huggingface' | 'openai' | 'demo';
@@ -59,6 +67,8 @@ interface ChatResponse {
   timestamp: number;
   cached?: boolean;
   guardrailRetryCount?: number;
+  meta?: ChatResponseMeta;
+  progress?: string[];
 }
 
 interface UserProfileContext {
@@ -761,11 +771,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       recentMessages: recentMessages || undefined,
       marketSnapshot,
     };
+    // --- Mode governance (ODIN can be gated unless explicitly unlocked) ---
+    const requestedMode: 'base' | 'advanced' | 'odin' =
+      body.mode === 'odin' ? 'odin' : body.mode === 'advanced' ? 'advanced' : 'base';
+    const odinOpen = (process.env.TRADEHAX_ODIN_OPEN_MODE || '').toLowerCase() === 'true';
+    const odinHeaderKey = String(req.headers['x-odin-key'] || '');
+    const odinServerKey = String(process.env.TRADEHAX_ODIN_KEY || '');
+    const hasOdinKey = !!odinHeaderKey && !!odinServerKey && odinHeaderKey === odinServerKey;
+    const odinUnlocked = odinOpen || !!(body.context as any)?.odinUnlocked || hasOdinKey;
+    const effectiveMode: 'base' | 'advanced' | 'odin' = requestedMode === 'odin' && !odinUnlocked ? 'advanced' : requestedMode;
+    const modeGated = requestedMode === 'odin' && effectiveMode !== 'odin';
+
     // --- Build System Prompt ---
     let systemPrompt = buildSystemPrompt(messages[messages.length - 1].content, context, marketSnapshot);
-    if (body.mode === 'odin') {
+    if (effectiveMode === 'odin') {
       systemPrompt = `ODIN MODE: Give direct, execution-ready output with clear entries, invalidation, and risk sizing. No filler.\n\n${systemPrompt}`;
-    } else if (body.mode === 'advanced') {
+    } else if (effectiveMode === 'advanced') {
       systemPrompt = `ADVANCED HF ENSEMBLE MODE: Combine momentum, structure, and risk controls in concise steps.\n\n${systemPrompt}`;
     }
     // --- Provider Selection Logic ---
@@ -817,6 +838,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         providerStatus: { ...PROVIDER_STATUS },
         fallbackMode: true,
         errorDetail: PROVIDER_STATUS.error || (err instanceof Error ? err.message : 'LLM provider unavailable'),
+        meta: {
+          requestedMode,
+          effectiveMode,
+          gated: modeGated,
+          providerPath: 'demo',
+          latencyMs: responseTime,
+        },
+        progress: fallbackResponse.split(/\n\n+/).slice(0, 6),
       });
     }
     // --- Cache and Respond ---
@@ -872,6 +901,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...responsePayload,
       response: finalResponse,
       message: { role: 'assistant', content: finalResponse },
+      meta: {
+        requestedMode,
+        effectiveMode,
+        gated: modeGated,
+        providerPath: provider,
+        latencyMs: responseTime,
+      },
+      progress: finalResponse.split(/\n\n+/).slice(0, 6),
     });
   } catch (e) {
     console.error('[ERROR]', (e as Error).message);

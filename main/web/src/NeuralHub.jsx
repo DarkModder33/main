@@ -15,7 +15,7 @@ const MODE_OPTIONS = [
   { key: "odin", label: "ODIN MODE" },
 ];
 
-const HISTORY_KEY = "neuralHub.localHistory.v2";
+const HISTORY_KEY = "neuralHub.localHistory.v3";
 
 function readText(content) {
   if (typeof content === "string") return content;
@@ -30,6 +30,9 @@ export default function NeuralHub() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [lastMeta, setLastMeta] = useState(null);
+  const [lastChunkCount, setLastChunkCount] = useState(0);
   const [messages, setMessages] = useState([
     {
       id: crypto.randomUUID(),
@@ -64,6 +67,30 @@ export default function NeuralHub() {
     return score.toFixed(1);
   }, [messages.length]);
 
+  async function streamAssistantMessage(assistantId, fullText, chunkSize = 6) {
+    const words = String(fullText || "").split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: fullText } : m)));
+      return 1;
+    }
+
+    let cursor = 0;
+    let rendered = "";
+    let chunks = 0;
+    while (cursor < words.length) {
+      const slice = words.slice(cursor, cursor + chunkSize).join(" ");
+      rendered = rendered ? `${rendered} ${slice}` : slice;
+      chunks += 1;
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: rendered } : m)));
+      cursor += chunkSize;
+      // Streaming feel without requiring SSE support from backend.
+      // Keeps UI responsive and improves perceived latency.
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 18));
+    }
+    return chunks;
+  }
+
   async function sendPrompt(prompt) {
     const trimmed = (prompt || "").trim();
     if (!trimmed || loading) return;
@@ -74,6 +101,11 @@ export default function NeuralHub() {
     setInput("");
     setError("");
     setLoading(true);
+    setLastMeta(null);
+    setLastChunkCount(0);
+
+    const assistantId = crypto.randomUUID();
+    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
 
     try {
       const apiMessages = messages
@@ -92,15 +124,27 @@ export default function NeuralHub() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, mode, system }),
+        body: JSON.stringify({
+          messages: apiMessages,
+          mode,
+          system,
+          context: { odinUnlocked: walletConnected },
+        }),
       });
 
       if (!res.ok) throw new Error(`Chat API HTTP ${res.status}`);
       const data = await res.json();
       const reply = data?.response || data?.reply || "No response received.";
+      const chunkSize = mode === "odin" ? 4 : 6;
+      const chunks = await streamAssistantMessage(assistantId, reply, chunkSize);
+      setLastChunkCount(chunks);
+      setLastMeta(data?.meta || null);
 
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: reply }]);
+      if (data?.meta?.gated) {
+        setError("ODIN request was gated to ADVANCED mode. Connect wallet or enable ODIN access.");
+      }
     } catch (e) {
+      setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: "Request failed." } : m)));
       setError(e?.message || "Failed to reach chat backend.");
     } finally {
       setLoading(false);
@@ -140,10 +184,14 @@ export default function NeuralHub() {
           ))}
         </div>
 
-        <button style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", borderRadius: 12, background: "#059669", color: "#fff", border: 0, padding: "12px 10px", fontWeight: 700 }}>
-          <Wallet size={16} /> Connect Wallet • Neural_Link_Active
+        <button
+          type="button"
+          onClick={() => setWalletConnected((v) => !v)}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", borderRadius: 12, background: walletConnected ? "#10B981" : "#059669", color: "#fff", border: 0, padding: "12px 10px", fontWeight: 700 }}
+        >
+          <Wallet size={16} /> {walletConnected ? "Wallet Connected" : "Connect Wallet"} • Neural_Link_Active
         </button>
-        <div style={{ fontSize: 10, color: "#71717A", textAlign: "center" }}>Encrypted Session • $HAX Staked: 420</div>
+        <div style={{ fontSize: 10, color: "#71717A", textAlign: "center" }}>Encrypted Session • {walletConnected ? "$HAX Stake Verified" : "$HAX Staked: 0"}</div>
       </aside>
 
       <main style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -181,7 +229,7 @@ export default function NeuralHub() {
               </div>
             </div>
           ))}
-          {loading && <div style={{ color: "#34D399", fontSize: 13 }}>ODIN thinking in parallel universes...</div>}
+          {loading && <div style={{ color: "#34D399", fontSize: 13 }}>Neural stream in-flight...</div>}
           {error && <div style={{ color: "#F87171", fontSize: 13 }}>{error}</div>}
           <div ref={chatEndRef} />
         </div>
@@ -211,7 +259,12 @@ export default function NeuralHub() {
         <section style={{ borderRadius: 20, padding: 16, background: "#18181B", border: "1px solid #3F3F46" }}>
           <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", color: "#A1A1AA", marginBottom: 10 }}>Smart Environment Monitor</div>
           <div style={{ fontSize: 13, color: "#D4D4D8", lineHeight: 1.6 }}>
-            <div>Mode: <strong>{mode.toUpperCase()}</strong></div>
+            <div>Requested Mode: <strong>{mode.toUpperCase()}</strong></div>
+            <div>Effective Mode: <strong>{(lastMeta?.effectiveMode || mode).toUpperCase()}</strong></div>
+            <div>Provider Path: <strong>{(lastMeta?.providerPath || "pending").toUpperCase()}</strong></div>
+            <div>Latency: <strong>{typeof lastMeta?.latencyMs === "number" ? `${lastMeta.latencyMs}ms` : "N/A"}</strong></div>
+            <div>ODIN Gated: <strong>{lastMeta?.gated ? "YES" : "NO"}</strong></div>
+            <div>Rendered Chunks: <strong>{lastChunkCount || 0}</strong></div>
             <div>Message Count: <strong>{messages.length}</strong></div>
             <div>Latest User Prompt: <strong>{history[0]?.text?.slice(0, 28) || "N/A"}</strong></div>
           </div>
@@ -224,6 +277,10 @@ export default function NeuralHub() {
             <div>Image Studio: Ready</div>
             <div>Autopilot Board: Tracking</div>
             <div style={{ color: "#34D399", marginTop: 8 }}>Neural_Link_Active</div>
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" onClick={() => setInput("Build me a risk-managed swing plan for beginners.")} style={{ borderRadius: 999, border: "1px solid #3F3F46", background: "#27272A", color: "#E4E4E7", padding: "6px 10px", fontSize: 11 }}>Risk Plan</button>
+              <button type="button" onClick={() => setInput("Show top 3 momentum setups with invalidation.")} style={{ borderRadius: 999, border: "1px solid #3F3F46", background: "#27272A", color: "#E4E4E7", padding: "6px 10px", fontSize: 11 }}>Momentum</button>
+            </div>
           </div>
         </section>
       </aside>
