@@ -1,20 +1,17 @@
-import { RESTClient } from '@polygon.io/client-js';
 import { type NextRequest } from 'next/server';
 
-const apiKey = process.env.POLYGON_API_KEY;
-
 interface PolygonAgg {
-  timestamp: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  vwap?: number;
+  t: number;
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+  v: number;
+  vw?: number;
   n?: number;
 }
 
-interface MarketData {
+export interface MarketData {
   timestamp: number;
   open: number;
   high: number;
@@ -33,26 +30,25 @@ export async function getRealtimeData(
   daysBack: number = 30
 ): Promise<MarketData[]> {
   try {
-    const client = new RESTClient({
-      apiKey: apiKey || '',
-    });
+    const apiKey = process.env.POLYGON_API_KEY;
+    if (!apiKey) {
+      console.error('POLYGON_API_KEY not configured');
+      return [];
+    }
 
     const now = new Date();
     const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
 
-    const response = await client.stocks.aggregates(ticker, 1, 'day', {
-      from: startDate.toISOString().split('T')[0],
-      to: now.toISOString().split('T')[0],
-      adjusted: true,
-      sort: 'asc',
-      limit: 50000,
-    });
+    const url = `https://api.polygon.io/v2/aggs/ticker/${ticker.toUpperCase()}/range/1/day/${startDate.toISOString().split('T')[0]}/${now.toISOString().split('T')[0]}?adjusted=true&limit=50000&apiKey=${apiKey}`;
 
-    if (!response.results) return [];
+    const response = await fetch(url);
+    const data = await response.json() as { results?: PolygonAgg[] };
+
+    if (!data.results) return [];
 
     // Calculate technical indicators
-    const data = response.results as PolygonAgg[];
-    const closes = data.map((d) => d.close);
+    const aggs = data.results;
+    const closes = aggs.map((d) => d.c);
 
     // SMA 20 & 50
     const sma20Values = calculateSMA(closes, 20);
@@ -62,16 +58,16 @@ export async function getRealtimeData(
     const rsiValues = calculateRSI(closes, 14);
 
     // ATR
-    const atrValues = calculateATR(data, 14);
+    const atrValues = calculateATR(aggs, 14);
 
-    return data.map((d, i) => ({
-      timestamp: Math.floor(d.timestamp / 1000),
-      open: d.open,
-      high: d.high,
-      low: d.low,
-      close: d.close,
-      volume: d.volume,
-      vwap: d.vwap,
+    return aggs.map((d, i) => ({
+      timestamp: Math.floor(d.t / 1000),
+      open: d.o,
+      high: d.h,
+      low: d.l,
+      close: d.c,
+      volume: d.v,
+      vwap: d.vw,
       sma20: sma20Values[i],
       sma50: sma50Values[i],
       rsi: rsiValues[i],
@@ -130,17 +126,24 @@ function calculateRSI(closes: number[], period: number): (number | undefined)[] 
   return result;
 }
 
+interface AggData {
+  o: number;
+  h: number;
+  l: number;
+  c: number;
+}
+
 function calculateATR(
-  data: PolygonAgg[],
+  data: AggData[],
   period: number
 ): (number | undefined)[] {
   const result: (number | undefined)[] = [];
   const trValues = [];
 
   for (let i = 0; i < data.length; i++) {
-    const high = data[i].high;
-    const low = data[i].low;
-    const close = i > 0 ? data[i - 1].close : data[i].close;
+    const high = data[i].h;
+    const low = data[i].l;
+    const close = i > 0 ? data[i - 1].c : data[i].c;
 
     const tr = Math.max(high - low, Math.abs(high - close), Math.abs(low - close));
     trValues.push(tr);
@@ -182,7 +185,6 @@ export async function analyzeParabolic(
   }
 
   const latest = data[data.length - 1];
-  const prev = data[data.length - 2];
 
   // Parabolic logic
   const atr = latest.atr || 0;
