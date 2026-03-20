@@ -17,6 +17,12 @@ const MODE_OPTIONS = [
 
 const HISTORY_KEY = "neuralHub.localHistory.v3";
 
+function makeId() {
+  const c = globalThis?.crypto;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function readText(content) {
   if (typeof content === "string") return content;
   if (!content) return "";
@@ -35,7 +41,7 @@ export default function NeuralHub() {
   const [lastChunkCount, setLastChunkCount] = useState(0);
   const [messages, setMessages] = useState([
     {
-      id: crypto.randomUUID(),
+      id: makeId(),
       role: "assistant",
       content:
         "Neural_Link_Active. I can break down setups for beginners, generate risk-aware plans, and map momentum with clear invalidation levels.",
@@ -95,7 +101,7 @@ export default function NeuralHub() {
     const trimmed = (prompt || "").trim();
     if (!trimmed || loading) return;
 
-    const userMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
+    const userMsg = { id: makeId(), role: "user", content: trimmed };
     setMessages((prev) => [...prev, userMsg]);
     setHistory((prev) => [{ id: userMsg.id, text: trimmed, ts: Date.now() }, ...prev].slice(0, 10));
     setInput("");
@@ -104,7 +110,7 @@ export default function NeuralHub() {
     setLastMeta(null);
     setLastChunkCount(0);
 
-    const assistantId = crypto.randomUUID();
+    const assistantId = makeId();
     setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
 
     try {
