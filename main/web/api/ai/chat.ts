@@ -481,6 +481,9 @@ function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: 
         })
         .join(' | ')
     : 'Live market snapshot unavailable; structure-based planning only.';
+  const marketContextForRequestedTicker = requestedTicker
+    ? `${requestedTicker} requested. Live quote unavailable in fallback path; using structure + volatility template.`
+    : marketContext;
   const subject =
     lower.includes('btc') || lower.includes('bitcoin')
       ? 'BTC'
@@ -493,7 +496,7 @@ function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: 
   const isRiskQuestion =
     lower.includes('risk') || lower.includes('stop') || lower.includes('drawdown') || lower.includes('size');
   const isParabolic = lower.includes('parabolic') || lower.includes('deploy') || lower.includes('breakout');
-  const isAnalyzeTicker = lower.includes('analyze') && !!requestedTicker;
+  const isAnalyzeTicker = !!requestedTicker;
 
   const profileSize = typeof profile?.portfolioValue === 'number'
     ? Math.max(0.5, Math.min(3, +(profile.portfolioValue >= 100000 ? 1 : profile.portfolioValue >= 25000 ? 1.5 : 2).toFixed(2)))
@@ -555,7 +558,7 @@ function generateDemoResponse(userMsg: string, context?: ChatContext, snapshot: 
 
 **Price Target**: ${target} in 3-8 sessions if structure confirms.
 
-**Market Context**: ${requestedTicker} requested. Live equity quote unavailable in fallback path; using structure + volatility template.
+**Market Context**: ${marketContextForRequestedTicker}
 
 **Reasoning**:
 • Structure: Setup quality improves on reclaim and hold above prior resistance (weight: 35%)
@@ -877,8 +880,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // --- Extract Assets and Detect Intent ---
     const allMessages = (recentMessages || []).concat(messages);
     const flatText = allMessages.map((msg) => msg.content).join(' ');
-    const assets = detectAssets(flatText, body.context);
-    const intent = detectIntent(flatText);
+    const latestUserMsg = String(messages[messages.length - 1]?.content || '');
+    // Prioritize the newest prompt so stale history (e.g., LINK) does not pollute current analysis.
+    const assets = detectAssets(latestUserMsg, body.context);
+    const intent = detectIntent(latestUserMsg || flatText);
 
     // --- Fetch Live Market Data ---
     const marketSnapshot = await fetchMarketSnapshot(assets);
