@@ -81,18 +81,6 @@
       "has": [{ "type": "host", "value": "vallcallya.vercel.app" }],
       "destination": "https://www.tradehax.net/$1",
       "permanent": true
-    },
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "tradehaxai.tech" }],
-      "destination": "https://www.tradehax.net/ai-hub",
-      "permanent": true
-    },
-    {
-      "source": "/(.*)",
-      "has": [{ "type": "host", "value": "www.tradehaxai.tech" }],
-      "destination": "https://www.tradehax.net/ai-hub",
-      "permanent": true
     }
   ],
   "rewrites": [

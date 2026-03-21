@@ -226,6 +226,27 @@ export default function NeuralHub() {
           <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>NEURAL HUB</div>
         </div>
 
+        <a
+          href="https://www.tradehax.net"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 999,
+            border: "1px solid #3F3F46",
+            color: "#D4D4D8",
+            padding: "8px 12px",
+            fontSize: 11,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            textDecoration: "none",
+            background: "#111113"
+          }}
+          title="Return to TradeHax business hub"
+        >
+          Gateway: Back to TradeHax.net
+        </a>
+
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}

@@ -1,33 +1,29 @@
-# Merge Vercel Projects Into One Production Stack
+# Production Domain Architecture Runbook (Dual-Project)
 
-This runbook consolidates these projects into one source of truth:
-- `tradehaxai-assistant-*` (old)
-- `main-*` / `web-*` (current)
+Keep two Vercel projects by design:
+- **Business Hub Project** -> `tradehax.net`, `www.tradehax.net`
+- **AI App Project** -> `tradehaxai.tech`, `www.tradehaxai.tech`
 
 Target state:
-- One Vercel project serving `www.tradehax.net` as canonical business hub
-- `tradehax.net` + `tradehaxai.tech` + `www.tradehaxai.tech` attached to same project
-- AI app available at `https://www.tradehax.net/ai-hub`
-- Legacy hosts redirect to canonical target
+- `tradehax.net` remains the umbrella business site (services, guitar, booking)
+- `tradehaxai.tech` remains dedicated to ODIN/AI chatbot
+- AI site includes a clear gateway back to business hub (`https://www.tradehax.net`)
 
-## 1) Pick Canonical Project (recommended: `main-*` / current `web-*`)
-Use the project already deploying commit `4a79af2+` and passing app health checks.
+## 1) Domain Ownership
 
-## 2) Attach Domains to Canonical Project
-In Vercel dashboard, open canonical project -> Settings -> Domains:
-1. Add `www.tradehax.net`
-2. Add `tradehax.net`
-3. Add `tradehaxai.tech`
-4. Add `www.tradehaxai.tech`
-5. Add `vallcallya.vercel.app` (optional legacy alias)
+### Business Hub Project
+Attach only:
+1. `www.tradehax.net` (primary)
+2. `tradehax.net` (alias)
 
-Update DNS as prompted by Vercel until all are `Valid`.
+### AI App Project
+Attach only:
+1. `tradehaxai.tech` (primary)
+2. `www.tradehaxai.tech` (alias)
 
-## 3) Remove Domains from Old Projects
-For each old project (`tradehaxai-assistant-*`, any stale project):
-- Settings -> Domains -> Remove attached domains now moved above.
+Remove cross-attached domains from the opposite project.
 
-## 4) Copy Environment Variables to Canonical Project (Production)
+## 2) Environment Variables (AI App Project, Production)
 Required minimum:
 - `OPENAI_API_KEY`
 - `HF_API_TOKEN` (or `HUGGINGFACE_API_KEY`)
@@ -35,12 +31,21 @@ Required minimum:
 - `TRADEHAX_ODIN_KEY`
 - `POLYGON_API_KEY`
 
-Also copy auth/session keys if used by the app:
+If auth/session features are used on AI app:
 - `NEXTAUTH_SECRET`
 - `JWT_SECRET`
 
-## 5) Deploy Canonical Project
-From repo root:
+## 3) Business Hub CTA to AI App
+Add a prominent link/button on `tradehax.net`:
+- Label: **Launch ODIN App**
+- URL: `https://tradehaxai.tech/ai-hub`
+
+## 4) AI App Gateway Back to Business Hub
+Keep a visible gateway on `tradehaxai.tech`:
+- Label: **Back to TradeHax Business Hub**
+- URL: `https://www.tradehax.net`
+
+## 5) Deploy AI App Project
 
 ```powershell
 cd C:\tradez\main\web
@@ -53,35 +58,26 @@ npm run deploy
 
 ```powershell
 Invoke-WebRequest -Uri https://www.tradehax.net -UseBasicParsing | Select-Object -ExpandProperty StatusCode
-Invoke-WebRequest -Uri https://www.tradehax.net/ai-hub -UseBasicParsing | Select-Object -ExpandProperty StatusCode
-Invoke-WebRequest -Uri https://www.tradehax.net/api/ai/health -UseBasicParsing | Select-Object -ExpandProperty Content
+Invoke-WebRequest -Uri https://tradehaxai.tech -UseBasicParsing | Select-Object -ExpandProperty StatusCode
+Invoke-WebRequest -Uri https://tradehaxai.tech/api/ai/health -UseBasicParsing | Select-Object -ExpandProperty Content
 ```
 
 Expected:
-- Main site 200
-- `/ai-hub` 200
-- `/api/ai/health` shows at least one provider available (not demo-only)
+- `www.tradehax.net` returns 200 and shows business pages
+- `tradehaxai.tech` returns 200 and shows AI app
+- `tradehaxai.tech/api/ai/health` reports at least one provider available (not demo-only)
 
 ## 7) Verify Chat Quality
-In `/ai-hub` test prompts:
+On `https://tradehaxai.tech/ai-hub` test:
 - `analyze $AAPL`
 - `analyze $NVDA`
 - `deploy parabolic on BTC risk 4`
 
 Expected:
-- Distinct responses per ticker
-- Right panel `Provider Path` not stuck on `DEMO`
+- Distinct responses by ticker
+- Smart monitor `Provider Path` not stuck on `DEMO`
 
-## 8) Cleanup
-After 24h stable traffic:
-- Archive old Vercel projects
-- Keep one deployment pipeline on `main`
-- Keep this canonical map:
-  - `www.tradehax.net` (primary)
-  - `tradehax.net` (alias)
-  - `tradehaxai.tech` -> redirect to `/ai-hub`
-
-## Notes
-- Redirects are already configured in `web/vercel.json` to force canonical routing after domains are attached to one project.
-- If responses still generic, provider keys are missing in the canonical project Production env.
-
+## 8) Operational Notes
+- Do **not** merge domains into one project unless explicitly needed.
+- Keep deployment pipelines separate for safer rollbacks.
+- If responses are generic, provider keys are missing in AI project Production env.
