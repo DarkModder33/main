@@ -451,7 +451,7 @@ export default function NeuralHub() {
               style={{ marginTop: 10, borderRadius: 999, border: "1px solid #3F3F46", background: "#27272A", color: "#E4E4E7", padding: "6px 10px", fontSize: 11 }}
             >
               Start Guided Tour
-            </div>
+            </button>
           </div>
         </section>
       </aside>
