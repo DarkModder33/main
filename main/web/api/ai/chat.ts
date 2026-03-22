@@ -22,6 +22,7 @@ import { resolveRuntimeProviderConfig, validateProvidersAtRuntime } from './prov
 
 const POLYGON_API_KEY = process.env.POLYGON_API_KEY || '';
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || '';
+const HF_ROUTER_URL = 'https://router.huggingface.co/hf-inference';
 const DEFAULT_HF_MODEL = process.env.HF_MODEL_ID || 'meta-llama/Llama-3.3-70B-Instruct';
 let LAST_HF_MODEL_USED = DEFAULT_HF_MODEL;
 
@@ -155,7 +156,7 @@ async function callHuggingFace(messages: ChatMessage[], temperature = 0.7, runti
 
   for (const modelId of runtimeConfig.hfModels) {
     for (const token of runtimeConfig.hfTokens) {
-      const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+      const response = await fetch(`${HF_ROUTER_URL}/models/${modelId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -203,13 +204,13 @@ async function callHuggingFace(messages: ChatMessage[], temperature = 0.7, runti
 /**
  * Call OpenAI API (Fallback)
  */
-async function callOpenAI(messages: ChatMessage[], temperature = 0.7, openAiKey = resolveRuntimeProviderConfig().openAiKey): Promise<string> {
-  if (!openAiKey) throw new Error('No OpenAI key');
+async function callOpenAi(messages: ChatMessage[], temperature = 0.7, runtimeConfig = resolveRuntimeProviderConfig()): Promise<string> {
+  if (!runtimeConfig.openAiKey) throw new Error('No OpenAI key');
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${openAiKey}`,
+      'Authorization': `Bearer ${runtimeConfig.openAiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -232,26 +233,25 @@ async function callOpenAI(messages: ChatMessage[], temperature = 0.7, openAiKey 
 /**
  * Call xAI API (Grok) as additional live fallback
  */
-async function callXAI(messages: ChatMessage[], temperature = 0.7, xAiKey = resolveRuntimeProviderConfig().xAiKey): Promise<string> {
-  if (!xAiKey) throw new Error('No xAI key');
+async function callXai(messages: ChatMessage[], temperature = 0.7, runtimeConfig = resolveRuntimeProviderConfig()): Promise<string> {
+  if (!runtimeConfig.xAiKey) throw new Error('No XAI key');
 
   const response = await fetch('https://api.x.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${xAiKey}`,
+      'Authorization': `Bearer ${runtimeConfig.xAiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: process.env.XAI_MODEL || 'grok-4',
+      model: 'grok-3-mini',
       messages,
       temperature,
-      max_tokens: 1024,
     }),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`xAI error ${response.status}: ${errorText}`);
+    const errorBody = await response.text();
+    throw new Error(`xAI Error (${response.status}): ${errorBody}`);
   }
 
   const data = await response.json();
@@ -1176,12 +1176,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           if (candidate === 'openai') {
-            const out = await callOpenAI(providerMessages, temperature, runtimeConfig.openAiKey);
+            const out = await callOpenAi(providerMessages, temperature, runtimeConfig.openAiKey);
             provider = 'openai';
             return out;
           }
 
-          const out = await callXAI(providerMessages, temperature, runtimeConfig.xAiKey);
+          const out = await callXai(providerMessages, temperature, runtimeConfig.xAiKey);
           provider = 'xai';
           return out;
         } catch (err) {

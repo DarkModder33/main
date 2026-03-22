@@ -161,6 +161,8 @@ export function resolveRuntimeProviderConfig(): RuntimeProviderConfig {
   };
 }
 
+const HF_ROUTER_URL = 'https://router.huggingface.co/hf-inference';
+
 async function probeHuggingFace(config: RuntimeProviderConfig, timeoutMs: number): Promise<ProviderProbeResult> {
   const start = Date.now();
   if (config.hfTokens.length === 0) {
@@ -195,7 +197,7 @@ async function probeHuggingFace(config: RuntimeProviderConfig, timeoutMs: number
     for (const token of validTokens) {
       const timeout = withTimeout(timeoutMs);
       try {
-        const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}`, {
+        const response = await fetch(`${HF_ROUTER_URL}/models/${modelId}`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -359,7 +361,7 @@ async function probeOpenAI(config: RuntimeProviderConfig, timeoutMs: number): Pr
   }
 }
 
-async function probeXAI(config: RuntimeProviderConfig, timeoutMs: number): Promise<ProviderProbeResult> {
+async function probeXai(config: RuntimeProviderConfig, timeoutMs: number): Promise<ProviderProbeResult> {
   const start = Date.now();
   if (!config.xAiKey) {
     return {
@@ -379,70 +381,51 @@ async function probeXAI(config: RuntimeProviderConfig, timeoutMs: number): Promi
       validated: false,
       latencyMs: Date.now() - start,
       reason: 'invalid_key_format',
-      detail: 'xAI key has invalid format',
       keyValid: false,
     };
   }
 
   const timeout = withTimeout(timeoutMs);
   try {
-    const response = await fetch('https://api.x.ai/v1/models', {
-      method: 'GET',
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${config.xAiKey}`,
+        'Authorization': `Bearer ${config.xAiKey}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        model: 'grok-3-mini',
+        messages: [{ role: 'user', content: 'healthcheck' }],
+        max_tokens: 1,
+      }),
       signal: timeout.signal,
     });
-    timeout.clear();
 
-    if (response.ok) {
-      return {
-        name: 'xai',
-        reachable: true,
-        validated: true,
-        latencyMs: Date.now() - start,
-        reason: 'ok',
-        statusCode: response.status,
-        keyValid: true,
-      };
-    }
+    const status = response.status;
+    const reachable = status < 500;
+    const validated = status === 200;
 
-    const detail = await response.text();
-    const reason = classifyFailure(response.status, detail);
+    return {
+      name: 'xai',
+      reachable,
+      validated,
+      latencyMs: Date.now() - start,
+      reason: classifyFailure(status),
+      statusCode: status,
+      keyValid: validated,
+    };
+  } catch (err: any) {
     return {
       name: 'xai',
       reachable: false,
       validated: false,
       latencyMs: Date.now() - start,
-      reason,
-      statusCode: response.status,
-      detail,
-      keyValid: response.status !== 401 && response.status !== 403,
+      reason: err.name === 'AbortError' ? 'timeout' : 'network_error',
+      detail: err.message,
+      keyValid: false,
     };
-  } catch (error) {
+  } finally {
     timeout.clear();
-
-    if ((error as Error).name === 'AbortError') {
-      return {
-        name: 'xai',
-        reachable: false,
-        validated: false,
-        latencyMs: Date.now() - start,
-        reason: 'timeout',
-        detail: 'xAI probe timed out',
-        keyValid: true,
-      };
-    }
-
-    return {
-      name: 'xai',
-      reachable: false,
-      validated: false,
-      latencyMs: Date.now() - start,
-      reason: 'network_error',
-      detail: (error as Error).message || 'Network error',
-      keyValid: true,
-    };
   }
 }
 
@@ -459,7 +442,7 @@ export async function validateProvidersAtRuntime(options?: {
   const [huggingface, openai, xai] = await Promise.all([
     probeHuggingFace(config, hfTimeoutMs),
     probeOpenAI(config, openaiTimeoutMs),
-    probeXAI(config, xaiTimeoutMs),
+    probeXai(config, xaiTimeoutMs),
   ]);
 
   return {
