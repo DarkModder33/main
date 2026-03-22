@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Mic, Wallet, Zap, Brain, MessageCircle, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mic, Wallet, Zap, Brain, MessageCircle, BarChart3, LineChart } from "lucide-react";
 import { API_ENDPOINTS } from "./lib/endpoints";
 import { resolveSiteCapabilities } from "./lib/capabilities";
 import PolyClawAssistant from "./features/polyclaw/PolyClawAssistant.jsx";
@@ -270,6 +271,40 @@ export default function NeuralHub() {
         >
           ← BACK TO TRADEHAX.NET
         </a>
+
+        <Link
+          to="/intelligence"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 12,
+            border: "2px solid #3B82F6",
+            color: "#3B82F6",
+            padding: "12px 16px",
+            fontSize: 12,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            textDecoration: "none",
+            background: "rgba(59, 130, 246, 0.1)",
+            cursor: "pointer",
+            transition: "all 0.2s ease"
+          }}
+          title="Open Polymarket Intelligence Hub"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)";
+            e.currentTarget.style.borderColor = "#60A5FA";
+            e.currentTarget.style.color = "#60A5FA";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)";
+            e.currentTarget.style.borderColor = "#3B82F6";
+            e.currentTarget.style.color = "#3B82F6";
+          }}
+        >
+          <LineChart size={16} style={{ marginRight: 8 }} /> INTELLIGENCE HUB
+        </Link>
 
         <select
           value={mode}
