@@ -187,13 +187,13 @@ function mergeObjects(...objects) {
 
 function syncVarToVercel({ key, value, scope, project, replace }) {
   if (replace) {
-    spawnSync('npx', ['vercel', 'env', 'rm', key, scope, '--yes', '--project', project], {
+    spawnSync('npx', ['vercel', 'env', 'rm', key, scope, '--yes'], {
       stdio: 'ignore',
       shell: process.platform === 'win32',
     });
   }
 
-  const cmd = spawnSync('npx', ['vercel', 'env', 'add', key, scope, '--yes', '--project', project], {
+  const cmd = spawnSync('npx', ['vercel', 'env', 'add', key, scope, '--yes'], {
     input: `${value}\n`,
     encoding: 'utf-8',
     shell: process.platform === 'win32',
