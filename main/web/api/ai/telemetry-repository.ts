@@ -156,19 +156,19 @@ export function calculateLatencyPercentiles(
   mode: string,
   events = inMemoryEvents,
   percentiles = [50, 95, 99]
-): Record<number, number | null> {
+): Record<number, number | undefined> {
   const modeLatencies = events
     .filter((e) => e.effectiveMode === mode && typeof e.latencyMs === 'number')
     .map((e) => e.latencyMs as number)
     .sort((a, b) => a - b);
 
   if (modeLatencies.length === 0) {
-    return percentiles.reduce((acc, p) => ({ ...acc, [p]: null }), {});
+    return percentiles.reduce((acc, p) => ({ ...acc, [p]: undefined }), {});
   }
 
   return percentiles.reduce((acc, p) => {
     const idx = Math.ceil((p / 100) * modeLatencies.length) - 1;
-    return { ...acc, [p]: modeLatencies[idx] ?? null };
+    return { ...acc, [p]: modeLatencies[idx] ?? undefined };
   }, {});
 }
 
@@ -203,4 +203,3 @@ export function isTelemetryHealthy(): boolean {
   // In-memory telemetry is always healthy if we've recorded anything
   return inMemoryEvents.length > 0;
 }
-
