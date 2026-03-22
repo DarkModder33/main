@@ -26,6 +26,15 @@ export const EXECUTION_PROFILES = {
     settlementAdapter: "l2-custom",
     notes: "Routes execution through l2-custom adapter with local/cloud endpoint fallback.",
   },
+  "polymarket-skill": {
+    id: "polymarket-skill",
+    label: "Polymarket Assistant (PolyClaw)",
+    chainKind: "evm",
+    chainIdHex: "0x89", // Polygon Mainnet
+    tokenModel: "external-liquidity",
+    settlementAdapter: "polymarket",
+    notes: "TradeHax + PolyClaw skill for high-accuracy Polymarket predictions.",
+  },
 };
 
 export const DEFAULT_EXECUTION_PROFILE_ID = "polygon-evm";
@@ -51,4 +60,3 @@ export function isChainAllowed(profile, chainId) {
   if (profile.chainIdHex === "*") return true;
   return normalizeHexChainId(chainId) === normalizeHexChainId(profile.chainIdHex);
 }
-

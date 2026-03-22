@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Mic, Wallet, Zap, Brain, MessageCircle } from "lucide-react";
+import { Mic, Wallet, Zap, Brain, MessageCircle, BarChart3 } from "lucide-react";
 import { API_ENDPOINTS } from "./lib/endpoints";
-import { resolveSiteCapabilities } from "./lib/capabilities";
+import PolyClawAssistant from "./features/polyclaw/PolyClawAssistant.jsx";
 
 const STARTER_PROMPTS = [
   "Give me a beginner-safe market summary for today.",
@@ -15,6 +15,7 @@ const MODE_OPTIONS = [
   { key: "base", label: "BASE (Free - Beginner Mode)" },
   { key: "advanced", label: "ADVANCED (HF Ensemble)" },
   { key: "odin", label: "ODIN MODE 🔥 (Premium / Stake $HAX)" },
+  { key: "polyclaw", label: "POLYCLAW (Polymarket Assistant)" },
 ];
 
 const HISTORY_KEY = "neuralHub.localHistory.v3";
@@ -368,6 +369,11 @@ export default function NeuralHub() {
       <aside style={{ width: 320, borderLeft: "1px solid #27272A", padding: 20, display: "flex", flexDirection: "column", gap: 16, overflow: "auto" }}>
         <section style={{ borderRadius: 20, padding: 16, background: "#18181B", border: "1px solid #3F3F46" }}>
           <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.12em", color: "#A1A1AA", marginBottom: 10 }}>Smart Environment Monitor</div>
+          {mode === 'polyclaw' && (
+            <div style={{ marginBottom: 16 }}>
+              <PolyClawAssistant />
+            </div>
+          )}
           <div style={{ fontSize: 13, color: "#D4D4D8", lineHeight: 1.6 }}>
             <div>Live AI Available: <strong>{capabilities?.liveProviderAvailable ? "YES" : "NO"}</strong></div>
             <div>Requested Mode: <strong>{mode.toUpperCase()}</strong></div>
