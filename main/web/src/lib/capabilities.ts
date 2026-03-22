@@ -9,6 +9,7 @@ export interface SiteCapabilities {
     base: boolean;
     advanced: boolean;
     odin: boolean;
+    polyclaw: boolean;
   };
 }
 
@@ -21,6 +22,7 @@ const DEFAULT_CAPABILITIES: SiteCapabilities = {
     base: true,
     advanced: true,
     odin: false,
+    polyclaw: true,
   },
 };
 
@@ -66,6 +68,7 @@ export async function resolveSiteCapabilities(baseUrl = ''): Promise<SiteCapabil
         base: modeMap.base ?? true,
         advanced: modeMap.advanced ?? true,
         odin: modeMap.odin ?? false,
+        polyclaw: modeMap.polyclaw ?? true,
       },
     };
 
@@ -79,4 +82,3 @@ export async function resolveSiteCapabilities(baseUrl = ''): Promise<SiteCapabil
     };
   }
 }
-
