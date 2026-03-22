@@ -94,6 +94,14 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/music/lessons",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/music",
+      "destination": "/index.html"
+    },
+    {
       "source": "/tradehax",
       "destination": "/index.html"
     },
