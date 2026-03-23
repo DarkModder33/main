@@ -1,17 +1,17 @@
 export const GUITAR_PRICING = {
   beginner: {
     price: 50,
-    package: 200,
+    package: 180,
     label: "Beginner Archetype"
   },
   intermediate: {
-    price: 50,
-    package: 200,
+    price: 75,
+    package: 270,
     label: "Intermediate Shred"
   },
   advanced: {
-    price: 50,
-    package: 200,
+    price: 100,
+    package: 360,
     label: "Advanced Mastery"
   }
 };
