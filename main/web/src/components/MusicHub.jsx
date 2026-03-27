@@ -30,7 +30,7 @@ const MusicHub = () => {
       </div>
 
       <div className="mt-12 pt-8 border-t border-zinc-900 flex justify-between items-center text-[10px] text-zinc-600 uppercase tracking-[0.2em]">
-        <div>PRICING_MODEL_VER: 2026.03.22</div>
+        <div>PRICING_MODEL_VER: 2026.03.24</div>
         <div>ENCRYPT_TRANS_LIVE</div>
         <div className="text-blue-900/40">GHOST_CACHE_STATUS: BYPASSED</div>
       </div>
@@ -39,4 +39,3 @@ const MusicHub = () => {
 };
 
 export default MusicHub;
-
