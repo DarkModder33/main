@@ -1,17 +1,30 @@
 import { ChatStreamPanel } from "@/components/ai/ChatStreamPanel";
-import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
-import { ImageGeneratorComponent } from "@/components/ai/ImageGeneratorComponent";
-import { ModelScoreboardPanel } from "@/components/ai/ModelScoreboardPanel";
-import { SmartEnvironmentMonitor } from "@/components/ai/SmartEnvironmentMonitor";
-import { VoiceSearchControlPanel } from "@/components/ai/VoiceSearchControlPanel";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+import { DeferredRender } from "@/components/ui/DeferredRender";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { Brain, ChevronDown, MessageSquare } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Script from "next/script";
 import { Suspense } from "react";
+
+const VoiceSearchControlPanel = dynamic(
+  () => import("@/components/ai/VoiceSearchControlPanel").then((mod) => mod.VoiceSearchControlPanel),
+);
+const SmartEnvironmentMonitor = dynamic(
+  () => import("@/components/ai/SmartEnvironmentMonitor").then((mod) => mod.SmartEnvironmentMonitor),
+);
+const HFGeneratorComponent = dynamic(
+  () => import("@/components/ai/HFGeneratorComponent").then((mod) => mod.HFGeneratorComponent),
+);
+const ImageGeneratorComponent = dynamic(
+  () => import("@/components/ai/ImageGeneratorComponent").then((mod) => mod.ImageGeneratorComponent),
+);
+const ModelScoreboardPanel = dynamic(
+  () => import("@/components/ai/ModelScoreboardPanel").then((mod) => mod.ModelScoreboardPanel),
+);
 
 export const metadata = createPageMetadata({
   title: "TradeHax AI Hub - Beginner Friendly Crypto + Stocks Assistant",
@@ -63,12 +76,13 @@ const aiHubFaqJsonLd = {
   ],
 };
 
-export default function AIHubPage({
+export default async function AIHubPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const viewParam = searchParams?.view;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const viewParam = resolvedSearchParams?.view;
   const view = Array.isArray(viewParam) ? viewParam[0] : viewParam;
   const isAdvancedView = view === "advanced";
 
@@ -150,7 +164,9 @@ export default function AIHubPage({
             defaultOpen={isAdvancedView}
           >
             <Suspense fallback={<LoadingPanel label="Loading voice/search control panel" tone="cyan" />}>
-              <VoiceSearchControlPanel />
+              <DeferredRender fallback={<LoadingPanel label="Loading voice/search control panel" tone="cyan" />} rootMargin="160px">
+                <VoiceSearchControlPanel />
+              </DeferredRender>
             </Suspense>
           </ToolAccordion>
 
@@ -162,7 +178,9 @@ export default function AIHubPage({
             defaultOpen={isAdvancedView}
           >
             <Suspense fallback={<LoadingPanel label="Loading smart environment monitor" tone="cyan" />}>
-              <SmartEnvironmentMonitor />
+              <DeferredRender fallback={<LoadingPanel label="Loading smart environment monitor" tone="cyan" />} rootMargin="160px">
+                <SmartEnvironmentMonitor />
+              </DeferredRender>
             </Suspense>
           </ToolAccordion>
 
@@ -174,7 +192,9 @@ export default function AIHubPage({
             defaultOpen={isAdvancedView}
           >
             <Suspense fallback={<LoadingPanel label="Loading text generator" tone="yellow" />}>
-              <HFGeneratorComponent />
+              <DeferredRender fallback={<LoadingPanel label="Loading text generator" tone="yellow" />} rootMargin="160px">
+                <HFGeneratorComponent />
+              </DeferredRender>
             </Suspense>
           </ToolAccordion>
 
@@ -186,7 +206,9 @@ export default function AIHubPage({
             defaultOpen={isAdvancedView}
           >
             <Suspense fallback={<LoadingPanel label="Loading image generator" tone="cyan" />}>
-              <ImageGeneratorComponent />
+              <DeferredRender fallback={<LoadingPanel label="Loading image generator" tone="cyan" />} rootMargin="160px">
+                <ImageGeneratorComponent />
+              </DeferredRender>
             </Suspense>
           </ToolAccordion>
 
@@ -198,7 +220,9 @@ export default function AIHubPage({
             defaultOpen={isAdvancedView}
           >
             <Suspense fallback={<LoadingPanel label="Loading AI autopilot controls" tone="fuchsia" />}>
-              <ModelScoreboardPanel />
+              <DeferredRender fallback={<LoadingPanel label="Loading AI autopilot controls" tone="fuchsia" />} rootMargin="220px">
+                <ModelScoreboardPanel />
+              </DeferredRender>
             </Suspense>
           </ToolAccordion>
         </section>

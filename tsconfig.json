@@ -8,24 +8,24 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
-    "allowUnreachableCode": true,
-    "allowUnusedLabels": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "plugins": [
       {
         "name": "next"
@@ -46,9 +46,15 @@
   ],
   "exclude": [
     "node_modules",
+    "1",
+    "1/**",
+    "main",
+    "main/**",
     "program",
     "archive/legacy-code/program/tests",
     "archive",
-    "tradehax-fresh"
+    "tradehax-fresh",
+    "tradehax-repo",
+    "tradehax-repo/**"
   ]
 }

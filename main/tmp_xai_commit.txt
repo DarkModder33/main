@@ -1,0 +1,1 @@
+cff17e0 feat(ai): enable xai live fallback to reduce demo mode

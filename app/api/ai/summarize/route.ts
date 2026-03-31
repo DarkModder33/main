@@ -4,17 +4,26 @@
  */
 
 import { getLLMClient } from "@/lib/ai/hf-server";
+import { callAiMicroPredict } from "@/lib/ai/micro-client";
 import {
   enforceRateLimit,
   enforceTrustedOrigin,
   isJsonContentType,
   sanitizePlainText,
 } from "@/lib/security";
+import { enforceRedisRateLimit } from "@/lib/security-redis";
 import { NextRequest, NextResponse } from "next/server";
 
 interface SummarizeRequest {
   text: string;
   maxLength?: number;
+}
+
+function resolveMaxLength(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 256;
+  }
+  return Math.min(1024, Math.max(64, Math.floor(value)));
 }
 
 export async function POST(request: NextRequest) {
@@ -27,11 +36,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Expected JSON body." }, { status: 415 });
   }
 
-  const rateLimit = enforceRateLimit(request, {
+  const redisRateLimit = await enforceRedisRateLimit(request, {
     keyPrefix: "ai:summarize",
     max: 36,
     windowMs: 60_000,
   });
+  const rateLimit =
+    redisRateLimit ??
+    enforceRateLimit(request, {
+      keyPrefix: "ai:summarize",
+      max: 36,
+      windowMs: 60_000,
+    });
   if (!rateLimit.allowed) {
     return rateLimit.response;
   }
@@ -54,8 +70,23 @@ export async function POST(request: NextRequest) {
         ? text.slice(0, maxChars) + "..."
         : text;
 
-    const client = getLLMClient();
-    const response = await client.summarize(truncatedText);
+    const microResponse = await callAiMicroPredict({
+      prompt: `Summarize this text in concise bullets and one-line takeaway:\n\n${truncatedText}`,
+      temperature: 0.5,
+      maxTokens: resolveMaxLength(body.maxLength),
+      topP: 0.9,
+    });
+
+    const response =
+      microResponse && microResponse.text
+        ? {
+          text: microResponse.text,
+          model: microResponse.model ?? "ai-micro",
+        }
+        : await (async () => {
+          const client = getLLMClient();
+          return client.summarize(truncatedText);
+        })();
 
     return NextResponse.json({
       ok: true,

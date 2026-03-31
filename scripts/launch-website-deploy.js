@@ -121,6 +121,40 @@ function runNpm(label, npmArgs) {
   return run(label, npmCmd, npmArgs);
 }
 
+function resolveRepo() {
+  const fromEnv = String(process.env.GITHUB_REPOSITORY || "").trim();
+  if (fromEnv && fromEnv.includes("/")) {
+    return fromEnv;
+  }
+
+  const gitResult = run(
+    "Resolve git origin remote",
+    process.platform === "win32" ? "git.exe" : "git",
+    ["config", "--get", "remote.origin.url"],
+    { capture: true },
+  );
+
+  const remote = String(gitResult.stdout || "").trim();
+  if (!remote) {
+    return "";
+  }
+
+  const sshMatch = remote.match(/github\.com:([^/]+)\/([^/.]+)(?:\.git)?$/i);
+  if (sshMatch) {
+    return `${sshMatch[1]}/${sshMatch[2]}`;
+  }
+
+  const httpsMatch = remote.match(/github\.com\/([^/]+)\/([^/.]+)(?:\.git)?$/i);
+  if (httpsMatch) {
+    return `${httpsMatch[1]}/${httpsMatch[2]}`;
+  }
+
+  return "";
+}
+
+const targetRepo = resolveRepo();
+const repoArgs = targetRepo ? ["--repo", targetRepo] : [];
+
 function ensureGhAuth() {
   run("Verify GitHub CLI authentication", ghCmd, ["auth", "status"]);
 }
@@ -145,7 +179,7 @@ function auditRequiredDeploySecrets() {
   const result = run(
     "Audit required GitHub Actions deploy secrets",
     ghCmd,
-    ["secret", "list"],
+    ["secret", "list", ...repoArgs],
     { capture: true },
   );
 
@@ -178,6 +212,7 @@ function triggerWorkflow() {
     "namecheap-vps-deploy.yml",
     "--ref",
     "main",
+    ...repoArgs,
   ]);
 }
 
@@ -196,6 +231,7 @@ function getLatestRunId() {
       "1",
       "--json",
       "databaseId,status,conclusion,displayTitle,headSha,createdAt",
+      ...repoArgs,
     ],
     { capture: true },
   );
@@ -221,7 +257,7 @@ function getLatestRunId() {
 }
 
 function watchRun(runId) {
-  run("Watch deploy workflow run", ghCmd, ["run", "watch", runId]);
+  run("Watch deploy workflow run", ghCmd, ["run", "watch", runId, ...repoArgs]);
 }
 
 function showRunDetails(runId) {
@@ -230,11 +266,13 @@ function showRunDetails(runId) {
     "view",
     runId,
     "--web",
+    ...repoArgs,
   ]);
 }
 
 (function main() {
   console.log("\n🚀 TradeHax Website Deploy Launcher");
+  console.log(`Repo target: ${targetRepo || "<auto-detect unavailable>"}`);
 
   if (!skipLocalChecks) {
     runNpm("Run deploy readiness checks", ["run", "ide:sync:deploy-ready"]);

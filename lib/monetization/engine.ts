@@ -319,8 +319,9 @@ export function tierSupportsNeuralMode(
   const subscription = getSubscription(userId);
   const entitlements = getPlanDefinition(subscription.tier).entitlements;
 
+  // Allow uncensored AI for everyone until clientele is built
   if (neuralTier === "UNCENSORED") {
-    return entitlements.uncensoredAi;
+    return true;  // Removed tier restriction
   }
   if (neuralTier === "OVERCLOCK" || neuralTier === "HFT_SIGNAL") {
     return entitlements.overclockAi;

@@ -48,6 +48,17 @@ export function enforceRateLimit(
   request: Request,
   options: Partial<RateLimitOptions> = {},
 ) {
+  if (process.env.ENABLE_RATE_LIMITING === "false") {
+    const max = options.max ?? DEFAULT_API_RATE_LIMIT.max;
+    return {
+      allowed: true,
+      headers: {
+        "X-RateLimit-Limit": String(max),
+        "X-RateLimit-Remaining": String(max),
+      },
+    };
+  }
+
   const config: RateLimitOptions = {
     ...DEFAULT_API_RATE_LIMIT,
     ...options,
@@ -113,8 +124,31 @@ function normalizeOrigin(value: string) {
   }
 }
 
+function resolveForwardedOrigin(request: Request) {
+  const forwardedHost = request.headers.get("x-forwarded-host")?.trim();
+  if (!forwardedHost) {
+    return "";
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.trim() || "https";
+  return normalizeOrigin(`${forwardedProto}://${forwardedHost}`);
+}
+
+function resolveHostHeaderOrigin(request: Request) {
+  const host = request.headers.get("host")?.trim();
+  if (!host) {
+    return "";
+  }
+
+  // In local/dev environments default to http, otherwise https.
+  const isLocal = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  return normalizeOrigin(`${isLocal ? "http" : "https"}://${host}`);
+}
+
 function getTrustedOrigins(request: Request) {
   const requestOrigin = normalizeOrigin(request.url);
+  const forwardedOrigin = resolveForwardedOrigin(request);
+  const hostHeaderOrigin = resolveHostHeaderOrigin(request);
   const configured = [
     process.env.NEXT_PUBLIC_SITE_URL,
     process.env.NEXT_PUBLIC_SITE_URL_ALT,
@@ -124,7 +158,7 @@ function getTrustedOrigins(request: Request) {
     .map((value) => normalizeOrigin(value as string))
     .filter(Boolean);
 
-  return new Set([requestOrigin, ...configured]);
+  return new Set([requestOrigin, forwardedOrigin, hostHeaderOrigin, ...configured].filter(Boolean));
 }
 
 export function isTrustedOrigin(request: Request) {

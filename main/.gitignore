@@ -76,3 +76,6 @@ logs/
 .eslintcache
 .stylelintcache
 
+
+.vercel
+.env*.local
