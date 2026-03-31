@@ -1,4 +1,4 @@
-import { Analytics } from "@vercel/analytics/react";
+﻿import { Analytics } from "@vercel/analytics/react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import { businessProfile } from "@/lib/business-profile";
 import { getLocalBusinessJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { WalletProvider } from "@/lib/wallet-provider";
+import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -214,69 +215,10 @@ export default function RootLayout({
           </ChainSessionProvider>
           <Toaster position="bottom-right" theme="dark" closeButton />
           <Analytics />
-          <footer className="py-14 sm:py-20 border-t border-white/5 bg-black">
-            <div className="layout-shell container mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 sm:gap-12">
-              <div className="col-span-1 md:col-span-2">
-                <div className="text-2xl font-black tracking-tighter mb-4">TRADEHAX</div>
-                <p className="text-zinc-500 text-sm max-w-xs leading-relaxed">
-                  The future of automated trading and decentralized gaming across modern chains.
-                </p>
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <a
-                    href={businessProfile.contactLinks.email}
-                    className="inline-flex items-center rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-2 text-xs font-bold tracking-wide text-cyan-300 transition-colors hover:bg-cyan-500/20 hover:text-cyan-200"
-                  >
-                    Email: {businessProfile.contactEmail}
-                  </a>
-                  <a
-                    href={cashAppLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-xs font-bold tracking-wide text-emerald-300 transition-colors hover:bg-emerald-500/20 hover:text-emerald-200"
-                  >
-                    Support via CashApp
-                  </a>
-                  <a
-                    href={buyMeACoffeeLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] font-mono text-emerald-300 hover:text-emerald-200 transition-colors"
-                  >
-                    {supportMessage}
-                  </a>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Platform</h4>
-                <ul className="text-zinc-500 text-sm space-y-2">
-                  <li><a href="/services" className="hover:text-white transition-colors">Services</a></li>
-                  <li><a href="/billing" className="hover:text-white transition-colors">Billing</a></li>
-                  <li><a href="/account#consent-controls" className="hover:text-white transition-colors">Privacy &amp; Consent</a></li>
-                  <li><a href="/portfolio" className="hover:text-white transition-colors">Portfolio</a></li>
-                  <li><a href={scheduleLinks.guitarLessons} className="hover:text-white transition-colors">Book Lessons</a></li>
-                  <li><a href={businessProfile.contactLinks.email} className="hover:text-white transition-colors">{businessProfile.contactEmail}</a></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-white mb-4 uppercase tracking-widest">Social</h4>
-                <ul className="text-zinc-500 text-sm space-y-2">
-                  <li><a href={businessProfile.socialLinks.x} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter / X</a></li>
-                  <li><a href={businessProfile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a></li>
-                  <li><a href={businessProfile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">YouTube</a></li>
-                  <li><a href={businessProfile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a></li>
-                  <li><a href={businessProfile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn</a></li>
-                  <li><a href={businessProfile.socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Telegram</a></li>
-                  <li><a href={businessProfile.socialLinks.discord} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Discord</a></li>
-                </ul>
-              </div>
-            </div>
-            <div className="layout-shell container mx-auto mt-10 sm:mt-20 pt-6 sm:pt-8 border-t border-white/5 text-[10px] font-mono text-zinc-600 flex flex-col gap-2 sm:flex-row sm:justify-between text-center sm:text-left">
-              <span>© 2024 TRADEHAX_SYSTEMS_INC.</span>
-              <span>SYSTEM_STATUS: ALL_SYSTEMS_NOMINAL</span>
-            </div>
-          </footer>
+          <ShamrockFooter />
         </AuthProvider>
       </body>
     </html>
   );
 }
+

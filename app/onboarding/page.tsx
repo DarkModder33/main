@@ -1,11 +1,10 @@
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
+﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import Link from "next/link";
 
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Welcome to TradeHax AI Onboarding</span>
@@ -29,4 +28,5 @@ export default function OnboardingPage() {
     </div>
   );
 }
+
 

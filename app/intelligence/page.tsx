@@ -1,9 +1,8 @@
-import { IntelligenceMetricCard } from "@/components/intelligence/IntelligenceMetricCard";
+﻿import { IntelligenceMetricCard } from "@/components/intelligence/IntelligenceMetricCard";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { IntelligenceRouteCard } from "@/components/intelligence/IntelligenceRouteCard";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { formatCompactUsd } from "@/lib/intelligence/format";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { createPageMetadata } from "@/lib/seo";
@@ -37,7 +36,7 @@ export default async function IntelligenceHubPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 md:pb-14">
         {/* Hero Section */}
         <section className="theme-panel p-8 sm:p-12 md:p-16 mb-8 text-center">
@@ -115,7 +114,7 @@ export default async function IntelligenceHubPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Multi-Asset Coverage</h3>
                 <p className="text-sm text-zinc-400">
-                  Equities, options, crypto, political trades—all in one unified intelligence layer
+                  Equities, options, crypto, political tradesâ€”all in one unified intelligence layer
                 </p>
               </div>
             </div>
@@ -137,7 +136,7 @@ export default async function IntelligenceHubPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Risk-First Framework</h3>
                 <p className="text-sm text-zinc-400">
-                  Educational signals with compliance language—never financial advice
+                  Educational signals with compliance languageâ€”never financial advice
                 </p>
               </div>
             </div>
@@ -311,3 +310,4 @@ export default async function IntelligenceHubPage() {
     </div>
   );
 }
+

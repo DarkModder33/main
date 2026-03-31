@@ -1,6 +1,5 @@
-import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { bookingLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -217,7 +216,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
       <Script id="schedule-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
         {JSON.stringify(schedulePageJsonLd)}
       </Script>
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-20 sm:pb-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Service Booking</span>
@@ -260,7 +259,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           )}
           {requestedServiceLabel && !hasKnownRequestedService && (
             <p className="mt-2 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-400/10 px-3 py-1 text-xs text-amber-100">
-              We couldn&apos;t map “{requestedServiceLabel}” directly. Pick a service above to continue.
+              We couldn&apos;t map â€œ{requestedServiceLabel}â€ directly. Pick a service above to continue.
             </p>
           )}
           <div className="mt-5 flex flex-wrap gap-3">
@@ -423,3 +422,4 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
     </div>
   );
 }
+

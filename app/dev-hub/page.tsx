@@ -1,5 +1,4 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { Code2, KeyRound, Route, ShieldCheck, TerminalSquare, Webhook } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +14,7 @@ export const metadata = createPageMetadata({
 export default function DevHubPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-gray-950 via-black to-gray-950">
-      <ShamrockHeader />
+      
 
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-indigo-500/25 bg-indigo-600/10 p-6 sm:p-8">
@@ -92,19 +91,19 @@ export default function DevHubPage() {
             <details className="rounded-lg border border-white/15 bg-black/25 p-3" open>
               <summary className="cursor-pointer text-sm font-semibold text-white">Core AI runtime keys</summary>
               <ul className="mt-2 space-y-1 text-xs text-zinc-300">
-                <li>• OPENROUTER_API_KEY</li>
-                <li>• NEXT_PUBLIC_APP_URL</li>
-                <li>• NEXTAUTH_SECRET</li>
+                <li>â€¢ OPENROUTER_API_KEY</li>
+                <li>â€¢ NEXT_PUBLIC_APP_URL</li>
+                <li>â€¢ NEXTAUTH_SECRET</li>
               </ul>
             </details>
 
             <details className="rounded-lg border border-white/15 bg-black/25 p-3" open>
               <summary className="cursor-pointer text-sm font-semibold text-white">Optional social connectors</summary>
               <ul className="mt-2 space-y-1 text-xs text-zinc-300">
-                <li>• FACEBOOK_APP_ID / FACEBOOK_APP_SECRET</li>
-                <li>• LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET</li>
-                <li>• REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET</li>
-                <li>• DISCORD_BOT_TOKEN</li>
+                <li>â€¢ FACEBOOK_APP_ID / FACEBOOK_APP_SECRET</li>
+                <li>â€¢ LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET</li>
+                <li>â€¢ REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET</li>
+                <li>â€¢ DISCORD_BOT_TOKEN</li>
               </ul>
             </details>
           </div>
@@ -153,3 +152,4 @@ function DevCard({
     </div>
   );
 }
+

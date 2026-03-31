@@ -1,6 +1,5 @@
-import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import Script from "next/script";
 
@@ -47,7 +46,7 @@ export default function BeginnerAiCryptoTradingAssistantPage() {
         {JSON.stringify(faqJsonLd)}
       </Script>
 
-      <ShamrockHeader />
+      
       <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-emerald-400/20 bg-emerald-500/5 p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-emerald-200">Beginner Track</p>
@@ -95,3 +94,4 @@ export default function BeginnerAiCryptoTradingAssistantPage() {
     </div>
   );
 }
+

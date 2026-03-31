@@ -1,6 +1,5 @@
-import { SharePreviewPanel } from "@/components/preview/SharePreviewPanel";
+﻿import { SharePreviewPanel } from "@/components/preview/SharePreviewPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { getSharePlatforms, primaryPreviewUrl } from "@/lib/social-preview";
 import { Share2 } from "lucide-react";
@@ -21,7 +20,7 @@ export default function PreviewPage() {
 
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
@@ -45,4 +44,5 @@ export default function PreviewPage() {
     </div>
   );
 }
+
 

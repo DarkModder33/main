@@ -1,4 +1,4 @@
-import { EmailCapture } from '@/components/EmailCapture';
+﻿import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
 import { TrackedCtaLink } from '@/components/monetization/TrackedCtaLink';
 import { BookingCalendar } from '@/components/music/BookingCalendar';
@@ -6,7 +6,6 @@ import { InstagramReelEmbed } from '@/components/music/InstagramReelEmbed';
 import { LessonCard } from '@/components/music/LessonCard';
 import { LessonStudioEmbed } from '@/components/music/LessonStudioEmbed';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, ArrowRight, BrainCircuit, Calendar, CheckCircle2, ChevronDown, CreditCard, Gem, Shield, Swords, Trophy, UserRound, Video } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +31,7 @@ export const metadata = createPageMetadata({
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-[#071017] to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
@@ -49,7 +48,7 @@ export default function LessonsPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(16,185,129,0.22),transparent_40%),radial-gradient(circle_at_84%_30%,rgba(34,211,238,0.18),transparent_36%)]" />
           <div className="relative z-10 text-center">
             <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-4 py-1 text-[11px] uppercase tracking-[0.22em] text-emerald-200">
-              <Shield className="h-3.5 w-3.5" /> Celtic • Germanic • Nordic Digital Fortress
+              <Shield className="h-3.5 w-3.5" /> Celtic â€¢ Germanic â€¢ Nordic Digital Fortress
             </p>
             <h1 className="mt-5 text-4xl md:text-6xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-200 to-cyan-400">
               Guitar Lessons Are The Heart
@@ -66,7 +65,7 @@ export default function LessonsPage() {
               <a href="#reward-forge" className="rounded-lg border border-cyan-300/50 bg-cyan-500/20 px-4 py-2 text-xs font-bold uppercase tracking-wide text-cyan-100 hover:bg-cyan-500/30">View Milestone Rewards</a>
             </div>
             <p className="mt-4 text-xs text-cyan-100/70">
-              Public roadmap updates are shared as features launch — no hidden positioning, just transparent progress.
+              Public roadmap updates are shared as features launch â€” no hidden positioning, just transparent progress.
             </p>
           </div>
         </div>
@@ -100,15 +99,15 @@ export default function LessonsPage() {
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <TeacherFact label="Experience" value="Playing since 1995 • 25+ years active musicianship" />
-                <TeacherFact label="Teaching Track Record" value="Hutchinson’s Music Shoppe (1999–2001) + extensive 1:1 coaching" />
+                <TeacherFact label="Experience" value="Playing since 1995 â€¢ 25+ years active musicianship" />
+                <TeacherFact label="Teaching Track Record" value="Hutchinsonâ€™s Music Shoppe (1999â€“2001) + extensive 1:1 coaching" />
                 <TeacherFact label="Current Format" value="Remote one-on-one sessions with optional in-site studio room" />
                 <TeacherFact label="Instruction Philosophy" value="Precision fundamentals, creative songwriting, measurable weekly progress" />
               </div>
 
               <blockquote className="mt-4 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100/90">
-                “Guitar is the heart of this business. My job is to coach you with clarity, discipline, and creativity—then use smart AI tools
-                to personalize every step so your progress is real, trackable, and motivating.”
+                â€œGuitar is the heart of this business. My job is to coach you with clarity, discipline, and creativityâ€”then use smart AI tools
+                to personalize every step so your progress is real, trackable, and motivating.â€
               </blockquote>
 
               <div className="mt-4 rounded-xl border border-cyan-400/30 bg-black/45 p-3 sm:p-4">
@@ -243,7 +242,7 @@ export default function LessonsPage() {
             as compliance and token mechanics mature. This keeps your overhead low while building strong retention loops.
           </p>
           <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/80 mb-6">
-            One teacher · one standard · consistent coaching lineage
+            One teacher Â· one standard Â· consistent coaching lineage
           </p>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -348,7 +347,7 @@ export default function LessonsPage() {
               Want the Best Plan For Your Skill Level?
             </h2>
             <p className="text-gray-400">
-              Send your goals and we’ll route you to the right package, room mode, and AI progression track.
+              Send your goals and weâ€™ll route you to the right package, room mode, and AI progression track.
             </p>
           </div>
           <EmailCapture />
@@ -480,7 +479,7 @@ function QuoteCard({ quote, author }: { quote: string; author: string }) {
     <article className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
       <div className="flex items-center gap-1 mb-4" aria-label="5 star rating">
         {[...Array(5)].map((_, i) => (
-          <span key={i} className="text-[#FF6B35]">★</span>
+          <span key={i} className="text-[#FF6B35]">â˜…</span>
         ))}
       </div>
       <p className="text-gray-300 mb-4 text-sm">&quot;{quote}&quot;</p>
@@ -517,3 +516,4 @@ function Feature({ text }: { text: string }) {
     </div>
   );
 }
+

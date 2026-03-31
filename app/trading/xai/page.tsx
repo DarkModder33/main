@@ -1,18 +1,17 @@
-"use client";
+﻿"use client";
 
 /**
- * /trading/xai — AI Explainability (XAI) Panel page.
+ * /trading/xai â€” AI Explainability (XAI) Panel page.
  * Let users enter a signal or pick a preset to see a full AI explanation.
  */
 
 import { useState, useCallback } from "react";
 import { Sparkles, ChevronDown } from "lucide-react";
 import { SignalExplainer } from "@/components/trading/SignalExplainer";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import type { SignalExplanation, TradingSignal } from "@/types/trading";
 
-// ─── Preset signals ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Preset signals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface PresetSignal {
   label: string;
@@ -64,7 +63,7 @@ const PRESETS: PresetSignal[] = [
   },
 ];
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ExplainSkeleton() {
   return (
@@ -80,7 +79,7 @@ function ExplainSkeleton() {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function XAIPage() {
   const [explanation, setExplanation] = useState<SignalExplanation | null>(null);
@@ -118,7 +117,7 @@ export default function XAIPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Page header */}
@@ -127,7 +126,7 @@ export default function XAIPage() {
             AI Explainability Panel
           </h1>
           <p className="text-sm sm:text-base text-gray-400">
-            Understand exactly why the AI generated each signal — factor weights, risk levels, and historical accuracy in full detail.
+            Understand exactly why the AI generated each signal â€” factor weights, risk levels, and historical accuracy in full detail.
           </p>
         </div>
 
@@ -186,3 +185,4 @@ export default function XAIPage() {
     </div>
   );
 }
+

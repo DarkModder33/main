@@ -1,9 +1,8 @@
-import { EmailCapture } from "@/components/EmailCapture";
+﻿import { EmailCapture } from "@/components/EmailCapture";
 import { ActionRail } from "@/components/monetization/ActionRail";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -162,7 +161,7 @@ export default function ServicesPage() {
       <Script id="services-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
         {JSON.stringify(servicesPageJsonLd)}
       </Script>
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 pb-28 md:pb-14">
         {/* Hero Section */}
@@ -217,7 +216,7 @@ export default function ServicesPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Full-Stack Web & App Development</h3>
                 <p className="text-sm text-zinc-400">
-                  Next.js, React, mobile apps, APIs, databases—complete solutions from prototype to production
+                  Next.js, React, mobile apps, APIs, databasesâ€”complete solutions from prototype to production
                 </p>
               </div>
             </div>
@@ -729,3 +728,4 @@ function Benefit({
     </div>
   );
 }
+

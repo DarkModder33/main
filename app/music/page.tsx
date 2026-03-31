@@ -1,6 +1,5 @@
-import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import {
   ArrowRight,
@@ -35,7 +34,7 @@ export const metadata = createPageMetadata({
 export default function MusicPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 md:pb-14">
         {/* Hero Section */}
         <section className="theme-panel p-8 sm:p-12 md:p-16 mb-8 text-center">
@@ -152,13 +151,13 @@ export default function MusicPage() {
               <h2 className="text-xl sm:text-2xl font-bold text-white uppercase italic mb-3">Teaching Philosophy</h2>
               <div className="text-zinc-200 space-y-3">
                 <p>
-                  <strong className="text-white">Single-Teacher Promise:</strong> Every lesson is taught directly by the TradeHax founder, Michael S. Flaherty. No rotating instructors, no inconsistency—just clear, disciplined coaching from someone with 25+ years of playing experience and extensive teaching background.
+                  <strong className="text-white">Single-Teacher Promise:</strong> Every lesson is taught directly by the TradeHax founder, Michael S. Flaherty. No rotating instructors, no inconsistencyâ€”just clear, disciplined coaching from someone with 25+ years of playing experience and extensive teaching background.
                 </p>
                 <p>
                   <strong className="text-white">Skill First:</strong> Guitar mastery is the primary trust signal. Students experience measurable progress every session through precision fundamentals, creative songwriting guidance, and structured weekly goals.
                 </p>
                 <p>
-                  <strong className="text-white">AI-Enhanced Learning:</strong> Between sessions, students receive AI-generated practice plans adapted to their pace, style, and learning preferences—keeping them accountable and motivated.
+                  <strong className="text-white">AI-Enhanced Learning:</strong> Between sessions, students receive AI-generated practice plans adapted to their pace, style, and learning preferencesâ€”keeping them accountable and motivated.
                 </p>
               </div>
             </div>
@@ -391,3 +390,4 @@ export default function MusicPage() {
     </div>
   );
 }
+

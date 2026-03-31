@@ -1,8 +1,7 @@
-import { ChatStreamPanel } from "@/components/ai/ChatStreamPanel";
+﻿import { ChatStreamPanel } from "@/components/ai/ChatStreamPanel";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { DeferredRender } from "@/components/ui/DeferredRender";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { Brain, ChevronDown, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -92,7 +91,7 @@ export default async function AIHubPage({
         {JSON.stringify(aiHubFaqJsonLd)}
       </Script>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.14),transparent_60%)]" />
-      <ShamrockHeader />
+      
 
       <main className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-28 pt-10 sm:px-6 sm:pt-14 md:pb-14 lg:px-8">
         <section className="mb-8 text-center sm:mb-10">
@@ -243,13 +242,13 @@ export default async function AIHubPage({
             <div>
               <h3 className="font-semibold text-white">Do you support Web3 token roadmap consulting?</h3>
               <p className="mt-1 text-zinc-300">
-                Yes — from utility design and phased rollout strategy to governance readiness and KPI mapping.
+                Yes â€” from utility design and phased rollout strategy to governance readiness and KPI mapping.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-white">Is there an AI-powered guitar lesson path too?</h3>
               <p className="mt-1 text-zinc-300">
-                Yes — we support consistent lesson progression with personalized routines and accountable milestones.
+                Yes â€” we support consistent lesson progression with personalized routines and accountable milestones.
               </p>
             </div>
           </div>
@@ -398,3 +397,4 @@ function LoadingPanel({
     </div>
   );
 }
+

@@ -1,6 +1,5 @@
-import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
+﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import Script from "next/script";
 
@@ -38,7 +37,7 @@ export default function Web3TokenRoadmapConsultingPage() {
         {JSON.stringify(serviceJsonLd)}
       </Script>
 
-      <ShamrockHeader />
+      
       <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-fuchsia-200">Web3 Advisory</p>
@@ -86,3 +85,4 @@ export default function Web3TokenRoadmapConsultingPage() {
     </div>
   );
 }
+

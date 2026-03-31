@@ -1,8 +1,7 @@
-import { WalletButton } from "@/components/counter/WalletButton";
+﻿import { WalletButton } from "@/components/counter/WalletButton";
 import { ActionRail } from "@/components/monetization/ActionRail";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import {
     BadgeDollarSign,
@@ -46,7 +45,7 @@ const features = [
 export default function CryptoProjectPage() {
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Chain Project Hub</span>
@@ -131,3 +130,4 @@ export default function CryptoProjectPage() {
     </div>
   );
 }
+

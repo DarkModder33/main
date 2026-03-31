@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 /**
- * /trading/sentiment — Market Sentiment Engine page.
+ * /trading/sentiment â€” Market Sentiment Engine page.
  * Displays the Fear & Greed gauge, per-asset scores, and live event feed.
  */
 
@@ -9,15 +9,14 @@ import { useState, useCallback } from "react";
 import { RefreshCw } from "lucide-react";
 import { SentimentGauge } from "@/components/trading/SentimentGauge";
 import { SentimentFeed } from "@/components/trading/SentimentFeed";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { useSentimentStream } from "@/hooks/use-sentiment-stream";
 
-// ─── Asset tabs ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Asset tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const DEFAULT_SYMBOLS = ["BTC", "ETH", "SOL"] as const;
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Skeleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GaugeSkeleton() {
   return (
@@ -33,7 +32,7 @@ function GaugeSkeleton() {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function SentimentPage() {
   const [symbols] = useState(DEFAULT_SYMBOLS.join(","));
@@ -46,7 +45,7 @@ export default function SentimentPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Page header */}
@@ -82,7 +81,7 @@ export default function SentimentPage() {
         {/* Error state */}
         {error && (
           <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            {error} — displaying last known data.
+            {error} â€” displaying last known data.
           </div>
         )}
 
@@ -140,3 +139,4 @@ export default function SentimentPage() {
     </div>
   );
 }
+

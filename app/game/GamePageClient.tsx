@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { WalletButton } from "@/components/counter/WalletButton";
 import { GameAudio } from "@/components/game/GameAudio";
@@ -8,7 +8,6 @@ import { NFTMintPanel } from "@/components/game/NFTMintPanel";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { PremiumUpgrade } from "@/components/monetization/PremiumUpgrade";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { trackEvent } from "@/lib/analytics";
 import type { LeaderboardEntry, LeaderboardSubmission } from "@/lib/game/leaderboard-types";
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
@@ -961,8 +960,8 @@ export default function GamePage() {
         <div className="absolute top-4 left-4 z-20 hidden sm:block pointer-events-none">
           <div className="theme-floating-panel theme-floating-panel--info px-3 py-2 text-xs text-gray-100">
             <div className="font-bold text-emerald-300">Controls</div>
-            <div>Move: W/S or ↑/↓</div>
-            <div>Turn: A/D or ←/→</div>
+            <div>Move: W/S or â†‘/â†“</div>
+            <div>Turn: A/D or â†/â†’</div>
             <div>Use/Interact: E, ENTER, or SPACE</div>
             <div className="text-cyan-200">If keyboard stalls, click the game view to re-focus.</div>
             <div className="text-emerald-200">Mobile: move close to relics to auto-pickup, then tap Use at rune gates/exit gate</div>
@@ -1070,7 +1069,7 @@ export default function GamePage() {
               aria-label="Move forward"
               className="theme-cta theme-cta--loud w-16 h-16 flex items-center justify-center rounded-xl bg-emerald-500/30 border-emerald-400/20 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-2xl">↑</span>
+              <span className="text-2xl">â†‘</span>
             </button>
             <div />
 
@@ -1080,7 +1079,7 @@ export default function GamePage() {
               aria-label="Turn left"
               className="theme-cta theme-cta--secondary w-16 h-16 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-2xl">←</span>
+              <span className="text-2xl">â†</span>
             </button>
             <button
               type="button"
@@ -1088,7 +1087,7 @@ export default function GamePage() {
               aria-label="Move backward"
               className="theme-cta theme-cta--muted w-16 h-16 flex items-center justify-center rounded-xl bg-white/10 border-white/10 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-2xl">↓</span>
+              <span className="text-2xl">â†“</span>
             </button>
             <button
               type="button"
@@ -1096,7 +1095,7 @@ export default function GamePage() {
               aria-label="Turn right"
               className="theme-cta theme-cta--secondary w-16 h-16 flex items-center justify-center rounded-xl bg-white/5 border-white/5 active:scale-90 transition-transform [touch-action:manipulation]"
             >
-              <span className="text-2xl">→</span>
+              <span className="text-2xl">â†’</span>
             </button>
           </div>
 
@@ -1225,7 +1224,7 @@ export default function GamePage() {
               <div className="space-y-6 text-[#d8e6ef]">
                 <div className="theme-floating-panel theme-floating-panel--success p-4">
                   <h3 className="text-xl font-bold text-[#88ffc0] mb-3">
-                    🎯 Objective
+                    ðŸŽ¯ Objective
                   </h3>
                   <p className="text-sm sm:text-base">
                     Explore the fortress, solve shrine puzzles, and recover
@@ -1235,24 +1234,24 @@ export default function GamePage() {
 
                 <div className="theme-floating-panel theme-floating-panel--info p-4">
                   <h3 className="text-xl font-bold text-[#99ecff] mb-3">
-                    🎮 Controls
+                    ðŸŽ® Controls
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        W / ↑
+                        W / â†‘
                       </span>
                       <span>Move forward (hold <span className="font-mono text-cyan-300">Shift</span> to sprint)</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        S / ↓
+                        S / â†“
                       </span>
                       <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        A / D or ← / →
+                        A / D or â† / â†’
                       </span>
                       <span>Turn left or right</span>
                     </div>
@@ -1273,7 +1272,7 @@ export default function GamePage() {
 
                 <div className="theme-floating-panel theme-floating-panel--warning p-4">
                   <h3 className="text-xl font-bold text-[#ffd188] mb-3">
-                    ✨ Tips
+                    âœ¨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
                     <li>Relics auto-pickup when you move close enough.</li>
@@ -1349,31 +1348,31 @@ export default function GamePage() {
                 </h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="theme-floating-panel theme-floating-panel--warning p-3">
-                    <div className="text-2xl mb-1">⚡</div>
+                    <div className="text-2xl mb-1">âš¡</div>
                     <div className="text-white font-bold">{energy}</div>
                     <div className="text-xs text-[#9eb4c2]">Energy</div>
                   </div>
                   <div className="theme-floating-panel theme-floating-panel--success p-3">
-                    <div className="text-2xl mb-1">🍀</div>
+                    <div className="text-2xl mb-1">ðŸ€</div>
                     <div className="text-white font-bold">
                       {cloversCollected}
                     </div>
                     <div className="text-xs text-[#9eb4c2]">Relics</div>
                   </div>
                   <div className="theme-floating-panel theme-floating-panel--info p-3">
-                    <div className="text-2xl mb-1">🏆</div>
+                    <div className="text-2xl mb-1">ðŸ†</div>
                     <div className="text-white font-bold">
                       {score.toLocaleString()}
                     </div>
                     <div className="text-xs text-[#9eb4c2]">Score</div>
                   </div>
                   <div className="theme-floating-panel theme-floating-panel--warning p-3">
-                    <div className="text-2xl mb-1">🔥</div>
+                    <div className="text-2xl mb-1">ðŸ”¥</div>
                     <div className="text-white font-bold">{combo}x</div>
                     <div className="text-xs text-[#9eb4c2]">Combo</div>
                   </div>
                   <div className="theme-floating-panel theme-floating-panel--success col-span-2 p-3">
-                    <div className="text-2xl mb-1">🪙</div>
+                    <div className="text-2xl mb-1">ðŸª™</div>
                     <div className="text-white font-bold">
                       {utilityPoints.toLocaleString()} pts | {projectedUtilityUnits}{" "}
                       {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"} projected
@@ -1391,7 +1390,7 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-28 md:pb-14">
         {/* Hero Section */}
@@ -1432,15 +1431,15 @@ export default function GamePage() {
           {/* Quick Stats */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-gray-400">
             <div className="flex items-center gap-2">
-              <span className="text-green-400">✓</span>
+              <span className="text-green-400">âœ“</span>
               <span>No Download Required</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-green-400">✓</span>
+              <span className="text-green-400">âœ“</span>
               <span>Play Instantly</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-green-400">✓</span>
+              <span className="text-green-400">âœ“</span>
               <span>Mobile & Desktop</span>
             </div>
           </div>
@@ -1557,7 +1556,7 @@ export default function GamePage() {
               <div className="space-y-6 text-[#d8e6ef]">
                 <div className="theme-floating-panel theme-floating-panel--success p-4">
                   <h3 className="text-xl font-bold text-[#88ffc0] mb-3">
-                    🎯 Objective
+                    ðŸŽ¯ Objective
                   </h3>
                   <p className="text-sm sm:text-base">
                     Navigate the Escher-inspired impossible maze and collect
@@ -1568,24 +1567,24 @@ export default function GamePage() {
 
                 <div className="theme-floating-panel theme-floating-panel--info p-4">
                   <h3 className="text-xl font-bold text-[#99ecff] mb-3">
-                    🎮 Controls
+                    ðŸŽ® Controls
                   </h3>
                   <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        W / ↑
+                        W / â†‘
                       </span>
                       <span>Move forward (hold <span className="font-mono text-cyan-300">Shift</span> to sprint)</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        S / ↓
+                        S / â†“
                       </span>
                       <span>Move backward</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono rounded border border-[#5aa581]/45 bg-[#0b2219]/80 px-3 py-1 text-[#95ffc5] font-bold">
-                        A / D or ← / →
+                        A / D or â† / â†’
                       </span>
                       <span>Turn left or right</span>
                     </div>
@@ -1606,7 +1605,7 @@ export default function GamePage() {
 
                 <div className="theme-floating-panel theme-floating-panel--warning p-4">
                   <h3 className="text-xl font-bold text-[#ffd188] mb-3">
-                    ✨ Tips
+                    âœ¨ Tips
                   </h3>
                   <ul className="space-y-2 text-sm sm:text-base list-disc list-inside">
                     <li>Relics auto-pickup when you move close enough.</li>
@@ -1709,19 +1708,19 @@ export default function GamePage() {
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>3 lives per session</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>Access to basic levels</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>Standard achievements</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-gray-600 mt-1">✗</span>
+                  <span className="text-gray-600 mt-1">âœ—</span>
                   <span className="text-[#8ca2b0]">Ad-supported gameplay</span>
                 </li>
               </ul>
@@ -1732,19 +1731,19 @@ export default function GamePage() {
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>Unlimited lives</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>All levels + bonus content</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>Exclusive NFT achievements</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#8fffb6] mt-1">✓</span>
+                  <span className="text-[#8fffb6] mt-1">âœ“</span>
                   <span>Ad-free experience</span>
                 </li>
               </ul>
@@ -1782,4 +1781,5 @@ function FeatureCard({
     </div>
   );
 }
+
 

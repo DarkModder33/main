@@ -1,6 +1,5 @@
-import { AICreditsLedgerAdminPanel } from "@/components/admin/AICreditsLedgerAdminPanel";
+﻿import { AICreditsLedgerAdminPanel } from "@/components/admin/AICreditsLedgerAdminPanel";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -18,7 +17,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function AICreditsLedgerAdminPage() {
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Launch Ops</span>
@@ -35,3 +34,4 @@ export default function AICreditsLedgerAdminPage() {
     </div>
   );
 }
+

@@ -1,7 +1,6 @@
-import { HFChatComponent } from "@/components/ai/HFChatComponent";
+﻿import { HFChatComponent } from "@/components/ai/HFChatComponent";
 import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { AlertCircle, Brain, GitBranch, MessageSquare, Route } from "lucide-react";
 import Link from "next/link";
@@ -17,7 +16,7 @@ export const metadata = createPageMetadata({
 export default function AIHubPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero */}
@@ -157,17 +156,17 @@ export default function AIHubPage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-bold text-emerald-300 mb-3">💰 Fast / Broad Provider Coverage</h3>
+              <h3 className="font-bold text-emerald-300 mb-3">ðŸ’° Fast / Broad Provider Coverage</h3>
               <ul className="space-y-2 text-sm text-emerald-100">
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">→</span>
+                  <span className="text-emerald-400">â†’</span>
                   <div>
                     <div className="font-semibold">Qwen/Qwen2.5-7B-Instruct</div>
                     <div className="text-emerald-200/60">Great quality + generally available providers</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">→</span>
+                  <span className="text-emerald-400">â†’</span>
                   <div>
                     <div className="font-semibold">HuggingFaceH4/zephyr-7b-beta</div>
                     <div className="text-emerald-200/60">Reliable instruction-following fallback</div>
@@ -177,17 +176,17 @@ export default function AIHubPage() {
             </div>
 
             <div>
-              <h3 className="font-bold text-cyan-300 mb-3">🚀 Recommended</h3>
+              <h3 className="font-bold text-cyan-300 mb-3">ðŸš€ Recommended</h3>
               <ul className="space-y-2 text-sm text-cyan-100">
                 <li className="flex items-start gap-2">
-                  <span className="text-cyan-400">→</span>
+                  <span className="text-cyan-400">â†’</span>
                   <div>
                     <div className="font-semibold">meta-llama/Meta-Llama-3-8B-Instruct</div>
                     <div className="text-cyan-200/60">Strong general-purpose quality</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-cyan-400">→</span>
+                  <span className="text-cyan-400">â†’</span>
                   <div>
                     <div className="font-semibold">mistralai/Mistral-Nemo-Instruct-2407</div>
                     <div className="text-cyan-200/60">Good long-form reasoning fallback</div>
@@ -198,7 +197,7 @@ export default function AIHubPage() {
           </div>
 
           <div className="mt-8 pt-8 border-t border-cyan-500/20">
-            <h3 className="font-bold text-blue-300 mb-3">📚 Documentation</h3>
+            <h3 className="font-bold text-blue-300 mb-3">ðŸ“š Documentation</h3>
             <p className="text-blue-100/80 text-sm mb-4">
               Change models in <code className="bg-black/40 px-2 py-1 rounded">.env.local</code>:
             </p>
@@ -218,17 +217,17 @@ export default function AIHubPage() {
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <FeatureCard
-            icon="🤖"
+            icon="ðŸ¤–"
             title="Text Generation"
             description="Generate creative content, code, and more using state-of-the-art LLMs"
           />
           <FeatureCard
-            icon="💬"
+            icon="ðŸ’¬"
             title="Chat Interface"
             description="Have conversations with AI while maintaining context history"
           />
           <FeatureCard
-            icon="⚡"
+            icon="âš¡"
             title="Streaming"
             description="Get real-time token streaming for faster perceived response times"
           />
@@ -249,7 +248,7 @@ export default function AIHubPage() {
               Need a no-code setup for X, Instagram, TikTok, YouTube, Facebook, LinkedIn, Reddit, and Discord?
             </p>
             <Link href="/admin/social-wizard" className="text-sm font-semibold text-indigo-200 hover:text-indigo-100 hover:underline">
-              Open Social Provider Wizard →
+              Open Social Provider Wizard â†’
             </Link>
           </div>
         </div>
@@ -277,3 +276,4 @@ function FeatureCard({
     </div>
   );
 }
+

@@ -1,5 +1,4 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { getAllPlans } from "@/lib/monetization/plans";
 import { createPageMetadata } from "@/lib/seo";
 import { Check, Sparkles } from "lucide-react";
@@ -47,7 +46,7 @@ const plans: Plan[] = getAllPlans().map((plan) => ({
 export default function PricingPage() {
   return (
     <div className="min-h-screen">
-      <ShamrockHeader />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 md:pb-14">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Transparent Pricing</span>
@@ -113,3 +112,4 @@ export default function PricingPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------
+﻿/* -----------------------------------------------------------------------
  * <copyright company="Microsoft Corporation">
  *   Copyright (c) Microsoft Corporation.  All rights reserved.
  * </copyright>
@@ -6,7 +6,6 @@
 
 import { SpadesGame } from '@/components/game/SpadesGame';
 import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -30,7 +29,7 @@ export const metadata = createPageMetadata({
 export default function SpadesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black">
-      <ShamrockHeader />
+      
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
         <section className="theme-panel p-6 sm:p-8 mb-6">
           <span className="theme-kicker mb-3">Decentralized Arcade</span>
@@ -47,3 +46,4 @@ export default function SpadesPage() {
     </div>
   );
 }
+

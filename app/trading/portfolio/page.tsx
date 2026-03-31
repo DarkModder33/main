@@ -1,5 +1,4 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { PortfolioOverview } from "@/components/trading/PortfolioOverview";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -20,7 +19,7 @@ export const metadata = createPageMetadata({
 export default function TradingPortfolioPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Page header */}
@@ -40,3 +39,4 @@ export default function TradingPortfolioPage() {
     </div>
   );
 }
+

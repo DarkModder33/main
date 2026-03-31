@@ -1,5 +1,4 @@
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
+﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { TradehaxBotDashboard } from "@/components/trading/TradehaxBotDashboard";
 import { createPageMetadata } from "@/lib/seo";
 import {
@@ -34,7 +33,7 @@ export const metadata = createPageMetadata({
 // ISR for mostly-static trading hub content to keep TTFB low under traffic.
 export const revalidate = 300;
 
-// ─── Feature cards ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Feature cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface FeatureCard {
   href: string;
@@ -89,7 +88,7 @@ const FEATURES: FeatureCard[] = [
 export default function TradingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hub header */}
@@ -98,7 +97,7 @@ export default function TradingPage() {
             TradeHax AI Trading Platform
           </h1>
           <p className="text-sm sm:text-base text-gray-400 max-w-2xl">
-            Five production-grade AI tools working together — from sentiment analysis to live portfolio tracking, strategy building, backtesting, and full signal explainability.
+            Five production-grade AI tools working together â€” from sentiment analysis to live portfolio tracking, strategy building, backtesting, and full signal explainability.
           </p>
         </div>
 
@@ -140,3 +139,4 @@ export default function TradingPage() {
     </div>
   );
 }
+

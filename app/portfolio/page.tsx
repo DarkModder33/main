@@ -1,7 +1,6 @@
-import { EmailCapture } from "@/components/EmailCapture";
+﻿import { EmailCapture } from "@/components/EmailCapture";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
-import { ShamrockHeader } from "@/components/shamrock/ShamrockHeader";
 import { createPageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { Award, Briefcase, Code, Mail } from "lucide-react";
@@ -26,7 +25,7 @@ export const metadata = createPageMetadata({
 export default function PortfolioPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
+      
 
       <main className="portfolio-container py-10 sm:py-12">
         {/* Header Section */}
@@ -260,8 +259,9 @@ function ProjectCard({
         rel={link.startsWith("http") ? "noopener noreferrer" : undefined}
         className="shamrock-link font-semibold"
       >
-        View Project →
+        View Project â†’
       </a>
     </div>
   );
 }
+
