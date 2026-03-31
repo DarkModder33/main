@@ -1,19 +1,19 @@
 export const GUITAR_PRICING = {
   beginner: {
     price: 50,
-    package: 180,
+    package: 200,
     label: "Beginner Archetype"
   },
   intermediate: {
-    price: 75,
-    package: 270,
+    price: 50,
+    package: 200,
     label: "Intermediate Shred"
   },
   advanced: {
-    price: 100,
-    package: 360,
+    price: 50,
+    package: 200,
     label: "Advanced Mastery"
   }
 };
 
-// Updated 2026-03-22 to ensure deployment
+// Updated 2026-03-24 - All guitar lessons now $50/session

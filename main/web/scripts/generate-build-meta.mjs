@@ -1,38 +1,33 @@
-import { execSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+#!/usr/bin/env node
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-function safeGitSha() {
-  try {
-    return execSync("git rev-parse --verify HEAD", { stdio: ["ignore", "pipe", "ignore"] })
-      .toString()
-      .trim();
-  } catch {
-    return "unknown";
-  }
-}
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const buildMetaPath = path.join(__dirname, '../public/__build.json');
 
-const commitSha =
-  process.env.VERCEL_GIT_COMMIT_SHA ||
-  process.env.GIT_COMMIT_SHA ||
-  safeGitSha();
-
-const payload = {
-  commitSha,
-  shortSha: commitSha === "unknown" ? "unknown" : commitSha.slice(0, 12),
-  generatedAt: new Date().toISOString(),
-  buildSource: process.env.VERCEL === "1" ? "vercel" : "local",
-  branch: process.env.VERCEL_GIT_COMMIT_REF || process.env.GIT_BRANCH || null,
+const buildMeta = {
+  timestamp: new Date().toISOString(),
+  nodeVersion: process.version,
+  npmVersion: process.env.npm_package_version || 'unknown',
+  buildId: process.env.VERCEL_BUILD_ID || `local-${Date.now()}`,
+  deploymentUrl: process.env.VERCEL_URL || 'localhost:3000',
+  environment: process.env.NODE_ENV || 'development',
+  git: {
+    sha: process.env.VERCEL_GIT_COMMIT_SHA || 'unknown',
+    branch: process.env.VERCEL_GIT_COMMIT_REF || 'local',
+  },
 };
 
-const outputFile = resolve(__dirname, "../public/__build.json");
-mkdirSync(dirname(outputFile), { recursive: true });
-writeFileSync(outputFile, JSON.stringify(payload, null, 2) + "\n", "utf8");
+// Ensure directory exists
+const dir = path.dirname(buildMetaPath);
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true });
+}
 
-console.log(`[build-meta] wrote ${outputFile}`);
-console.log(`[build-meta] commit: ${payload.shortSha}`);
+// Write build metadata
+fs.writeFileSync(buildMetaPath, JSON.stringify(buildMeta, null, 2));
 
+console.log(`✓ Build metadata generated: ${buildMetaPath}`);
+console.log(JSON.stringify(buildMeta, null, 2));
