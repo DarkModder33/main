@@ -4,14 +4,13 @@ import { createPageMetadata } from "@/lib/seo";
 import {
     ArrowRight,
     BookOpen,
-    CheckCircle2,
     Guitar,
     Medal,
     Music2,
     Sparkles,
     Trophy,
     Users,
-    Video,
+    Video
 } from "lucide-react";
 
 export const metadata = createPageMetadata({
@@ -164,112 +163,22 @@ export default function MusicPage() {
           </div>
         </section>
 
-        {/* Lesson Packages Preview */}
-        <section className="theme-panel p-6 sm:p-8 mb-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase italic mb-3">Choose Your Path</h2>
-            <p className="text-zinc-300">All lesson packages start at $75 per session. Choose the plan that matches your goals.</p>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-6">
-            {/* Beginner */}
-            <div className="border border-white/10 rounded-xl p-6 bg-gradient-to-br from-emerald-950/20 to-black hover:border-emerald-500/30 transition-all">
-              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-xl bg-emerald-500/10">
-                <Guitar className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Start Your Journey</h3>
-              <p className="text-center text-zinc-400 text-sm mb-4">Beginner Package</p>
-              <div className="text-center mb-4">
-                <p className="text-3xl font-black text-white">$75</p>
-                <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
-              </div>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Basic guitar fundamentals</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Chord progressions & strumming</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Song tutorials & practice exercises</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Intermediate */}
-            <div className="border border-cyan-500/30 rounded-xl p-6 bg-gradient-to-br from-cyan-950/30 to-black relative">
-              <div className="absolute -top-3 right-4 px-3 py-1 bg-cyan-500 text-black text-xs font-bold uppercase rounded-full">
-                Popular
-              </div>
-              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-xl bg-cyan-500/10">
-                <Music2 className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Level Up Your Skills</h3>
-              <p className="text-center text-zinc-400 text-sm mb-4">Intermediate Package</p>
-              <div className="text-center mb-4">
-                <p className="text-3xl font-black text-white">$75</p>
-                <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
-              </div>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                  <span>Advanced techniques & theory</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                  <span>Improvisation & genre specialization</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                  <span>Priority scheduling & recording tips</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Advanced */}
-            <div className="border border-white/10 rounded-xl p-6 bg-gradient-to-br from-purple-950/20 to-black hover:border-purple-500/30 transition-all">
-              <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-xl bg-purple-500/10">
-                <Trophy className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Master the Craft</h3>
-              <p className="text-center text-zinc-400 text-sm mb-4">Advanced Package</p>
-              <div className="text-center mb-4">
-                <p className="text-3xl font-black text-white">$75</p>
-                <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
-              </div>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
-                  <span>Professional techniques & performance</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
-                  <span>Songwriting & studio production</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm text-zinc-300">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
-                  <span>Industry insights & priority support</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="text-center mt-8">
-            <TrackedCtaLink
-              href="/music/lessons"
-              conversionId="open_music_lessons"
-              surface="music:packages"
-              conversionContext={{ placement: "packages_section", variant: "view_all", audience: "all" }}
-              className="theme-cta theme-cta--loud px-6 py-3 inline-flex items-center gap-2"
-            >
-              View Full Details & Book
-              <ArrowRight className="w-4 h-4" />
-            </TrackedCtaLink>
-          </div>
+        {/* Lesson Packages CTA */}
+        <section className="theme-panel p-8 sm:p-12 text-center mb-8 border-l-4 border-l-cyan-500">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase italic mb-4">Ready to Start?</h2>
+          <p className="text-zinc-300 text-lg max-w-2xl mx-auto mb-6">
+            All lesson packages start at $75 per session. View detailed pricing, book your first lesson, and start your guitar journey.
+          </p>
+          <TrackedCtaLink
+            href="/music/lessons"
+            conversionId="open_music_lessons"
+            surface="music:packages"
+            conversionContext={{ placement: "packages_section", variant: "view_all", audience: "all" }}
+            className="theme-cta theme-cta--loud px-8 py-3 inline-flex items-center gap-2"
+          >
+            View Lesson Packages
+            <ArrowRight className="w-4 h-4" />
+          </TrackedCtaLink>
         </section>
 
         {/* Milestone Rewards Preview */}
