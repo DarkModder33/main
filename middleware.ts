@@ -52,7 +52,15 @@ function edgeAllow(request: NextRequest, keyPrefix: string, max: number, windowM
  *    components can personalise without a client round-trip.
  */
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, host } = request.nextUrl;
+
+  // Domain redirect: tradehax.net -> www.tradehax.net
+  if (host === 'tradehax.net') {
+    const url = request.nextUrl.clone();
+    url.host = 'www.tradehax.net';
+    return NextResponse.redirect(url, 301);
+  }
+
   const response = NextResponse.next();
 
   // ── 1. API routes – no public caching ────────────────────────────────────
