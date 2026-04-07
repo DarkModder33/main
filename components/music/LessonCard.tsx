@@ -39,7 +39,7 @@ export function LessonCard({
       </div>
       <div className="mb-6">
         <p className="text-3xl font-bold text-white mb-1">{price}</p>
-        <p className="text-gray-400 text-sm">or {packagePrice} for 4 lessons</p>
+        <p className="text-gray-400 text-sm">or {packagePrice}</p>
       </div>
       <ul className="space-y-3 mb-6">
         {features.map((feature) => (
