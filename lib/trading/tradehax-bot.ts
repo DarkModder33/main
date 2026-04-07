@@ -4,13 +4,16 @@
  */
 
 import {
-  ChainTradingAdapter,
-  ensureDefaultChainAdapter,
-  getChainAdapter,
-  resolveDefaultAdapterId,
+    ChainTradingAdapter,
+    ensureDefaultChainAdapter,
+    getChainAdapter,
+    resolveDefaultAdapterId,
 } from "@/lib/trading/chain-adapter";
 
-import { SIGNAL_THRESHOLDS } from "../../main/web/src/lib/signal-parameters";
+const SIGNAL_THRESHOLDS = {
+  cooldownPeriodMs: 60000, // 1 minute
+  minSignalConfidence: 0.7,
+};
 
 export interface TradeSignal {
   symbol: string;

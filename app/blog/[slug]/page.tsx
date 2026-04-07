@@ -1,8 +1,7 @@
-import { ShamrockHeader } from '@/components/shamrock/ShamrockHeader';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
+import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock, InContentAd } from '@/components/monetization/AdSenseBlock';
 import { PremiumBanner } from '@/components/monetization/PremiumUpgrade';
-import { EmailCapture } from '@/components/EmailCapture';
+import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { getAllBlogPosts, getBlogPostBySlug } from '@/lib/content/blog-posts';
 import { Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -52,8 +51,7 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <ShamrockHeader />
-      
+
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="mb-12">
           <div className="mb-6">
@@ -82,7 +80,7 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
             <AdSenseBlock adSlot="blog-post-top" adFormat="horizontal" />
           </div>
 
-          <div 
+          <div
             className="prose prose-invert prose-lg max-w-none prose-headings:text-white prose-p:text-gray-300"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
