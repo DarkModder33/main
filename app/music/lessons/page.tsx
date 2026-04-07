@@ -14,16 +14,16 @@ import type { ReactNode } from 'react';
 export const metadata = createPageMetadata({
   title: 'Book Online Guitar Lessons | TradeHax AI',
   description:
-    'Fortress-themed AI guitar lesson hub with gamified milestones, crypto-linked rewards roadmap, and zero-cost embedded lesson rooms.',
+    'Book private online guitar lessons with founder-led instruction, AI-informed practice plans, and transparent lesson pricing.',
   path: '/music/lessons',
   keywords: [
     'online guitar lessons',
     'ai guitar lessons',
-    'gamified guitar lessons',
-    'celtic nordic guitar academy',
     'guitar lessons philadelphia',
     'remote guitar teacher',
-    'beginner guitar lessons',
+    'lesson packages',
+    'founder-led coaching',
+    'guitar instruction',
     'advanced guitar coaching',
   ],
 });
@@ -31,7 +31,7 @@ export const metadata = createPageMetadata({
 export default function LessonsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-[#071017] to-black">
-      
+
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Link */}
@@ -48,14 +48,14 @@ export default function LessonsPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(16,185,129,0.22),transparent_40%),radial-gradient(circle_at_84%_30%,rgba(34,211,238,0.18),transparent_36%)]" />
           <div className="relative z-10 text-center">
             <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-4 py-1 text-[11px] uppercase tracking-[0.22em] text-emerald-200">
-              <Shield className="h-3.5 w-3.5" /> Celtic â€¢ Germanic â€¢ Nordic Digital Fortress
+              <Shield className="h-3.5 w-3.5" /> Private studio coaching with progress tracking
             </p>
             <h1 className="mt-5 text-4xl md:text-6xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-200 to-cyan-400">
-              Guitar Lessons Are The Heart
+              Guitar Lessons Are the Core Service
             </h1>
             <p className="mt-5 text-lg text-cyan-100/85 max-w-4xl mx-auto leading-relaxed">
-              Elite guitar coaching with AI-assisted lesson plans, milestone rewards, and clear weekly progression.
-              The goal is simple: make measurable progress every session.
+              Elite guitar coaching with AI-informed practice plans, milestone progress tracking, and clear weekly outcomes.
+              Sessions start at $75 each and are delivered with direct founder-led attention.
             </p>
             <p className="mt-3 text-sm uppercase tracking-[0.2em] text-emerald-200/85">
               Single-Teacher Promise: every lesson is taught directly by the TradeHax founder.
@@ -73,7 +73,7 @@ export default function LessonsPage() {
         <div className="grid gap-4 sm:grid-cols-3 mb-16">
           <FortressPillar icon={<Swords className="h-5 w-5" />} title="Skill First" text="Guitar mastery is the primary trust signal that brings students and future clients into your ecosystem." />
           <FortressPillar icon={<BrainCircuit className="h-5 w-5" />} title="AI Smart Lessons" text="Adaptive practice plans, progression checkpoints, and goal-focused coaching prompts each week." />
-          <FortressPillar icon={<Gem className="h-5 w-5" />} title="Reward Economy" text="Milestones prepare students for NFT badges, crypto rewards, and gamified community progression." />
+          <FortressPillar icon={<Gem className="h-5 w-5" />} title="Progress Tracking" text="Milestones prepare students for consistent progress, meaningful feedback, and clearer next steps." />
         </div>
 
         <section className="mb-16 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-black via-emerald-950/20 to-cyan-950/20 p-6 sm:p-8">
@@ -136,8 +136,8 @@ export default function LessonsPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <PipelineStep step="01" title="Intake + Baseline" text="Capture goals, playing level, and musical taste. Generate a personalized roadmap." />
             <PipelineStep step="02" title="Weekly Battle Plan" text="AI-guided drills, songs, and timing targets with measurable outcomes for each session." />
-            <PipelineStep step="03" title="Session Execution" text="Live instruction in the fortress studio with option for teacher-only, duet, or group formats." />
-            <PipelineStep step="04" title="XP + Rewards" text="Track streaks, unlock badges, and prepare milestone metadata for future NFT/reward issuance." />
+            <PipelineStep step="03" title="Session Execution" text="Live instruction in the studio with option for teacher-only, duet, or group formats." />
+            <PipelineStep step="04" title="Progress + Rewards" text="Track streaks, unlock achievement markers, and build follow-up practice momentum." />
           </div>
         </section>
 
@@ -181,8 +181,8 @@ export default function LessonsPage() {
             <LessonCard
               title="Start Your Journey"
               level="Beginner Package"
-              price="$50"
-              packagePrice="$180 for 4 lessons"
+              price="$75"
+              packagePrice="$270 for 4 lessons"
               features={[
                 'Basic guitar fundamentals',
                 'Chord progressions',
@@ -212,8 +212,8 @@ export default function LessonsPage() {
             <LessonCard
               title="Master the Craft"
               level="Advanced"
-              price="$100"
-              packagePrice="$360 for 4 lessons"
+              price="$75"
+              packagePrice="$270 for 4 lessons"
               features={[
                 'Professional techniques',
                 'Performance coaching',
@@ -235,40 +235,39 @@ export default function LessonsPage() {
         <section id="reward-forge" className="scroll-mt-24 bg-gradient-to-br from-[#0f172a]/70 via-black to-[#042f2e]/50 border border-emerald-500/30 rounded-2xl p-6 sm:p-8 mb-16">
           <div className="mb-6 flex items-center gap-2 text-emerald-200">
             <Trophy className="h-5 w-5" />
-            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wide">Reward Forge Milestones</h2>
+            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-wide">Progress Milestones</h2>
           </div>
           <p className="text-cyan-100/80 mb-6 max-w-4xl">
-            Industry-standard approach: start with transparent milestones and non-financial recognition, then progressively attach crypto utility
-            as compliance and token mechanics mature. This keeps your overhead low while building strong retention loops.
+            Transparent milestones and achievement markers help keep every lesson on track, with practical review points and clear next steps.
           </p>
           <p className="text-xs uppercase tracking-[0.18em] text-emerald-200/80 mb-6">
-            One teacher Â· one standard Â· consistent coaching lineage
+            One teacher · one standard · consistent coaching lineage
           </p>
 
           <div className="grid gap-3 md:grid-cols-2">
             <MilestoneCard
-              milestone="Rune I"
+              milestone="Phase 1"
               achievement="First 4 lessons completed"
-              reward="Digital badge + referral unlock"
-              impact="Improves retention and referrals"
+              reward="Completion badge + next-step review"
+              impact="Improves retention and confidence"
             />
             <MilestoneCard
-              milestone="Rune II"
+              milestone="Phase 2"
               achievement="First song performed cleanly"
-              reward="NFT-ready certificate metadata"
-              impact="Creates shareable social proof"
+              reward="Progress certificate + performance feedback"
+              impact="Creates shareable proof of skill"
             />
             <MilestoneCard
-              milestone="Rune III"
+              milestone="Phase 3"
               achievement="12-lesson streak + review"
-              reward="Priority booking + bonus AI plan"
-              impact="Improves LTV and upsell readiness"
+              reward="Priority booking + follow-up plan"
+              impact="Strengthens progress and momentum"
             />
             <MilestoneCard
-              milestone="Legend Tier"
+              milestone="Advanced"
               achievement="Original songwriting showcase"
-              reward="Featured artist slot + utility candidate"
-              impact="Builds authority and community growth"
+              reward="Performance spotlight + mentorship review"
+              impact="Builds authority and creative growth"
             />
           </div>
         </section>

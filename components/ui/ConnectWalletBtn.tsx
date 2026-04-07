@@ -33,7 +33,7 @@ export const ConnectWalletBtn = () => {
       onClick={connect}
       className="px-6 py-2 bg-white text-black text-xs font-black rounded-full hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
     >
-      CONNECT_SYSTEM
+      Connect Wallet
     </button>
   );
 };

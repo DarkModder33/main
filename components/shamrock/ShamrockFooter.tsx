@@ -277,18 +277,7 @@ export function ShamrockFooter() {
             <p className="text-xs text-[#7f8fac]">
               &copy; {currentYear} TradeHax AI. All rights reserved.
             </p>
-            <div className="flex items-center gap-4">
-              <TrackedCtaLink
-                href={businessProfile.contactLinks.cashApp}
-                conversionId="donate_cashapp"
-                surface="footer:bottom"
-                external
-                className="text-[10px] font-mono text-emerald-400 hover:text-emerald-300 transition-colors"
-              >
-                Donate: {businessProfile.cashAppTag}
-              </TrackedCtaLink>
             </div>
-          </div>
           <p className="text-xs text-[#7f8fac]">
             Built for fast booking, clear service selection, and measurable outcomes.
           </p>

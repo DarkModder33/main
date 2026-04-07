@@ -2,16 +2,16 @@
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle2,
-  Guitar,
-  Medal,
-  Music2,
-  Sparkles,
-  Trophy,
-  Users,
-  Video,
+    ArrowRight,
+    BookOpen,
+    CheckCircle2,
+    Guitar,
+    Medal,
+    Music2,
+    Sparkles,
+    Trophy,
+    Users,
+    Video,
 } from "lucide-react";
 
 export const metadata = createPageMetadata({
@@ -34,7 +34,7 @@ export const metadata = createPageMetadata({
 export default function MusicPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 md:pb-14">
         {/* Hero Section */}
         <section className="theme-panel p-8 sm:p-12 md:p-16 mb-8 text-center">
@@ -112,7 +112,7 @@ export default function MusicPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Milestone Reward System</h3>
                 <p className="text-sm text-zinc-400">
-                  Track your progress with badges, achievement milestones, and NFT-ready certificates
+                  Track your progress with badges, achievement milestones, and professional review certificates.
                 </p>
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function MusicPage() {
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-white uppercase italic mb-3">Choose Your Path</h2>
-            <p className="text-zinc-300">Structured packages for beginners, intermediate, and advanced players</p>
+            <p className="text-zinc-300">All lesson packages start at $75 per session. Choose the plan that matches your goals.</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-6">
             {/* Beginner */}
@@ -179,9 +179,9 @@ export default function MusicPage() {
               <h3 className="text-xl font-bold text-white text-center mb-2">Start Your Journey</h3>
               <p className="text-center text-zinc-400 text-sm mb-4">Beginner Package</p>
               <div className="text-center mb-4">
-                <p className="text-3xl font-black text-white">$50</p>
+                <p className="text-3xl font-black text-white">$75</p>
                 <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-emerald-300 mt-1">$180 for 4 lessons</p>
+                <p className="text-sm text-cyan-300 mt-1">$270 for 4 lessons</p>
               </div>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
@@ -238,9 +238,9 @@ export default function MusicPage() {
               <h3 className="text-xl font-bold text-white text-center mb-2">Master the Craft</h3>
               <p className="text-center text-zinc-400 text-sm mb-4">Advanced Package</p>
               <div className="text-center mb-4">
-                <p className="text-3xl font-black text-white">$100</p>
+                <p className="text-3xl font-black text-white">$75</p>
                 <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-purple-300 mt-1">$360 for 4 lessons</p>
+                <p className="text-sm text-cyan-300 mt-1">$270 for 4 lessons</p>
               </div>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
@@ -277,32 +277,32 @@ export default function MusicPage() {
           <div className="flex items-start gap-4 mb-6">
             <Medal className="w-8 h-8 text-amber-400 shrink-0" />
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white uppercase italic mb-2">Milestone Reward System</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white uppercase italic mb-2">Progress Milestones</h2>
               <p className="text-zinc-300 text-sm mb-4">
-                Industry-standard approach: transparent milestones and achievement-based recognition that builds into future crypto utility as the platform matures.
+                Transparent milestones and achievement markers help students track progress, stay accountable, and move forward with confidence.
               </p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="border border-emerald-500/20 rounded-lg p-4 bg-emerald-950/10">
-              <p className="text-xs font-bold uppercase text-emerald-300 mb-2">Rune I</p>
+              <p className="text-xs font-bold uppercase text-emerald-300 mb-2">Phase 1</p>
               <p className="text-sm text-white mb-1">First 4 lessons completed</p>
-              <p className="text-xs text-zinc-400">Digital badge + referral unlock</p>
+              <p className="text-xs text-zinc-400">Completion badge + referral review</p>
             </div>
             <div className="border border-cyan-500/20 rounded-lg p-4 bg-cyan-950/10">
-              <p className="text-xs font-bold uppercase text-cyan-300 mb-2">Rune II</p>
+              <p className="text-xs font-bold uppercase text-cyan-300 mb-2">Phase 2</p>
               <p className="text-sm text-white mb-1">First song performed cleanly</p>
-              <p className="text-xs text-zinc-400">NFT-ready certificate metadata</p>
+              <p className="text-xs text-zinc-400">Certificate of progress + performance feedback</p>
             </div>
             <div className="border border-purple-500/20 rounded-lg p-4 bg-purple-950/10">
-              <p className="text-xs font-bold uppercase text-purple-300 mb-2">Rune III</p>
+              <p className="text-xs font-bold uppercase text-purple-300 mb-2">Phase 3</p>
               <p className="text-sm text-white mb-1">12-lesson streak + review</p>
-              <p className="text-xs text-zinc-400">Priority booking + bonus AI plan</p>
+              <p className="text-xs text-zinc-400">Priority booking + follow-up plan</p>
             </div>
             <div className="border border-amber-500/20 rounded-lg p-4 bg-amber-950/10">
-              <p className="text-xs font-bold uppercase text-amber-300 mb-2">Legend Tier</p>
+              <p className="text-xs font-bold uppercase text-amber-300 mb-2">Advanced</p>
               <p className="text-sm text-white mb-1">Original songwriting showcase</p>
-              <p className="text-xs text-zinc-400">Featured artist slot + utility candidate</p>
+              <p className="text-xs text-zinc-400">Performance spotlight + mentorship review</p>
             </div>
           </div>
         </section>

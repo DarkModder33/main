@@ -3,22 +3,21 @@ import { HomeEngagementTracker } from "@/components/analytics/HomeEngagementTrac
 import { HomeHeroActions } from "@/components/landing/HomeHeroActions";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { DeferredRender } from '@/components/ui/DeferredRender';
-import { GlitchText } from '@/components/ui/GlitchText';
 import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import {
-  ArrowRight,
-  CheckCircle2,
-  CircuitBoard,
-  Guitar,
-  MessageSquare,
-  MonitorSmartphone,
-  Sparkles,
-  Wrench,
+    ArrowRight,
+    CheckCircle2,
+    CircuitBoard,
+    Guitar,
+    MessageSquare,
+    MonitorSmartphone,
+    Sparkles,
+    Wrench,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import Link from 'next/link';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 const LiveActivity = dynamic(
@@ -48,10 +47,10 @@ const Roadmap = dynamic(
 );
 
 export default async function Home() {
-  // Server-side domain check for tradehax.net
+  // Server-side redirect to canonical host when accessing tradehax.net without www
   const host = (await headers()).get('host');
-  if (host && host.includes('tradehax.net')) {
-    redirect('/music');
+  if (host && host.toLowerCase().trim().startsWith('tradehax.net')) {
+    redirect('https://www.tradehax.net/');
   }
 
   return (
@@ -59,22 +58,22 @@ export default async function Home() {
       <HomeEngagementTracker />
       <ExperimentReadoutPanel />
 
-      {/* Hero: "Digital Dynasty" Portal */}
+      {/* Hero: service portfolio */}
       <section className="relative overflow-hidden px-4 sm:px-6 pt-14 sm:pt-20 pb-16 sm:pb-20">
         <div className="absolute top-[-8rem] right-[-6rem] w-[280px] h-[280px] sm:w-[460px] sm:h-[460px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-9rem] left-[-4rem] w-[260px] h-[260px] sm:w-[400px] sm:h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center">
           <div className="theme-panel p-8 sm:p-12 md:p-16">
-            <span className="theme-kicker mb-5">AI Agent Platform</span>
-            <h1 className="text-4xl sm:text-6xl md:text-7xl leading-tight font-black text-white tracking-tighter italic uppercase mb-6 break-words">
-              <GlitchText text="Multiply Your Edge" />
+            <span className="theme-kicker mb-5">Founder-led Services</span>
+            <h1 className="text-4xl sm:text-6xl md:text-7xl leading-tight font-black text-white tracking-tighter uppercase mb-6 break-words">
+              Real website delivery, device support, and private guitar coaching.
             </h1>
             <p className="text-zinc-200 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-2">
-              Deploy AI agents across trading, music, and services.
+              TradeHax AI combines expert service execution with transparent pricing, dependable support, and clear outcomes.
             </p>
             <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-              No coding. No setup. Get your first signal in 60 seconds.
+              Book a lesson, schedule a repair, or launch a website with direct founder-led guidance and no hidden process.
             </p>
 
             <HomeHeroActions scheduleHref={scheduleLinks.root} />
@@ -89,9 +88,9 @@ export default async function Home() {
                 className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-cyan-500/30 transition-all group"
               >
                 <CircuitBoard className="w-6 h-6 text-cyan-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold text-white uppercase mb-2">AI Trading Signals</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-3">For traders: Real-time signals, backtesting, automated execution on Polygon</p>
-                <span className="text-xs text-cyan-400 font-semibold">→ Paper trade risk-free</span>
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Trading Intelligence</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed mb-3">Real-time signals, backtesting support, and practical market workflows.</p>
+                <span className="text-xs text-cyan-400 font-semibold">→ Get clearer signals</span>
               </TrackedCtaLink>
 
               <TrackedCtaLink
@@ -102,9 +101,9 @@ export default async function Home() {
                 className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-purple-500/30 transition-all group"
               >
                 <Guitar className="w-6 h-6 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold text-white uppercase mb-2">AI Music Creation</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-3">For creators: Guitar coach, track generation, distribution automation</p>
-                <span className="text-xs text-purple-400 font-semibold">→ Generate 1 track free</span>
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Music Coaching</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed mb-3">Private guitar lessons, AI-informed practice, and creative skill growth.</p>
+                <span className="text-xs text-purple-400 font-semibold">→ Start learning</span>
               </TrackedCtaLink>
 
               <TrackedCtaLink
@@ -115,9 +114,9 @@ export default async function Home() {
                 className="interactive-surface p-5 rounded-xl border border-white/10 bg-white/[0.02] hover:border-emerald-500/30 transition-all group"
               >
                 <MonitorSmartphone className="w-6 h-6 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold text-white uppercase mb-2">AI Service Delivery</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-3">For builders: Custom agents, service templates, white-label platform</p>
-                <span className="text-xs text-emerald-400 font-semibold">→ Import template</span>
+                <h3 className="text-sm font-bold text-white uppercase mb-2">Digital Services</h3>
+                <p className="text-xs text-zinc-400 leading-relaxed mb-3">Web development, repair, and automation delivered with clear scope.</p>
+                <span className="text-xs text-emerald-400 font-semibold">→ Book support</span>
               </TrackedCtaLink>
             </div>
           </div>

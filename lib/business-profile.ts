@@ -4,9 +4,9 @@ const defaultPhoneE164 = "+18563208570";
 const defaultPhoneDisplay = "(856) 320-8570";
 const defaultEmergencyPhoneE164 = "+16094128878";
 const defaultEmergencyPhoneDisplay = "(609) 412-8878";
-const defaultEmail = "darkmodder33@proton.me";
-const defaultCashAppTag = "$irishLivesMatter";
-const defaultSupportMessage = "You can support our Work CashApp $irishLivesMatter or https://buymeacoffee.com/hackavelli";
+const defaultEmail = "contact@tradehax.net";
+const defaultCashAppTag = "";
+const defaultSupportMessage = "Contact us via email or phone for bookings, questions, and service details.";
 
 const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || defaultEmail;
 const contactPhoneE164 = process.env.NEXT_PUBLIC_CONTACT_PHONE_E164 || defaultPhoneE164;
@@ -33,7 +33,7 @@ const textTemplate =
 const encodedTextTemplate = encodeURIComponent(textTemplate);
 
 const defaultCalendarEmbedUrl =
-  "https://calendar.google.com/calendar/embed?src=darkmodder33%40proton.me&ctz=America%2FNew_York";
+  "https://calendar.google.com/calendar/embed?src=contact%40tradehax.net&ctz=America%2FNew_York";
 
 function normalizeCalendarEmbedUrl(raw?: string) {
   const value = (raw || "").trim();
@@ -80,8 +80,7 @@ export const businessProfile = {
   contactEmail,
   contactPhoneE164,
   contactPhoneDisplay,
-  textPreference:
-    `Call/text primary line ${contactPhoneDisplay}. Overnight emergency line unlock: $${emergencyUnlockDonationUsd} donation. ${supportMessage}`,
+  textPreference: `Call/text primary line ${contactPhoneDisplay}.`,
   emergencyPhoneE164,
   emergencyPhoneDisplay,
   cashAppTag,
@@ -90,7 +89,7 @@ export const businessProfile = {
   contactPolicy: {
     emergencyUnlockDonationUsd,
     emergencyPolicy:
-      "Overnight emergency calls are accepted after donation confirmation to unlock the emergency line.",
+      "Emergency calls are available on request. Please use the booking page for scheduling and support.",
   },
   contactLinks: {
     email: `mailto:${contactEmail}`,
@@ -100,7 +99,7 @@ export const businessProfile = {
     text: `sms:${contactPhoneE164}?body=${encodedTextTemplate}`,
     call: `tel:${contactPhoneE164}`,
     emergencyCall: `tel:${emergencyPhoneE164}`,
-    cashApp: `https://cash.app/${cashAppTag.replace(/^\$/, "")}`,
+    cashApp: cashAppTag ? `https://cash.app/${cashAppTag.replace(/^\$/, "")}` : "",
     buyMeACoffee: buyMeACoffeeUrl,
   },
   socialLinks: {

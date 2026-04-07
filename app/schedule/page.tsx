@@ -216,7 +216,7 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
       <Script id="schedule-page-jsonld" type="application/ld+json" strategy="beforeInteractive">
         {JSON.stringify(schedulePageJsonLd)}
       </Script>
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-20 sm:pb-10">
         <section className="theme-panel p-6 sm:p-8 mb-8">
           <span className="theme-kicker mb-3">Service Booking</span>
@@ -282,15 +282,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
             >
               <Phone className="w-4 h-4" />
               Call Primary Line
-            </TrackedCtaLink>
-            <TrackedCtaLink
-              href={businessProfile.contactLinks.cashApp}
-              conversionId="donate_cashapp"
-              surface="schedule:hero"
-              external
-              className="theme-cta theme-cta--secondary w-full sm:w-auto px-5 py-3"
-            >
-              Unlock Overnight Emergency Line
             </TrackedCtaLink>
           </div>
           <p className="mt-3 text-xs text-[#9ca9c5]">

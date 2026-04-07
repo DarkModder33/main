@@ -12,21 +12,17 @@ import { HyperboreaIntroOverlay } from "@/components/intro/HyperboreaIntroOverla
 import { GamifiedOnboarding } from "@/components/onboarding/GamifiedOnboarding";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { CinematicFxLayer } from "@/components/ui/CinematicFxLayer";
-import { ConnectWalletBtn } from "@/components/ui/ConnectWalletBtn";
 import { CyberCursor } from "@/components/ui/CyberCursor";
-import { GlitchText } from "@/components/ui/GlitchText";
 import { MarketTicker } from "@/components/ui/MarketTicker";
 import { MobileMenu } from "@/components/ui/MobileMenu";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { PrefetchController } from "@/components/ui/PrefetchController";
 import { ServiceWorkerCleanup } from "@/components/ui/ServiceWorkerCleanup";
-import { scheduleLinks } from "@/lib/booking";
-import { businessProfile } from "@/lib/business-profile";
 import { getLocalBusinessJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { WalletProvider } from "@/lib/wallet-provider";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -112,9 +108,38 @@ export default function RootLayout({
   const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
   const safeGaMeasurementId =
     gaMeasurementId && /^G-[A-Z0-9]+$/.test(gaMeasurementId) ? gaMeasurementId : null;
-  const cashAppLink = businessProfile.contactLinks.cashApp;
-  const supportMessage = businessProfile.supportMessage;
-  const buyMeACoffeeLink = businessProfile.contactLinks.buyMeACoffee;
+
+  const navItems = [
+    { label: "Home", href: "/" },
+    {
+      label: "Services",
+      href: "/services",
+      subItems: [
+        { label: "Overview", href: "/services" },
+        { label: "Pricing", href: "/pricing" },
+        { label: "Book", href: "/schedule" },
+      ],
+    },
+    {
+      label: "Music",
+      href: "/music",
+      subItems: [
+        { label: "Lessons", href: "/music/lessons" },
+        { label: "Showcase", href: "/music/showcase" },
+        { label: "Scholarships", href: "/music/scholarships" },
+      ],
+    },
+    {
+      label: "Intelligence",
+      href: "/intelligence",
+      subItems: [
+        { label: "AI Hub", href: "/ai-hub" },
+        { label: "Signals", href: "/intelligence" },
+      ],
+    },
+    { label: "About", href: "/about" },
+    { label: "Schedule", href: "/schedule" },
+  ];
 
   return (
     <html lang="en" className="dark">
@@ -170,28 +195,34 @@ export default function RootLayout({
               >
                 <MarketTicker />
                 <div className="layout-shell container mx-auto h-16 flex items-center justify-between gap-3 sm:gap-4">
-                  <div className="text-xl font-black tracking-tighter cursor-none">
-                    <GlitchText text="TRADEHAX" />
+                  <div className="text-xl font-black tracking-tighter text-white">
+                    TRADEHAX
                   </div>
-                  <div className="hidden md:flex gap-8 text-xs font-bold tracking-widest text-zinc-400">
-                    <Link
-                      href="/ai-hub"
-                      className="rounded-full border border-cyan-400/50 bg-cyan-500/15 px-3 py-1 text-cyan-200 hover:bg-cyan-500/25 hover:text-white transition-colors uppercase"
-                    >
-                      AI Hub
-                    </Link>
-                    <Link href="/tutorials/trading-assistant" className="hover:text-white transition-colors uppercase">Tutorials</Link>
-                    <Link href="/about" className="hover:text-white transition-colors uppercase">About</Link>
-                    <Link href="/music" className="hover:text-white transition-colors uppercase">Music</Link>
-                    <Link href="/intelligence" className="hover:text-white transition-colors uppercase">Intelligence</Link>
-                    <Link href="/billing" className="hover:text-white transition-colors uppercase">Billing</Link>
-                    <Link href="/tokenomics" className="hover:text-white transition-colors uppercase">Tokenomics</Link>
-                    <Link href="/games" className="hover:text-white transition-colors uppercase">Games</Link>
-                    <a href={scheduleLinks.guitarLessons} className="text-cyan-500 hover:text-white transition-colors uppercase">Lessons</a>
-                    <Link href="/tokenomics" className="hover:text-white transition-colors uppercase">Staking</Link>
-                  </div>
-                  <div className="hidden md:block">
-                    <ConnectWalletBtn />
+                  <div className="hidden md:flex items-center gap-4 text-sm font-semibold tracking-[0.12em] text-zinc-200">
+                    {navItems.map((item) => (
+                      <div key={item.label} className="relative group">
+                        <Link
+                          href={item.href}
+                          className="inline-flex items-center gap-1 rounded-full px-4 py-2 text-white/90 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          {item.label}
+                          {item.subItems ? <span className="text-[10px] leading-none">▾</span> : null}
+                        </Link>
+                        {item.subItems ? (
+                          <div className="absolute left-0 top-full z-20 hidden min-w-[220px] rounded-3xl border border-slate-800 bg-slate-950/95 p-3 shadow-[0_16px_48px_rgba(0,0,0,0.35)] group-hover:block group-focus-within:block">
+                            {item.subItems.map((subItem) => (
+                              <Link
+                                key={subItem.label}
+                                href={subItem.href}
+                                className="block rounded-2xl px-3 py-2 text-sm text-zinc-300 hover:bg-slate-900 hover:text-white transition-colors"
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
                   <MobileMenu />
                 </div>
