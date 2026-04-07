@@ -5,28 +5,7 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "crons": [
-    {
-      "path": "/api/cron/ai/export-dataset",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/ai/retrieval-snapshot",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cron/ai/intelligence-ingest",
-      "schedule": "17 */8 * * *"
-    },
-    {
-      "path": "/api/cron/investor-academy/replay-cleanup",
-      "schedule": "*/30 * * * *"
-    },
-    {
-      "path": "/api/cron/trading/signal-cadence",
-      "schedule": "*/15 12-21 * * 1-5"
-    }
-  ],
+  "crons": [],
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
