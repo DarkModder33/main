@@ -182,7 +182,7 @@ export default function LessonsPage() {
               title="Start Your Journey"
               level="Beginner Package"
               price="$75"
-              packagePrice="$270 for 4 lessons"
+              packagePrice="$300 for 4 lessons"
               features={[
                 'Basic guitar fundamentals',
                 'Chord progressions',
@@ -197,7 +197,7 @@ export default function LessonsPage() {
               title="Level Up Your Skills"
               level="Intermediate"
               price="$75"
-              packagePrice="$270 for 4 lessons"
+              packagePrice="$300 for 4 lessons"
               features={[
                 'Advanced techniques',
                 'Music theory basics',
@@ -213,7 +213,7 @@ export default function LessonsPage() {
               title="Master the Craft"
               level="Advanced"
               price="$75"
-              packagePrice="$270 for 4 lessons"
+              packagePrice="$300 for 4 lessons"
               features={[
                 'Professional techniques',
                 'Performance coaching',

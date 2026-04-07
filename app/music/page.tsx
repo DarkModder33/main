@@ -110,7 +110,7 @@ export default function MusicPage() {
                 <Trophy className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <h3 className="text-white font-bold mb-1">Milestone Reward System</h3>
+                <h3 className="text-white font-bold mb-1">Progress Milestones</h3>
                 <p className="text-sm text-zinc-400">
                   Track your progress with badges, achievement milestones, and professional review certificates.
                 </p>
@@ -181,7 +181,7 @@ export default function MusicPage() {
               <div className="text-center mb-4">
                 <p className="text-3xl font-black text-white">$75</p>
                 <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$270 for 4 lessons</p>
+                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
               </div>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
@@ -212,7 +212,7 @@ export default function MusicPage() {
               <div className="text-center mb-4">
                 <p className="text-3xl font-black text-white">$75</p>
                 <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$270 for 4 lessons</p>
+                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
               </div>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
@@ -240,7 +240,7 @@ export default function MusicPage() {
               <div className="text-center mb-4">
                 <p className="text-3xl font-black text-white">$75</p>
                 <p className="text-xs text-zinc-400">per lesson</p>
-                <p className="text-sm text-cyan-300 mt-1">$270 for 4 lessons</p>
+                <p className="text-sm text-cyan-300 mt-1">$300 for 4 lessons</p>
               </div>
               <ul className="space-y-2 mb-6">
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
