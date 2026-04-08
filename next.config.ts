@@ -120,7 +120,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Webpack configuration - Maximum permissiveness
+  // Cache busting - Force Vercel to refresh
+  // Updated: Apr 8 2026
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
