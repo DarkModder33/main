@@ -1,6 +1,0 @@
-{
-  "setup_script": "npm install",
-  "dev_script": "npm run dev",
-  "verification_script": "npm run pipeline:quality",
-  "copy_files": [".env.local"]
-}
