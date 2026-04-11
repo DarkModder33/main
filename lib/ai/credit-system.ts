@@ -1,4 +1,3 @@
-import { HAX_TOKEN_CONFIG } from "../trading/hax-token";
 
 /**
  * TradeHax Credit & Token System
@@ -7,7 +6,6 @@ import { HAX_TOKEN_CONFIG } from "../trading/hax-token";
 export interface UserCredits {
   userId: string;
   balance: number;
-  tokenBalance?: number; // Real $HAX token balance
 }
 
 const CREDIT_COSTS = {
@@ -594,23 +592,4 @@ export async function listCreditLedgerEntries(input?: { userId?: string; limit?:
 
 export function listCreditPacks() {
   return AI_CREDIT_PACKS;
-}
-
-/**
- * Native asset settlement integration (chain-agnostic)
- * Deducts $HAX-equivalent units for high-performance requests.
- */
-export async function deductTokens(walletAddress: string, amount: number) {
-  console.log(`[NATIVE_ASSET] Charging ${amount} ${HAX_TOKEN_CONFIG.SYMBOL} to ${walletAddress} (Asset: ${HAX_TOKEN_CONFIG.ASSET_ID})`);
-
-  // Real implementation should submit settlement intent to your chain/L2 settlement service.
-  // 1. Resolve source account
-  // 2. Build native transfer/settlement intent
-  // 3. Return unsigned payload or execution reference
-
-  return {
-    txId: "native_settlement_reference_placeholder",
-    assetId: HAX_TOKEN_CONFIG.ASSET_ID,
-    status: "pending_settlement"
-  };
 }

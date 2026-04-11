@@ -10,7 +10,6 @@ import {
 import { NextResponse } from "next/server";
 
 const SAFE_ID_REGEX = /^[a-zA-Z0-9._:-]{1,128}$/;
-const SAFE_COLLECTION_REGEX = /^[a-zA-Z0-9._:/-]{1,160}$/;
 
 function isSafeId(value: string) {
   return SAFE_ID_REGEX.test(value);
@@ -64,8 +63,6 @@ function isArtifactCollectionEvent(value: unknown, request: Request): value is A
     isFiniteNumberInRange(event.tokenRewardUnits, 0, 250_000) &&
     typeof event.claimEndpoint === "string" &&
     endpointMatchesRequest(event.claimEndpoint, request) &&
-    typeof event.web5Collection === "string" &&
-    SAFE_COLLECTION_REGEX.test(event.web5Collection) &&
     isIsoDateString(event.collectedAt) &&
     utilityFieldsValid
   );
@@ -121,8 +118,8 @@ export async function POST(request: Request) {
         queuedAt: new Date().toISOString(),
         settlement: {
           status: "queued",
-          mode: "web5-preclaim",
-          networkHint: "l2-staging",
+          mode: "preclaim",
+          networkHint: "staging",
         },
         claimRecord: {
           levelId: payload.levelId,
@@ -132,7 +129,6 @@ export async function POST(request: Request) {
           utilityPointsAfterEvent: payload.utilityPointsAfterEvent ?? null,
           utilityTokenBonusUnits: payload.utilityTokenBonusUnits ?? 0,
           lockedAtPickup: payload.lockedAtPickup ?? false,
-          collection: payload.web5Collection,
         },
       },
       { headers: withBaseHeaders(rate.headers) },

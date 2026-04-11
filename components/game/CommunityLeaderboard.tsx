@@ -1,17 +1,17 @@
 "use client";
 
 const rewardTiers = [
-  { tier: "DIAMOND", range: "Rank 1-3", reward: "5,000 $HAX", color: "text-cyan-400" },
-  { tier: "PLATINUM", range: "Rank 4-10", reward: "2,500 $HAX", color: "text-purple-400" },
-  { tier: "GOLD", range: "Rank 11-50", reward: "1,000 $HAX", color: "text-yellow-400" },
+  { tier: "DIAMOND", range: "Rank 1-3", reward: "Top Rewards", color: "text-cyan-400" },
+  { tier: "PLATINUM", range: "Rank 4-10", reward: "Premium Rewards", color: "text-purple-400" },
+  { tier: "GOLD", range: "Rank 11-50", reward: "Standard Rewards", color: "text-yellow-400" },
 ];
 
 const mockLeaders = [
-  { rank: 1, wallet: "0x74...f2e", score: 2450800, badge: "MASTER_BREACHER" },
-  { rank: 2, wallet: "0x12...9bc", score: 1890200, badge: "NODE_RUNNER" },
-  { rank: 3, wallet: "0x88...a12", score: 1420500, badge: "CORE_HACKER" },
-  { rank: 4, wallet: "0x45...d44", score: 980100, badge: "SCRIPTER" },
-  { rank: 5, wallet: "0x22...e90", score: 750300, badge: "SCRIPTER" },
+  { rank: 1, player: "Player_74", score: 2450800, badge: "MASTER_BREACHER" },
+  { rank: 2, player: "Player_12", score: 1890200, badge: "NODE_RUNNER" },
+  { rank: 3, player: "Player_88", score: 1420500, badge: "CORE_HACKER" },
+  { rank: 4, player: "Player_45", score: 980100, badge: "SCRIPTER" },
+  { rank: 5, player: "Player_22", score: 750300, badge: "SCRIPTER" },
 ];
 
 export const CommunityLeaderboard = () => {
@@ -24,8 +24,8 @@ export const CommunityLeaderboard = () => {
         </div>
         <div className="flex gap-4">
           <div className="p-4 bg-zinc-900/50 rounded-xl border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase mb-1">Total_Prize_Pool</p>
-            <p className="text-xl font-black text-white italic">250,000 $HAX</p>
+            <p className="text-[10px] text-zinc-500 uppercase mb-1">Season_Reward_Pool</p>
+            <p className="text-xl font-black text-white italic">Season Prizes</p>
           </div>
           <div className="p-4 bg-zinc-900/50 rounded-xl border border-white/5">
             <p className="text-[10px] text-zinc-500 uppercase mb-1">Time_Remaining</p>
@@ -51,7 +51,7 @@ export const CommunityLeaderboard = () => {
       <div className="space-y-2">
         <div className="grid grid-cols-5 px-6 py-2 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
           <span className="col-span-1">Rank</span>
-          <span className="col-span-2">Operator_Wallet</span>
+          <span className="col-span-2">Player</span>
           <span className="col-span-1 text-right">High_Score</span>
           <span className="col-span-1 text-right">Status</span>
         </div>
@@ -64,7 +64,7 @@ export const CommunityLeaderboard = () => {
               </span>
             </div>
             <div className="col-span-2">
-              <p className="text-white font-mono text-sm group-hover:text-cyan-400 transition-colors cursor-pointer">{l.wallet}</p>
+              <p className="text-white font-mono text-sm group-hover:text-cyan-400 transition-colors cursor-pointer">{l.player}</p>
               <p className="text-[9px] text-zinc-600 uppercase tracking-tighter">{l.badge}</p>
             </div>
             <div className="col-span-1 text-right">

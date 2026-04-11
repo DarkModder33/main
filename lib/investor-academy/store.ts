@@ -1668,7 +1668,7 @@ function getModuleRewardTotals(completedModuleIds: string[]) {
       continue;
     }
     moduleXp += moduleItem.xpReward;
-    moduleHax += moduleItem.haxReward;
+    moduleHax += moduleItem.creditReward;
   }
 
   return { moduleXp, moduleHax };

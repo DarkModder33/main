@@ -1,10 +1,8 @@
 ﻿"use client";
 
-import { WalletButton } from "@/components/counter/WalletButton";
 import { GameAudio } from "@/components/game/GameAudio";
 import { GameHUD } from "@/components/game/GameHUD";
 import { HyperboreaGame } from "@/components/game/HyperboreaGame";
-import { NFTMintPanel } from "@/components/game/NFTMintPanel";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { PremiumUpgrade } from "@/components/monetization/PremiumUpgrade";
 import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
@@ -18,7 +16,6 @@ import type {
   HyperboreaLevelDefinition,
 } from "@/lib/game/level-types";
 import { isHyperboreaLevelDefinition } from "@/lib/game/level-types";
-import { useWallet } from "@/lib/wallet-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Gamepad2,
@@ -104,10 +101,7 @@ export default function GamePage() {
   const [showControlCoach, setShowControlCoach] = useState(false);
   const [playerAlias, setPlayerAlias] = useState("Guest");
   const pressedControlsRef = useRef<Set<Exclude<ControlAction, "use">>>(new Set());
-  const { status: walletStatus, address } = useWallet();
   const { data: session } = useSession();
-  const walletConnected = walletStatus === "CONNECTED";
-  const walletAddress = address ?? undefined;
 
   const topArtifacts = useMemo(() => artifactFeed.slice(0, 3), [artifactFeed]);
   const oauthProvider = useMemo(() => {
@@ -415,7 +409,7 @@ export default function GamePage() {
     async (event: ArtifactCollectionEvent) => {
       setArtifactFeed((previous) => [event, ...previous].slice(0, 8));
 
-      // Persistent Web5-style local storage for artifact collection
+      // Persistent local storage for artifact collection
       if (typeof window !== "undefined") {
         try {
           const stored = localStorage.getItem("hyperborea_vault_v1") || "[]";
@@ -428,7 +422,7 @@ export default function GamePage() {
           });
           localStorage.setItem("hyperborea_vault_v1", JSON.stringify(vault.slice(-100)));
         } catch (e) {
-          console.error("Web5 vault sync error", e);
+          console.error("Vault sync error", e);
         }
       }
 
@@ -451,8 +445,8 @@ export default function GamePage() {
         }
 
         setClaimFeedback(
-          `Relic ${event.lockedAtPickup ? "capture" : "claim"} queued: ${event.artifactName} (+${event.tokenRewardUnits} ${tokenConfig.l2TokenSymbol})${event.utilityTokenBonusUnits
-            ? ` | Utility snapshot: ${event.utilityTokenBonusUnits} ${tokenConfig.l2TokenSymbol}`
+          `Relic ${event.lockedAtPickup ? "capture" : "claim"} queued: ${event.artifactName} (+${event.tokenRewardUnits} reward pts)${event.utilityTokenBonusUnits
+            ? ` | Utility snapshot: ${event.utilityTokenBonusUnits} bonus pts`
             : ""
           }`,
         );
@@ -538,12 +532,6 @@ export default function GamePage() {
     setIsPaused((value) => !value);
   };
 
-  const handleMintNFT = async (skinId: number) => {
-    // NFT minting logic will be implemented when backend is ready
-    console.log("Minting NFT skin:", skinId);
-    // This would call the backend API for NFT minting
-  };
-
   const handleScoreChange = useCallback((newScore: number, newCombo: number) => {
     setScore(newScore);
     setCombo(newCombo);
@@ -575,8 +563,6 @@ export default function GamePage() {
         displayName: playerAlias.trim() || "Guest",
         oauthProvider,
         oauthUserId: oauthIdentity,
-        walletAddress,
-        web5Enabled: Boolean(walletAddress),
       };
 
       const entry: LeaderboardEntry = {
@@ -584,8 +570,6 @@ export default function GamePage() {
         displayName: submission.displayName,
         oauthProvider: submission.oauthProvider,
         oauthUserId: submission.oauthUserId,
-        walletAddress: submission.walletAddress,
-        web5Enabled: Boolean(submission.web5Enabled && submission.walletAddress),
         levelId: summary.levelId,
         score: Math.round(summary.score),
         combo: Math.round(summary.combo),
@@ -646,7 +630,7 @@ export default function GamePage() {
 
       void submit();
     },
-    [oauthIdentity, oauthProvider, playerAlias, walletAddress],
+    [oauthIdentity, oauthProvider, playerAlias],
   );
 
   const handleInteractionHintChange = useCallback(
@@ -742,10 +726,9 @@ export default function GamePage() {
           score={score}
           combo={combo}
           activePowerUps={activePowerUps}
-          walletConnected={walletConnected}
           utilityPoints={utilityPoints}
           projectedTokenUnits={projectedUtilityUnits}
-          tokenSymbol={activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+          tokenSymbol="pts"
           elapsedSeconds={elapsedSeconds}
           objectiveProgress={objectiveProgress}
         />
@@ -766,7 +749,7 @@ export default function GamePage() {
                 <div className="text-[10px] uppercase tracking-wide text-emerald-300/90">Utility</div>
                 <div className="font-bold leading-tight break-words text-[10px] sm:text-[12px]">
                   <span className="block">
-                    {projectedUtilityUnits} {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"} proj
+                    {projectedUtilityUnits} pts proj
                   </span>
                   <span className="hidden sm:block">{utilityPoints.toLocaleString()} pts</span>
                 </div>
@@ -795,19 +778,10 @@ export default function GamePage() {
                 max={100}
               />
               <div className="mt-1 text-[10px] sm:text-[11px] text-emerald-200/90">
-                {pointsToNextToken} utility pts to next projected{" "}
-                {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"} reward unit
+                {pointsToNextToken} utility pts to next projected reward unit
               </div>
             </div>
           </div>
-        </div>
-
-        {/* NFT Minting Panel - Hidden on mobile */}
-        <div className="hidden lg:block">
-          <NFTMintPanel
-            walletConnected={walletConnected}
-            onMintNFT={handleMintNFT}
-          />
         </div>
 
         {/* Audio Control */}
@@ -825,7 +799,7 @@ export default function GamePage() {
                 {activeLevel.artifacts.length}
               </div>
               <div className="text-emerald-100/70">
-                Rewards network: {activeLevel.tokenConfig.l2TokenSymbol} on {activeLevel.tokenConfig.l2Network}
+                Level: {activeLevel.name}
               </div>
               <div className="text-emerald-100">
                 Score: {score.toLocaleString()} | Combo: {combo}x
@@ -837,8 +811,8 @@ export default function GamePage() {
                 </div>
               )}
               <div className="text-emerald-100/80">
-                Utility points: {utilityPoints.toLocaleString()} | Projected token units:{" "}
-                {projectedUtilityUnits} {activeLevel.tokenConfig.l2TokenSymbol}
+                Utility points: {utilityPoints.toLocaleString()} | Projected reward units:{" "}
+                {projectedUtilityUnits}
               </div>
             </div>
           )}
@@ -850,16 +824,14 @@ export default function GamePage() {
             >
               <div className="font-semibold">{artifact.artifactName}</div>
               <div>
-                {artifact.pantheon.toUpperCase()} | +{artifact.tokenRewardUnits}{" "}
-                {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+                {artifact.pantheon.toUpperCase()} | +{artifact.tokenRewardUnits} reward pts
                 {artifact.lockedAtPickup ? " | Dormant" : ""}
               </div>
               {typeof artifact.utilityPointsAfterEvent === "number" && (
                 <div>
                   Utility: {artifact.utilityPointsAfterEvent.toLocaleString()} pts
                   {artifact.utilityTokenBonusUnits
-                    ? ` | ${artifact.utilityTokenBonusUnits} projected ${activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"
-                    }`
+                    ? ` | ${artifact.utilityTokenBonusUnits} projected bonus`
                     : ""}
                 </div>
               )}
@@ -907,7 +879,7 @@ export default function GamePage() {
           </button>
         </div>
 
-        {/* OAuth + Web5 Controls */}
+        {/* OAuth Controls */}
         <div className="absolute top-[max(0.6rem,env(safe-area-inset-top))] left-4 sm:left-auto sm:right-[22rem] z-20 pointer-events-auto max-[900px]:hidden">
           <div className="theme-floating-panel theme-floating-panel--success px-3 py-2 text-xs text-emerald-100 space-y-2 min-w-[220px]">
             <div className="font-semibold text-emerald-300">Leaderboard Profile</div>
@@ -950,9 +922,8 @@ export default function GamePage() {
               )}
             </div>
             <div className="text-[11px] text-emerald-200/80">
-              Wallet-linked score submissions can unlock utility rewards when enabled.
+              Sign in with OAuth to save your score to the leaderboard.
             </div>
-            <WalletButton />
           </div>
         </div>
 
@@ -1124,7 +1095,6 @@ export default function GamePage() {
                   <div className="text-lg font-bold text-emerald-300">Run Complete</div>
                   <div className="text-sm text-emerald-100/80">
                     Final score submitted to leaderboard
-                    {walletAddress ? ` | Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : ""}
                   </div>
                 </div>
                 <button
@@ -1153,8 +1123,7 @@ export default function GamePage() {
                   Explore: {runCompleteSummary.explorationPoints} pts
                 </div>
                 <div className="theme-floating-panel theme-floating-panel--success p-2">
-                  Utility: {runCompleteSummary.utilityPoints} pts | {runCompleteSummary.projectedTokenUnits}{" "}
-                  {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+                  Utility: {runCompleteSummary.utilityPoints} pts | {runCompleteSummary.projectedTokenUnits} reward units
                 </div>
               </div>
 
@@ -1174,8 +1143,7 @@ export default function GamePage() {
                         #{index + 1} {entry.displayName} ({entry.oauthProvider})
                       </div>
                       <div>
-                        {entry.score.toLocaleString()} pts | {entry.projectedTokenUnits}{" "}
-                        {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"}
+                        {entry.score.toLocaleString()} pts | {entry.projectedTokenUnits} reward units
                       </div>
                     </div>
                   ))}
@@ -1279,10 +1247,9 @@ export default function GamePage() {
                     <li>Stay near the center crosshair before pressing Use.</li>
                     <li>Purple/red gate nodes block corridors until activated.</li>
                     <li>Pressure plates activate when you stand directly on them.</li>
-                    <li>Relics boost energy and queue token claim events.</li>
+                    <li>Relics boost energy and queue reward claim events.</li>
                     <li>Utility points grow from movement, puzzle solves, and relic pickups.</li>
                     <li>The exit gate unlocks after relic and pedestal requirements are met.</li>
-                    <li>Connect your wallet to mint NFT skins with rewards</li>
                   </ul>
                 </div>
               </div>
@@ -1374,10 +1341,9 @@ export default function GamePage() {
                   <div className="theme-floating-panel theme-floating-panel--success col-span-2 p-3">
                     <div className="text-2xl mb-1">ðŸª™</div>
                     <div className="text-white font-bold">
-                      {utilityPoints.toLocaleString()} pts | {projectedUtilityUnits}{" "}
-                      {activeLevel?.tokenConfig.l2TokenSymbol ?? "THX"} projected
+                      {utilityPoints.toLocaleString()} pts | {projectedUtilityUnits} reward units projected
                     </div>
-                    <div className="text-xs text-[#9eb4c2]">Web5 Utility Rewards</div>
+                    <div className="text-xs text-[#9eb4c2]">Utility Rewards</div>
                   </div>
                 </div>
               </div>
@@ -1405,8 +1371,7 @@ export default function GamePage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-2xl mx-auto px-4">
-            Experience the ultimate browser-based adventure game with blockchain
-            integration. Play, compete, and earn exclusive NFT rewards!
+            Experience the ultimate browser-based adventure game. Play, compete, and earn rewards!
           </p>
 
           {/* Prominent Quick Play Button */}
@@ -1449,10 +1414,9 @@ export default function GamePage() {
               <div>
                 <div className="text-cyan-300 font-bold">Leaderboard Identity</div>
                 <div className="text-xs text-gray-300">
-                  Sign in with OAuth or play as guest. Optional wallet connection can enable wallet-based rewards.
+                  Sign in with OAuth to save your score, or play as guest.
                 </div>
               </div>
-              <WalletButton />
             </div>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <input
@@ -1612,10 +1576,9 @@ export default function GamePage() {
                     <li>Stay near the center crosshair before pressing Use.</li>
                     <li>Purple/red gate nodes block corridors until activated.</li>
                     <li>Pressure plates activate when you stand directly on them.</li>
-                    <li>Relics boost energy and queue token claim events.</li>
+                    <li>Relics boost energy and queue reward claim events.</li>
                     <li>Utility points grow from movement, puzzle solves, and relic pickups.</li>
                     <li>The exit gate unlocks after relic and pedestal requirements are met.</li>
-                    <li>Connect your wallet to mint NFT skins with rewards</li>
                     <li>Use the pause button anytime to take a break</li>
                   </ul>
                 </div>
@@ -1681,8 +1644,8 @@ export default function GamePage() {
           />
           <FeatureCard
             icon={<Star className="w-8 h-8" />}
-            title="NFT Achievements"
-            description="Earn unique NFT achievements that can be traded or showcased in your collection."
+            title="Achievements"
+            description="Earn unique in-game achievements that showcase your skill and progression."
           />
           <FeatureCard
             icon={<Zap className="w-8 h-8" />}
@@ -1740,7 +1703,7 @@ export default function GamePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#8fffb6] mt-1">âœ“</span>
-                  <span>Exclusive NFT achievements</span>
+                  <span>Exclusive achievements</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#8fffb6] mt-1">âœ“</span>

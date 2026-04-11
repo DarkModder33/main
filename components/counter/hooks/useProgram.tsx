@@ -1,7 +1,6 @@
 "use client";
 
-import { useWallet } from "@/lib/wallet-provider";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface UseProgramReturn {
   counterValue: number;
@@ -31,7 +30,6 @@ function writeCounter(next: number) {
 }
 
 export function useProgram(): UseProgramReturn {
-  const { status, address } = useWallet();
   const [counterValue, setCounterValue] = useState<number>(0);
 
   useEffect(() => {
@@ -72,8 +70,8 @@ export function useProgram(): UseProgramReturn {
   const increment = useCallback(async () => updateCounter(1), [updateCounter]);
   const decrement = useCallback(async () => updateCounter(-1), [updateCounter]);
 
-  const connected = status === "CONNECTED";
-  const publicKey = useMemo(() => address ?? null, [address]);
+  const connected = false;
+  const publicKey = null;
 
   return {
     counterValue,

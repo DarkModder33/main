@@ -113,10 +113,8 @@ export function AffiliateLink({
 export function RecommendedTools() {
   const coinbase = getAffiliateLink('coinbase');
   const binance = getAffiliateLink('binance');
-  const phantom = getAffiliateLink('phantom');
   const coinbaseConfigured = isAffiliateConfigured('coinbase');
   const binanceConfigured = isAffiliateConfigured('binance');
-  const phantomConfigured = isAffiliateConfigured('phantom');
 
   return (
     <div className="space-y-4">
@@ -141,15 +139,6 @@ export function RecommendedTools() {
         ctaText="Start Trading"
         href={binance?.url || '#'}
         disabled={!binanceConfigured}
-      />
-
-      <AffiliateBanner
-        partner="phantom"
-        title="Phantom Wallet - Chain Wallet"
-        description="A streamlined wallet for storing and swapping on-chain assets. Use any supported wallet on our platform."
-        ctaText="Download Phantom"
-        href={phantom?.url || '#'}
-        disabled={!phantomConfigured}
       />
     </div>
   );

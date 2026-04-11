@@ -7,7 +7,6 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 import { SiteNavigatorWidget } from "@/components/ai/SiteNavigatorWidget";
-import { ChainSessionProvider } from "@/components/counter/provider/ChainSession";
 import { HyperboreaIntroOverlay } from "@/components/intro/HyperboreaIntroOverlay";
 import { GamifiedOnboarding } from "@/components/onboarding/GamifiedOnboarding";
 import { WebVitalsReporter } from "@/components/performance/WebVitalsReporter";
@@ -22,7 +21,6 @@ import { PrefetchController } from "@/components/ui/PrefetchController";
 import { ServiceWorkerCleanup } from "@/components/ui/ServiceWorkerCleanup";
 import { getLocalBusinessJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
-import { WalletProvider } from "@/lib/wallet-provider";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -38,16 +36,15 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TradeHax AI | Digital Services, Repair, Music Lessons, and Web3",
-  description: "Professional services for websites, apps, device repair, music lessons, and Web3 consulting for local and remote clients.",
+  title: "TradeHax AI | Digital Services, Repair, Music Lessons & Dev",
+  description: "Professional services for websites, apps, device repair, music lessons, and AI consulting for local and remote clients.",
   keywords: [
     "web development philadelphia",
     "app development services",
     "computer repair philadelphia",
     "cell phone repair south jersey",
     "online guitar lessons",
-    "multi-chain development services",
-    "blockchain consulting",
+    "AI consulting services",
     "website design for small business",
     "device repair",
     "guitar lessons",
@@ -63,8 +60,8 @@ export const metadata: Metadata = {
     canonical: siteConfig.primarySiteUrl,
   },
   openGraph: {
-    title: "TradeHax AI | Digital Services, Repair, Music Lessons, and Web3",
-    description: "Customer-first services for websites, apps, device repair, music lessons, and Web3 consulting for local and remote clients.",
+    title: "TradeHax AI | Digital Services, Repair, Music Lessons & Dev",
+    description: "Customer-first services for websites, apps, device repair, music lessons, and AI consulting for local and remote clients.",
     url: siteConfig.primarySiteUrl,
     siteName: "TradeHax AI",
     locale: "en_US",
@@ -74,14 +71,14 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "TradeHax AI services for web development, repair, music, and Web3",
+        alt: "TradeHax AI services for web development, repair, and music",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "TradeHax AI | Professional Digital and Local Service Support",
-    description: "Book web development, repair, lessons, and Web3 services with a clear service path and fast response.",
+    description: "Book web development, repair, lessons, and AI services with a clear service path and fast response.",
     images: ["/og-image.jpg"],
     creator: "@tradehaxai",
     site: "@tradehaxai",
@@ -186,9 +183,7 @@ export default function RootLayout({
           <CinematicFxLayer />
           <CyberCursor />
           <HyperboreaIntroOverlay />
-          <ChainSessionProvider>
-            <WalletProvider>
-              <nav
+            <nav
                 id="global-top-nav"
                 aria-label="Primary"
                 className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/5"
@@ -242,8 +237,6 @@ export default function RootLayout({
               </a>
               <SiteNavigatorWidget />
               <GamifiedOnboarding />
-            </WalletProvider>
-          </ChainSessionProvider>
           <Toaster position="bottom-right" theme="dark" closeButton />
           <Analytics />
           <ShamrockFooter />

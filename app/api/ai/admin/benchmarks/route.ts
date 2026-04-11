@@ -25,7 +25,7 @@ type BenchmarkMutationRequest = {
     | "response_quality"
     | "execution_safety"
     | "personalization_lift"
-    | "web5_game_integration"
+    | "game_integration"
     | "live_chart_readiness";
   score?: number;
   notes?: string;

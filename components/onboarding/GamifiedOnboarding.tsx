@@ -61,13 +61,13 @@ export function GamifiedOnboarding({ achievements = [], onComplete }: Achievemen
         {
             id: 'connect',
             title: 'Connect',
-            description: 'Link your wallet for live execution',
-            reward: '+1000 XP + $100 credits • Executor Badge',
+            description: 'Book a session or contact us to get started',
+            reward: '+1000 XP • Executor Badge',
             icon: <Trophy className="w-5 h-5" />,
             unlocked: false,
             progress: 0,
-            actionLabel: 'Connect wallet →',
-            actionHref: '/account',
+            actionLabel: 'Book a session →',
+            actionHref: '/schedule',
         },
     ];
 

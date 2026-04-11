@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { WalletButton } from "@/components/counter/WalletButton";
 import { Menu, X } from "lucide-react";
 import type { NavLink } from "@/types";
 
@@ -40,9 +39,14 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Wallet Button (Desktop) */}
+          {/* Book Button (Desktop) */}
           <div className="hidden md:block">
-            <WalletButton />
+            <Link
+              href="/schedule"
+              className="inline-flex items-center justify-center rounded-md border border-white/20 bg-black px-4 py-2 text-xs font-mono tracking-wide text-cyan-300 transition-colors hover:border-cyan-400/70 hover:text-cyan-200"
+            >
+              Book a Session
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -72,7 +76,12 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-4">
-              <WalletButton />
+              <Link
+                href="/schedule"
+                className="inline-flex items-center justify-center rounded-md border border-white/20 bg-black px-4 py-2 text-xs font-mono tracking-wide text-cyan-300 transition-colors hover:border-cyan-400/70 hover:text-cyan-200"
+              >
+                Book a Session
+              </Link>
             </div>
           </div>
         )}

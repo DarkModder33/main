@@ -59,15 +59,6 @@ export const affiliates: Record<string, AffiliateLink> = {
     commission: '20-40%',
     category: 'exchange',
   },
-  phantom: {
-    id: 'phantom',
-    name: 'Phantom Wallet',
-    description: 'A popular chain wallet for active traders.',
-    url: normalizeAffiliateUrl(process.env.NEXT_PUBLIC_PHANTOM_REF, defaultAffiliateUrls.phantom),
-    expectedPath: '/?ref=REF_CODE',
-    commission: 'Variable',
-    category: 'wallet',
-  },
   ledger: {
     id: 'ledger',
     name: 'Ledger Hardware Wallet',

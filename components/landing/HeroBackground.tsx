@@ -6,7 +6,7 @@ import * as THREE from "three";
 /**
  * WebGL animated background for the hero section.
  * Renders a particle field with flowing trading-chart-like lines
- * and floating blockchain node connections on a deep black canvas.
+ * and floating node connections on a deep black canvas.
  */
 export function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);

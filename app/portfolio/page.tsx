@@ -158,17 +158,17 @@ export default function PortfolioPage() {
             />
             <ProjectCard
               title="Hyperborea Game"
-              description="Browser-based puzzle game with leaderboard scoring, OAuth identity options, and wallet-connected reward architecture."
+              description="Browser-based puzzle game with leaderboard scoring, OAuth identity options, and score-based reward architecture."
               technologies={[
                 "HTML5 Canvas",
                 "TypeScript",
-                "Web3",
-                "On-chain NFTs",
+                "Next.js",
+                "Tailwind CSS",
               ]}
               link="/game"
             />
             <ProjectCard
-              title="Web3 Portfolio Site"
+              title="Portfolio Site"
               description="Modern portfolio website showcasing full-stack development skills with integrated monetization strategies including AdSense, email marketing, and affiliate programs."
               technologies={[
                 "Next.js 15",

@@ -34,7 +34,7 @@ export function ShamrockFooter() {
             </div>
             <p className="text-[#9cadcc] text-sm leading-relaxed mb-5">
               Professional digital services, device support, music lessons,
-              and Web3 consulting for clients in Greater Philadelphia and remote.
+              and AI consulting for clients in Greater Philadelphia and remote.
             </p>
             <div className="flex gap-2.5">
               <TrackedCtaLink
@@ -192,8 +192,8 @@ export function ShamrockFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/web3-token-roadmap-consulting" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
-                  Web3 Token Roadmap Consulting
+                <Link href="/ai-consulting" className="text-[#9cadcc] hover:text-[#8fffb6] transition-colors">
+                  AI Strategy Consulting
                 </Link>
               </li>
               <li>

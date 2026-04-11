@@ -130,7 +130,7 @@ export function TradehaxBotDashboard() {
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
   const [isCreateTradeOpen, setIsCreateTradeOpen] = useState(false);
-  const [tradeSymbol, setTradeSymbol] = useState(activeCategory === "crypto" ? "HAX" : "AAPL");
+  const [tradeSymbol, setTradeSymbol] = useState(activeCategory === "crypto" ? "BTC" : "AAPL");
   const [tradeSide, setTradeSide] = useState<"buy" | "sell">("buy");
   const [tradeSize, setTradeSize] = useState("1");
 
@@ -155,7 +155,7 @@ export function TradehaxBotDashboard() {
   }, []);
 
   useEffect(() => {
-    setTradeSymbol(activeCategory === "crypto" ? "HAX" : "AAPL");
+    setTradeSymbol(activeCategory === "crypto" ? "BTC" : "AAPL");
   }, [activeCategory]);
 
   const closeWalkthrough = useCallback((markSeen = true) => {
@@ -325,7 +325,7 @@ export function TradehaxBotDashboard() {
           <div className="flex items-center gap-2 text-emerald-300 font-semibold">
             <Coins className="w-5 h-5" /> Crypto Trading
           </div>
-          <p className="mt-2 text-sm text-emerald-100/80">Pairs like HAX/USDC, BTC, ETH. PnL shown in native units in this dashboard.</p>
+          <p className="mt-2 text-sm text-emerald-100/80">Pairs like BTC/USD, ETH/USD, and more. PnL shown in native units in this dashboard.</p>
         </button>
 
         <button
@@ -528,7 +528,7 @@ export function TradehaxBotDashboard() {
               <Input
                 value={tradeSymbol}
                 onChange={(event) => setTradeSymbol(event.target.value)}
-                placeholder={activeCategory === "crypto" ? "HAX" : "AAPL"}
+                placeholder={activeCategory === "crypto" ? "BTC" : "AAPL"}
                 className="bg-black/40 border-cyan-500/30"
               />
             </div>

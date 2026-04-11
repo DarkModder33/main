@@ -1,21 +1,21 @@
 'use client';
 
-import { CheckCircle2, Circle, Coins, Users, Award, Rocket } from 'lucide-react';
+import { CheckCircle2, Circle, Award, Users, Star, Rocket } from 'lucide-react';
 import { EmailCapture } from '@/components/EmailCapture';
 
 /**
- * L2 utility token roadmap visualization
+ * Music platform roadmap visualization
  * Shows development phases and allows early access signup
  */
 export function TokenRoadmap() {
   const roadmapPhases = [
     {
       phase: 'Phase 1',
-      title: 'Token Launch',
+      title: 'Platform Launch',
       status: 'in-progress',
       items: [
-        'L2 token smart contract deployment',
-        'Initial liquidity pool creation',
+        'Online lesson booking system',
+        'Student progress tracking',
         'Early adopter rewards program',
       ],
     },
@@ -24,7 +24,7 @@ export function TokenRoadmap() {
       title: 'Scholarship Platform',
       status: 'upcoming',
       items: [
-        'DAO governance implementation',
+        'Community governance implementation',
         'Scholarship proposal system',
         'Community voting mechanism',
       ],
@@ -35,7 +35,7 @@ export function TokenRoadmap() {
       status: 'upcoming',
       items: [
         'Exclusive content access',
-        'NFT music releases',
+        'Premium music releases',
         'Advanced artist tools',
       ],
     },
@@ -45,30 +45,30 @@ export function TokenRoadmap() {
     {
       icon: <Award className="w-6 h-6" />,
       title: 'Music Scholarships',
-      description: 'Fund education through DAO proposals',
+      description: 'Fund education through community proposals',
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: 'Community Governance',
-      description: 'Vote on platform decisions',
+      title: 'Community',
+      description: 'Connect with students and artists',
     },
     {
-      icon: <Coins className="w-6 h-6" />,
+      icon: <Star className="w-6 h-6" />,
       title: 'Premium Access',
       description: 'Unlock exclusive content and features',
     },
     {
       icon: <Rocket className="w-6 h-6" />,
       title: 'Artist Rewards',
-      description: 'Earn tokens through engagement',
+      description: 'Earn recognition through engagement',
     },
   ];
 
   return (
     <div className="space-y-8">
-      {/* Token Utilities */}
+      {/* Platform Utilities */}
       <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-8">
-        <h3 className="text-2xl font-bold text-white mb-6">L2 Token Utilities</h3>
+        <h3 className="text-2xl font-bold text-white mb-6">Platform Features</h3>
         <div className="grid md:grid-cols-2 gap-6">
           {utilities.map((utility) => (
             <div key={utility.title} className="flex items-start gap-4">
@@ -133,11 +133,11 @@ export function TokenRoadmap() {
       {/* Early Access Signup */}
       <div className="bg-gradient-to-br from-[#FF6B35]/20 to-orange-900/20 border border-[#FF6B35]/30 rounded-xl p-8">
         <h3 className="text-2xl font-bold text-white mb-4 text-center">
-          Get Early Access to L2 Token
+          Get Early Access
         </h3>
         <p className="text-gray-300 text-center mb-6">
-          Join the waitlist and be among the first to receive L2 tokens when we launch.
-          Early adopters receive bonus rewards!
+          Join the waitlist and be among the first to access new platform features when we launch.
+          Early members receive exclusive perks!
         </p>
         <EmailCapture />
       </div>

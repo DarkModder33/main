@@ -8,14 +8,12 @@ import {
   enforceRateLimit,
   enforceTrustedOrigin,
   isJsonContentType,
-  sanitizePlainText,
 } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 
 interface EnvironmentInitRequest {
   userId?: string;
-  walletAddress?: string;
   preferences?: {
     riskTolerance?: "conservative" | "moderate" | "aggressive";
     tradingExperience?: "beginner" | "intermediate" | "expert";
@@ -44,7 +42,6 @@ export async function POST(request: NextRequest) {
   try {
     const body: EnvironmentInitRequest = await request.json();
     const userId = await resolveRequestUserId(request, body.userId);
-    const walletAddress = sanitizePlainText(String(body.walletAddress || ""), 96);
     const riskTolerance =
       body.preferences?.riskTolerance === "conservative" ||
       body.preferences?.riskTolerance === "moderate" ||
@@ -64,7 +61,6 @@ export async function POST(request: NextRequest) {
 
     const environment = {
       userId,
-      walletAddress: walletAddress || null,
       preferences: {
         riskTolerance,
         tradingExperience,

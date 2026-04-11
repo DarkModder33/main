@@ -113,7 +113,7 @@ type AcademySeasonPayoutHistoryEntry = {
   dryRun: boolean;
   creditedCount: number;
   alreadyCreditedCount: number;
-  totalCreditedHax: number;
+  totalCreditedCredits: number;
   note: string;
 };
 
@@ -126,7 +126,7 @@ type AcademySeasonPayoutOutcomeSummary = {
     mode: "dry-run" | "execute";
     creditedCount: number;
     alreadyCreditedCount: number;
-    totalCreditedHax: number;
+    totalCreditedCredits: number;
     adminMode: string;
   };
   health: "ok" | "warn" | "stale" | "never_run";
@@ -485,7 +485,7 @@ Invoke-WebRequest -Uri "https://www.tradehax.net/api/investor-academy/admin/over
                   <span className="opacity-80">Already paid:</span> <span className="ml-1 font-mono">{payoutSummary.lastRun.alreadyCreditedCount}</span>
                 </div>
                 <div>
-                  <span className="opacity-80">Total HAX:</span> <span className="ml-1 font-mono font-bold">${payoutSummary.lastRun.totalCreditedHax}</span>
+                  <span className="opacity-80">Total Credits:</span> <span className="ml-1 font-mono font-bold">${payoutSummary.lastRun.totalCreditedCredits}</span>
                 </div>
               </div>
             </>
@@ -598,7 +598,7 @@ Invoke-WebRequest -Uri "https://www.tradehax.net/api/investor-academy/admin/over
             </label>
           </div>
           <p className="text-xs text-[#9ab3c6] md:col-span-3">
-            Season payouts reward top leaderboard ranks in $HAX. Dry run previews recipients and idempotency behavior without writing credits.
+            Season payouts reward top leaderboard ranks in credits. Dry run previews recipients and idempotency behavior without writing credits.
           </p>
         </div>
       </section>
@@ -841,7 +841,7 @@ Invoke-WebRequest -Uri "https://www.tradehax.net/api/investor-academy/admin/over
                       <th className="px-3 py-2">Mode</th>
                       <th className="px-3 py-2">Credited</th>
                       <th className="px-3 py-2">Already</th>
-                      <th className="px-3 py-2">Total HAX</th>
+                      <th className="px-3 py-2">Total Credits</th>
                       <th className="px-3 py-2">Admin</th>
                     </tr>
                   </thead>
@@ -853,7 +853,7 @@ Invoke-WebRequest -Uri "https://www.tradehax.net/api/investor-academy/admin/over
                         <td className="px-3 py-2">{entry.dryRun ? "dry-run" : "execute"}</td>
                         <td className="px-3 py-2">{entry.creditedCount}</td>
                         <td className="px-3 py-2">{entry.alreadyCreditedCount}</td>
-                        <td className="px-3 py-2">{entry.totalCreditedHax}</td>
+                        <td className="px-3 py-2">{entry.totalCreditedCredits}</td>
                         <td className="px-3 py-2">{entry.adminMode}</td>
                       </tr>
                     ))}
@@ -876,7 +876,7 @@ Invoke-WebRequest -Uri "https://www.tradehax.net/api/investor-academy/admin/over
                       <th className="px-3 py-2">Modules</th>
                       <th className="px-3 py-2">Streak</th>
                       <th className="px-3 py-2">Bonus XP</th>
-                      <th className="px-3 py-2">Bonus HAX</th>
+                      <th className="px-3 py-2">Bonus Credits</th>
                       <th className="px-3 py-2">Quest</th>
                       <th className="px-3 py-2">Updated</th>
                     </tr>

@@ -42,9 +42,9 @@ export const featureFlags = {
     } as FeatureFlag,
 
     "auth.web3-wallet": {
-        enabled: true,
-        label: "Web3 Wallet Auth",
-        description: "Solana wallet connection",
+        enabled: false,
+        label: "Chain Auth",
+        description: "Chain-agnostic account authentication (disabled)",
         completedDate: "2025-09-05",
     } as FeatureFlag,
 
@@ -64,9 +64,9 @@ export const featureFlags = {
     } as FeatureFlag,
 
     "gaming.nft-rewards": {
-        enabled: false, // DISABLED: DAO frame exists but no NFT contract integration
-        label: "NFT Reward System",
-        description: "Earn and trade NFT badges (BETA)",
+        enabled: false, // DISABLED: No NFT contract integration
+        label: "Achievement Reward System",
+        description: "Earn in-game achievement badges (BETA)",
         betaUntil: "2026-06-01",
     } as FeatureFlag,
 

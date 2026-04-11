@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react';
 
 const activities = [
-  "SYSTEM_ALERT: $HAX Staking Pool V2 live.",
-  "USER_ACTION: 0x...4f2 connected to Ethereum Mainnet.",
-  "HAX_RUNNER: New High Score (12,400) by Player_99.",
-  "AI_SIGNAL: Bearish sentiment detected in SOL/USD.",
-  "SYSTEM_LOG: Cross-chain bridge heartbeat nominal.",
-  "REWARD_DIST: 500 $HAX distributed to Daily Top 10.",
+  "SYSTEM_ALERT: AI Neural Hub v2 online.",
+  "USER_ACTION: New leaderboard entry submitted.",
+  "HYPERBOREA: New High Score (12,400) by Player_99.",
+  "AI_SIGNAL: Bearish sentiment detected in market data.",
+  "SYSTEM_LOG: Platform services heartbeat nominal.",
+  "REWARD_DIST: Top 10 players recognized this week.",
 ];
 
 export const LiveActivity = () => {

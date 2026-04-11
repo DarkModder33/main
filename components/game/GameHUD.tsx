@@ -8,7 +8,6 @@ interface GameHUDProps {
   cloversCollected: number;
   score: number;
   combo: number;
-  walletConnected: boolean;
   utilityPoints?: number;
   projectedTokenUnits?: number;
   tokenSymbol?: string;
@@ -73,10 +72,9 @@ export function GameHUD({
   cloversCollected,
   score,
   combo,
-  walletConnected,
   utilityPoints,
   projectedTokenUnits,
-  tokenSymbol = "THX",
+  tokenSymbol = "pts",
   elapsedSeconds = 0,
   objectiveProgress,
   activePowerUps = [],
@@ -137,7 +135,7 @@ export function GameHUD({
     <div className="absolute top-[max(0.25rem,env(safe-area-inset-top))] left-0 right-0 p-1 sm:p-4 pointer-events-none z-10">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-wrap gap-1.5 mb-1 sm:mb-2">
-          {/* Web5 Vault Status - Compact on mobile */}
+          {/* Vault Status - Compact on mobile */}
           <div className="bg-black/90 backdrop-blur-md border border-cyan-500/40 rounded-full px-2 py-0.5 sm:px-3 sm:py-1 flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             <span className="text-[8px] sm:text-[10px] font-mono text-cyan-400 uppercase tracking-widest whitespace-nowrap">
@@ -270,15 +268,6 @@ export function GameHUD({
             </div>
           </div>
         </div>
-
-        {/* Wallet Status */}
-        {!walletConnected && (
-          <div className="mt-2 sm:mt-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-2 sm:p-3 max-w-md max-[680px]:hidden">
-            <div className="text-yellow-300 text-xs sm:text-sm">
-              <strong>💰 Connect Wallet</strong> to unlock NFT minting and rewards!
-            </div>
-          </div>
-        )}
 
         {/* Active Power-Ups */}
         {activePowerUps.length > 0 && (

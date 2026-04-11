@@ -2,7 +2,7 @@
 
 import { HubBloombergTerminalDesk } from "@/components/landing/hub/HubBloombergTerminalDesk";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Plus, TrendingUp, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 
 type MarketAsset = {
@@ -125,7 +125,6 @@ export function HubMarketWorkspace({
               <div>
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-black text-white uppercase italic">{asset.symbol}</p>
-                  {asset.symbol === "HAX" && <Sparkles className="w-3 h-3 text-cyan-400" />}
                 </div>
                 <p className="text-[10px] text-zinc-600 font-mono">SECURE_SETTLEMENT</p>
               </div>
@@ -152,7 +151,7 @@ export function HubMarketWorkspace({
             </div>
             <div>
               <p className="text-xs text-emerald-500 uppercase font-black italic mb-1 tracking-widest">Neural Alpha Picker</p>
-              <p className="text-xs text-zinc-400 max-w-[280px]">New institutional signal for <span className="text-white font-bold italic">$HAX/SOL</span> detected with 94% confidence.</p>
+              <p className="text-xs text-zinc-400 max-w-[280px]">New institutional signal detected with 94% confidence.</p>
             </div>
           </div>
           <button className="px-8 py-3 bg-emerald-500 text-black text-[10px] font-black rounded-xl uppercase italic hover:bg-white transition-all shadow-lg">

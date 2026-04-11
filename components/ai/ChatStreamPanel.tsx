@@ -66,7 +66,7 @@ type MultimodalTab = "text" | "image" | "video";
 type MultimodalImageResult = {
   url: string;
   prompt: string;
-  style: "trading" | "nft" | "hero" | "general";
+  style: "trading" | "creative" | "hero" | "general";
   model?: string;
   width?: number;
   height?: number;
@@ -561,7 +561,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
   ]);
 
   const [imagePrompt, setImagePrompt] = useState("");
-  const [imageStyle, setImageStyle] = useState<"trading" | "nft" | "hero" | "general">("general");
+  const [imageStyle, setImageStyle] = useState<"trading" | "creative" | "hero" | "general">("general");
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState("");
   const [imageResult, setImageResult] = useState<MultimodalImageResult | null>(null);
@@ -2989,7 +2989,7 @@ export function ChatStreamPanel({ minimal = false }: { minimal?: boolean } = {})
           />
 
           <div className="grid grid-cols-4 gap-2">
-            {(["general", "trading", "nft", "hero"] as const).map((style) => (
+            {(["general", "trading", "creative", "hero"] as const).map((style) => (
               <button
                 key={style}
                 type="button"

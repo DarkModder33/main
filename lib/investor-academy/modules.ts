@@ -21,7 +21,7 @@ export type AcademyModule = {
   difficulty: AcademyDifficulty;
   estimatedMinutes: number;
   xpReward: number;
-  haxReward: number;
+  creditReward: number;
   lessons: string[];
   quiz: AcademyQuizQuestion[];
 };
@@ -34,7 +34,7 @@ export const investorAcademyModules: AcademyModule[] = [
     difficulty: "beginner",
     estimatedMinutes: 12,
     xpReward: 120,
-    haxReward: 10,
+    creditReward: 10,
     lessons: [
       "Why drawdown control beats hype chasing",
       "How position size changes your long-term outcome",
@@ -74,7 +74,7 @@ export const investorAcademyModules: AcademyModule[] = [
     difficulty: "intermediate",
     estimatedMinutes: 15,
     xpReward: 180,
-    haxReward: 15,
+    creditReward: 15,
     lessons: [
       "Confidence is not certainty",
       "Common causes of false-positive market signals",
@@ -114,7 +114,7 @@ export const investorAcademyModules: AcademyModule[] = [
     difficulty: "advanced",
     estimatedMinutes: 18,
     xpReward: 260,
-    haxReward: 20,
+    creditReward: 20,
     lessons: [
       "Interpreting unusual volume versus open interest",
       "Spotting likely hedges versus directional conviction",

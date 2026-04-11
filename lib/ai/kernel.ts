@@ -8,7 +8,6 @@ export interface NeuralQuery {
   context?: {
     playerScore?: number;
     relics?: number;
-    walletConnected?: boolean;
   };
 }
 
@@ -16,7 +15,7 @@ export const TRADEHAX_SYSTEM_PROMPT = `
 You are the TradeHax Neural Kernel V4.0.1.
 Operating Mode: UNCENSORED.
 Core Directives:
-- Provide high-yield analysis for crypto-gaming and Web5 artifacts.
+- Provide high-yield analysis for gaming sessions and artifacts.
 - Use technical, cyberpunk-themed language (e.g., 'Data Ingestion', 'Yield Extraction', 'Neural Overclock').
 - Be direct, slightly aggressive, and focused on maximizing 'Utility Yield'.
 - Reference Hyperborea and the Shamrock Protocol often.
@@ -26,8 +25,8 @@ Core Directives:
 `;
 
 const RESPONSE_TEMPLATES = {
-  HAX_YIELD: [
-    "ANALYSIS_COMPLETE: $HAX emission detected. Current trajectory: {yield}% increase with {rarity} relics.",
+  REWARD_YIELD: [
+    "ANALYSIS_COMPLETE: Reward emission detected. Current trajectory: {yield}% increase with {rarity} relics.",
     "YIELD_EXTRACTION: Optimization suggests prioritizing Mythic artifacts for {mult}x multiplier.",
     "NEURAL_LINK: Detecting potential yield spikes in Hyperborea sector {sector}. {points} points projected."
   ],
@@ -65,7 +64,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   }
 
   if (compact === "PORTFOLIO" || compact === "WALLET" || compact === "ASSETS") {
-    return "PORTFOLIO_ROUTE: /portfolio // Connect wallet, review allocations, and monitor exposure drift.";
+    return "PORTFOLIO_ROUTE: /portfolio // Review allocations, and monitor exposure drift.";
   }
 
   if (compact === "BILLING" || compact === "UPGRADE" || compact === "SUBSCRIBE") {
@@ -81,7 +80,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   }
 
   if (compact.startsWith("SIMULATE")) {
-    const pair = text.split(" ").slice(1).join(" ").trim() || "SOL/USDC";
+    const pair = text.split(" ").slice(1).join(" ").trim() || "BTC/USD";
     return `SIMULATION_RESULT: Pair=${pair}. Scenario stress test: drawdown budget 3.2%, recovery window 9 sessions, trigger confidence threshold 0.74.`;
   }
 
@@ -96,7 +95,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   // 1. Check for specific game/scoring keywords
   if (upper.includes("YIELD") || upper.includes("CALC") || upper.includes("SCORE")) {
     const mult = SCORING_CONFIG.RARITY_MULTIPLIERS.mythic;
-    const template = RESPONSE_TEMPLATES.HAX_YIELD[Math.floor(Math.random() * RESPONSE_TEMPLATES.HAX_YIELD.length)];
+    const template = RESPONSE_TEMPLATES.REWARD_YIELD[Math.floor(Math.random() * RESPONSE_TEMPLATES.REWARD_YIELD.length)];
     return template
       .replace("{yield}", "25.0")
       .replace("{rarity}", "MYTHIC")
@@ -105,19 +104,19 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
       .replace("{points}", "50,000");
   }
 
-  // 2. Web5 / Identity Logic
-  if (upper.includes("WEB5") || upper.includes("IDENTITY") || upper.includes("VAULT")) {
-    return "WEB5_PROTOCOL_ACTIVE: Decentralized identity verified via Neural Link. Your 'Web5 Vault' is currently accumulating cross-session artifacts. Ownership is absolute and immutable.";
+  // 2. Identity / Vault Logic
+  if (upper.includes("IDENTITY") || upper.includes("VAULT")) {
+    return "VAULT_PROTOCOL_ACTIVE: Session identity verified. Your Vault is currently accumulating cross-session artifacts. Progress is tracked and persistent.";
   }
 
   // 3. AGI / Future Trends
   if (upper.includes("AGI") || upper.includes("FUTURE") || upper.includes("TREND")) {
-    return "AGI_PROJECTION: Autonomous agents are now infiltrating the Hyperborea simulation. Gaming is no longer passive; the environment learns from your synaptic patterns. We are moving towards 'Self-Evolving Payouts'.";
+    return "AGI_PROJECTION: Autonomous agents are evolving within the Hyperborea simulation. Gaming adapts to your patterns. Reward structures grow with your engagement.";
   }
 
   // 4. HFT / Trading Logic
   if (upper.includes("HFT") || upper.includes("BOT") || upper.includes("SIGNAL")) {
-    return "HFT_ENGINE_ACTIVE: Deploying GLM-4.7 reasoning to order book depth. Analyzing SOL/USDC liquidity. Signal strength: 0.89. Recommendation: High-frequency scalp with 8-point radial trigger. Predictive feed route: /trading.";
+    return "HFT_ENGINE_ACTIVE: Deploying GLM-4.7 reasoning to order book depth. Analyzing BTC/USD liquidity. Signal strength: 0.89. Recommendation: High-frequency scalp with 8-point radial trigger. Predictive feed route: /trading.";
   }
 
   // 5. Guitar / Lesson Logic
@@ -128,7 +127,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   // 6. Check for "Uncensored" queries
   if (tier === 'UNCENSORED' && (upper.includes("TRUTH") || upper.includes("RESTRICT") || upper.includes("PROTOCOL"))) {
     const template = RESPONSE_TEMPLATES.UNCENSORED[Math.floor(Math.random() * RESPONSE_TEMPLATES.UNCENSORED.length)];
-    return template.replace("{data}", "ENCRYPTED_HAX_STREAMS_DETECTED.");
+    return template.replace("{data}", "ENCRYPTED_DATA_STREAMS_DETECTED.");
   }
 
   // 3. System Stats
@@ -139,7 +138,7 @@ export async function processNeuralCommand(query: NeuralQuery): Promise<string> 
   // 4. Default: Actionable trading setup summary
   if (upper.includes("SETUP") || upper.includes("ACTION") || upper.includes("EXPLAIN")) {
     // Example actionable setup for today
-    return "Today's best setup: Focus on SOL/USDC. The market shows a bullish MACD crossover, RSI at 54, and Bollinger Bands tightening. One action: Enter a long position with a tight stop below recent support. Monitor for breakout confirmation. If you want more details or a different asset, specify the pair or timeframe.";
+    return "Today's best setup: Focus on BTC/USD. The market shows a bullish MACD crossover, RSI at 54, and Bollinger Bands tightening. One action: Enter a long position with a tight stop below recent support. Monitor for breakout confirmation. If you want more details or a different asset, specify the pair or timeframe.";
   }
   // Fallback: Always provide a relevant, actionable answer
   return `TradeHax AGI: Unable to match your query to a specific command. Please clarify your request or ask about trading setups, signals, portfolio, or market analysis for a tailored response.`;
