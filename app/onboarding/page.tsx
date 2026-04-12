@@ -9,11 +9,11 @@ export default function OnboardingPage() {
           <span className="theme-kicker mb-3">Welcome to TradeHax AI Onboarding</span>
           <h1 className="theme-title text-3xl sm:text-4xl mb-4">Get Started</h1>
           <p className="text-[#a6bdd0] max-w-2xl mb-6">
-            This onboarding guide will help you quickly understand the platform, unlock AI features, and access trading tools. Follow the steps below for a seamless start.
+            This onboarding guide will help you quickly understand the platform, unlock AI features, and explore platform tools. Follow the steps below for a seamless start.
           </p>
           <ol className="list-decimal list-inside text-[#b7cbe3] mb-6">
             <li>Explore the <Link href="/ai-hub" className="text-[#00ff41] underline">AI Hub</Link> for advanced tools.</li>
-            <li>Visit <Link href="/trading" className="text-[#00ff41] underline">Trading</Link> to start your journey.</li>
+            <li>Visit <Link href="/crypto-project" className="text-[#00ff41] underline">Crypto Project</Link> for trading tools and intelligence.</li>
             <li>Check <Link href="/services" className="text-[#00ff41] underline">Services</Link> for personalized options.</li>
             <li>Review <Link href="/portfolio" className="text-[#00ff41] underline">Portfolio</Link> to track your progress.</li>
             <li>Need help? Use the <Link href="/schedule" className="text-[#00ff41] underline">Contact</Link> page for support.</li>

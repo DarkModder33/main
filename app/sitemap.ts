@@ -21,16 +21,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/beginner-ai-crypto-trading-assistant`,
+      url: `${baseUrl}/crypto-project`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/web3-token-roadmap-consulting`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.89,
     },
     {
       url: `${baseUrl}/ai-powered-guitar-lessons`,
@@ -43,12 +37,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'daily',
       priority: 0.92,
-    },
-    {
-      url: `${baseUrl}/trading`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
     },
     {
       url: `${baseUrl}/services`,
