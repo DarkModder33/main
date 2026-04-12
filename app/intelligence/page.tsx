@@ -15,7 +15,6 @@ import {
   CandlestickChart,
   Crosshair,
   Newspaper,
-  Radar,
   Shield,
   Sparkles,
   TrendingUp,
@@ -24,9 +23,9 @@ import {
 export const metadata = createPageMetadata({
   title: "Trade Intelligence | AI Quant Copilot for Real-Time Signals",
   description:
-    "AI quant copilot for real-time signals, backtesting, and explainable trade workflows. Options flow, dark pool activity, crypto signals, and institutional-grade analytics.",
+    "AI quant copilot for real-time signals, backtesting, and explainable trade workflows. Options flow, dark pool activity, and institutional-grade analytics.",
   path: "/intelligence",
-  keywords: ["market intelligence", "options flow", "dark pool", "crypto flow", "trading analytics", "AI copilot", "trade signals"],
+  keywords: ["market intelligence", "options flow", "dark pool", "trading analytics", "AI copilot", "trade signals"],
 });
 
 export default async function IntelligenceHubPage() {
@@ -80,7 +79,7 @@ export default async function IntelligenceHubPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Real-Time Market Signals</h3>
                 <p className="text-sm text-zinc-400">
-                  Live options flow, dark pool blocks, and crypto movements with unusual activity detection
+                  Live options flow and dark pool blocks with unusual activity detection and AI scoring
                 </p>
               </div>
             </div>
@@ -113,7 +112,7 @@ export default async function IntelligenceHubPage() {
               <div>
                 <h3 className="text-white font-bold mb-1">Multi-Asset Coverage</h3>
                 <p className="text-sm text-zinc-400">
-                  Equities, options, crypto, political tradesâ€”all in one unified intelligence layer
+                  Equities, options, and political trades — all in one unified intelligence layer
                 </p>
               </div>
             </div>
@@ -146,18 +145,17 @@ export default async function IntelligenceHubPage() {
         <IntelligencePageShell
           kicker="Live Market Snapshot"
           title="Current Intelligence Overview"
-          description="Real-time metrics across options, dark pool, crypto, and news catalysts. Data refreshes every 60 seconds."
+          description="Real-time metrics across options, dark pool, and news catalysts. Data refreshes every 60 seconds."
           quickLinks={[
             { label: "Flow Tape", href: "/intelligence/flow" },
             { label: "Dark Pool", href: "/intelligence/dark-pool" },
-            { label: "Crypto Flow", href: "/intelligence/crypto-flow" },
             { label: "Probability", href: "/intelligence/probability" },
             { label: "Watchlists", href: "/intelligence/watchlist" },
             { label: "Ops Metrics", href: "/intelligence/ops" },
             { label: "Content Studio", href: "/intelligence/content" },
           ]}
         >
-          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             <IntelligenceMetricCard
               label="Options Premium"
               value={formatCompactUsd(overview.optionsPremium24hUsd)}
@@ -167,11 +165,6 @@ export default async function IntelligenceHubPage() {
               label="Dark Pool"
               value={formatCompactUsd(overview.darkPoolNotional24hUsd)}
               hint="24h off-exchange notional"
-            />
-            <IntelligenceMetricCard
-              label="Crypto Flow"
-              value={formatCompactUsd(overview.cryptoNotional24hUsd)}
-              hint="24h crypto notional"
             />
             <IntelligenceMetricCard
               label="High Impact News"
@@ -211,12 +204,6 @@ export default async function IntelligenceHubPage() {
                 description="Review congressional/senate disclosures and map themes to trade regimes."
                 href="/intelligence/politics"
                 icon={<BookOpen className="w-5 h-5" />}
-              />
-              <IntelligenceRouteCard
-                title="Crypto Flow"
-                description="Cross-chain signal stream for pair-level notional, confidence, and directional context."
-                href="/intelligence/crypto-flow"
-                icon={<Radar className="w-5 h-5" />}
               />
               <IntelligenceRouteCard
                 title="News Catalyst Feed"

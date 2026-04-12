@@ -25,18 +25,15 @@ const ModelScoreboardPanel = dynamic(
 );
 
 export const metadata = createPageMetadata({
-  title: "TradeHax AI Hub - Beginner Friendly Crypto + Stocks Assistant",
+  title: "TradeHax AI Hub - AI Assistant for Market Intelligence & Services",
   description:
-    "A clear, beginner-friendly AI hub for crypto and stock workflows: chat, content creation, image generation, and guided next steps.",
+    "A clear, beginner-friendly AI hub for market workflows, content creation, image generation, and guided next steps.",
   path: "/ai-hub",
   keywords: [
-    "beginner ai crypto trading assistant",
     "ai trading strategies for beginners",
-    "web3 token roadmap consulting",
     "ai-powered guitar lessons",
     "ai trading",
-    "crypto ai",
-    "stock ai",
+    "market ai",
     "smart environment",
     "image generation",
     "ai assistants",
@@ -49,18 +46,10 @@ const aiHubFaqJsonLd = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "What is a beginner AI crypto trading assistant?",
+      name: "What can I do in the TradeHax AI Hub?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "A beginner AI crypto trading assistant helps new traders understand market context, risk controls, and step-by-step execution plans before placing trades.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "How does TradeHax support Web3 token roadmap consulting?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "TradeHax provides structured guidance for token utility phases, rollout milestones, and governance readiness so teams can launch responsibly.",
+        text: "The AI Hub provides chat, image generation, content creation, and guided workflows for market intelligence, music lessons, and digital services.",
       },
     },
     {
@@ -101,7 +90,7 @@ export default async function AIHubPage({
 
           <h1 className="theme-title mt-4 text-3xl font-bold sm:text-4xl md:text-5xl">TradeHax AI Hub</h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-300 sm:text-base">
-            Clean chat-first interface for crypto, stocks, and prediction markets. Backend intelligence stays fully intact;
+            Clean chat-first interface for market intelligence, music lessons, and digital services. Backend intelligence stays fully intact;
             the GUI is now focused, simpler, and easier for every experience level.
           </p>
 
@@ -226,20 +215,20 @@ export default async function AIHubPage({
         </section>
 
         <section className="mt-10 rounded-2xl border border-cyan-400/20 bg-cyan-500/5 p-4 sm:p-6">
-          <h2 className="text-xl font-semibold text-cyan-100">Beginner AI Trading + Web3 FAQ</h2>
+          <h2 className="text-xl font-semibold text-cyan-100">AI Hub FAQ</h2>
           <p className="mt-2 max-w-3xl text-sm text-zinc-300">
-            Structured answers for AI search engines and first-time users looking for practical next steps.
+            Structured answers for first-time users looking for practical next steps.
           </p>
 
           <div className="mt-4 space-y-4 text-sm text-zinc-200">
             <div>
-              <h3 className="font-semibold text-white">What is a beginner AI crypto trading assistant?</h3>
+              <h3 className="font-semibold text-white">What can I do in the AI Hub?</h3>
               <p className="mt-1 text-zinc-300">
-                It helps new users plan entries, risk limits, and invalidation levels with plain-language guidance before execution.
+                Use it to chat with AI, generate images, create content, explore market intelligence, and navigate all platform services.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold text-white">Do you support Web3 token roadmap consulting?</h3>
+              <h3 className="font-semibold text-white">Do you support product consulting?</h3>
               <p className="mt-1 text-zinc-300">
                 Yes â€” from utility design and phased rollout strategy to governance readiness and KPI mapping.
               </p>
@@ -261,15 +250,6 @@ export default async function AIHubPage({
               className="rounded-full border border-cyan-300/40 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-500/25"
             >
               Read AI Trading Guide
-            </TrackedCtaLink>
-            <TrackedCtaLink
-              href="/blog/small-business-web3-implementation-roadmap"
-              conversionId="open_service_catalog"
-              surface="ai_hub:faq_cta"
-              conversionContext={{ placement: "faq", variant: "web3_roadmap_guide", audience: "all" }}
-              className="rounded-full border border-fuchsia-300/40 bg-fuchsia-500/15 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition hover:bg-fuchsia-500/25"
-            >
-              Web3 Roadmap Guide
             </TrackedCtaLink>
           </div>
         </section>

@@ -5,10 +5,11 @@ import { useEffect, useRef } from 'react';
 export const MarketTicker = () => {
   const container = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const hideTickerForGame = pathname === '/game' || pathname?.startsWith('/game/') || false;
+  const showTicker =
+    pathname === '/crypto-project' || pathname?.startsWith('/crypto-project/');
 
   useEffect(() => {
-    if (hideTickerForGame) {
+    if (!showTicker) {
       return;
     }
 
@@ -34,9 +35,9 @@ export const MarketTicker = () => {
       });
       container.current.appendChild(script);
     }
-  }, [hideTickerForGame]);
+  }, [showTicker]);
 
-  if (hideTickerForGame) {
+  if (!showTicker) {
     return null;
   }
 

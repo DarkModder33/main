@@ -5,7 +5,7 @@ const activities = [
   "SYSTEM_ALERT: AI Neural Hub v2 online.",
   "USER_ACTION: New leaderboard entry submitted.",
   "HYPERBOREA: New High Score (12,400) by Player_99.",
-  "AI_SIGNAL: Bearish sentiment detected in market data.",
+  "AI_EVENT: Content generation pipeline active.",
   "SYSTEM_LOG: Platform services heartbeat nominal.",
   "REWARD_DIST: Top 10 players recognized this week.",
 ];
