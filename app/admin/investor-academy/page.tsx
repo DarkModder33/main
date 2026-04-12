@@ -1,5 +1,4 @@
 ﻿import { InvestorAcademyAdminPanel } from "@/components/admin/InvestorAcademyAdminPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -30,7 +29,6 @@ export default function InvestorAcademyAdminPage() {
 
         <InvestorAcademyAdminPanel />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

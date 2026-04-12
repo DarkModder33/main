@@ -1,5 +1,4 @@
 ﻿import { MonetizationAdminPanel } from "@/components/monetization/MonetizationAdminPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -37,7 +36,6 @@ export default function MonetizationAdminPage() {
         </section>
         <MonetizationAdminPanel />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

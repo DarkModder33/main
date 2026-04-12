@@ -1,5 +1,4 @@
 ﻿import { SocialProviderWizard } from "@/components/admin/SocialProviderWizard";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -21,7 +20,6 @@ export default function SocialProviderWizardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <SocialProviderWizard />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

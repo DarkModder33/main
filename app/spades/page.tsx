@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------- */
 
 import { SpadesGame } from '@/components/game/SpadesGame';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { createPageMetadata } from '@/lib/seo';
 
 export const metadata = createPageMetadata({
@@ -42,7 +41,6 @@ export default function SpadesPage() {
 
         <SpadesGame />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

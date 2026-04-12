@@ -5,7 +5,6 @@ import { GameHUD } from "@/components/game/GameHUD";
 import { HyperboreaGame } from "@/components/game/HyperboreaGame";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { PremiumUpgrade } from "@/components/monetization/PremiumUpgrade";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { trackEvent } from "@/lib/analytics";
 import type { LeaderboardEntry, LeaderboardSubmission } from "@/lib/game/leaderboard-types";
 import { generateDefaultLevel001 } from "@/lib/game/level-generator";
@@ -1720,7 +1719,6 @@ export default function GamePage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

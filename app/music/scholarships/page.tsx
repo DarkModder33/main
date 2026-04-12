@@ -1,6 +1,5 @@
 ﻿import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, Award, Clock, Coins, Target, Trophy, Users, Vote } from 'lucide-react';
 import Link from 'next/link';
@@ -213,7 +212,6 @@ export default function ScholarshipsPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

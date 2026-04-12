@@ -1,5 +1,4 @@
 ﻿import { SharePreviewPanel } from "@/components/preview/SharePreviewPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { getSharePlatforms, primaryPreviewUrl } from "@/lib/social-preview";
 import { Share2 } from "lucide-react";
@@ -40,7 +39,6 @@ export default function PreviewPage() {
         <SharePreviewPanel primaryPreviewUrl={primaryPreviewUrl} platforms={platforms} />
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

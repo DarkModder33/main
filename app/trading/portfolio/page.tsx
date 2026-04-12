@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { PortfolioOverview } from "@/components/trading/PortfolioOverview";
 import { createPageMetadata } from "@/lib/seo";
 
@@ -35,7 +34,6 @@ export default function TradingPortfolioPage() {
         <PortfolioOverview />
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

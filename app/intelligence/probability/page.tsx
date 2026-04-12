@@ -1,6 +1,5 @@
 ﻿import { ProbabilityPanel } from "@/components/intelligence/ProbabilityPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -30,7 +29,6 @@ export default function IntelligenceProbabilityPage() {
           <ProbabilityPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

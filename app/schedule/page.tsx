@@ -1,5 +1,4 @@
 ﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { bookingLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -409,7 +408,6 @@ export default async function SchedulePage({ searchParams }: { searchParams?: Pr
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

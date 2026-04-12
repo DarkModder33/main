@@ -1,6 +1,5 @@
 ﻿import { ActionRail } from "@/components/monetization/ActionRail";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import {
     BadgeDollarSign,
@@ -107,7 +106,6 @@ export default function CryptoProjectPage() {
           </details>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

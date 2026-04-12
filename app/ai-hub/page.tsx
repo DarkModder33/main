@@ -1,7 +1,6 @@
 ﻿import { ChatStreamPanel } from "@/components/ai/ChatStreamPanel";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
 import { DeferredRender } from "@/components/ui/DeferredRender";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { Brain, ChevronDown, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -299,7 +298,6 @@ export default async function AIHubPage({
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

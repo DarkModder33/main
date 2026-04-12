@@ -1,6 +1,5 @@
 ﻿import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { PositionCalculatorPanel } from "@/components/intelligence/PositionCalculatorPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -28,7 +27,6 @@ export default function IntelligenceCalculatorPage() {
           <PositionCalculatorPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

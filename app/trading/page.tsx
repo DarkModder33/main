@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { TradehaxBotDashboard } from "@/components/trading/TradehaxBotDashboard";
 import { createPageMetadata } from "@/lib/seo";
 import {
@@ -135,7 +134,6 @@ export default function TradingPage() {
         <TradehaxBotDashboard />
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }
