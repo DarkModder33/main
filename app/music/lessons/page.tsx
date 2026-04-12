@@ -5,7 +5,6 @@ import { BookingCalendar } from '@/components/music/BookingCalendar';
 import { InstagramReelEmbed } from '@/components/music/InstagramReelEmbed';
 import { LessonCard } from '@/components/music/LessonCard';
 import { LessonStudioEmbed } from '@/components/music/LessonStudioEmbed';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, ArrowRight, BrainCircuit, Calendar, CheckCircle2, ChevronDown, CreditCard, Gem, Shield, Swords, Trophy, UserRound, Video } from 'lucide-react';
 import Link from 'next/link';
@@ -381,7 +380,6 @@ export default function LessonsPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

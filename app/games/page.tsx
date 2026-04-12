@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { GamesHubClient } from "./GamesHubClient";
 
@@ -24,7 +23,6 @@ export default function GamesHubPage() {
         </section>
         <GamesHubClient />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 ﻿import { DarkPoolPanel } from "@/components/intelligence/DarkPoolPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -28,7 +27,6 @@ export default function IntelligenceDarkPoolPage() {
           <DarkPoolPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

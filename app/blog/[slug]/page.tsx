@@ -1,7 +1,6 @@
 import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock, InContentAd } from '@/components/monetization/AdSenseBlock';
 import { PremiumBanner } from '@/components/monetization/PremiumUpgrade';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { getAllBlogPosts, getBlogPostBySlug } from '@/lib/content/blog-posts';
 import { Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -110,7 +109,6 @@ export default async function BlogPostPage({ params }: BlogPostProps) {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { Code2, KeyRound, Route, ShieldCheck, TerminalSquare, Webhook } from "lucide-react";
 import Link from "next/link";
@@ -118,7 +117,6 @@ export default function DevHubPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

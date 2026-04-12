@@ -2,7 +2,6 @@
 import { ActionRail } from "@/components/monetization/ActionRail";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { scheduleLinks } from "@/lib/booking";
 import { businessProfile } from "@/lib/business-profile";
 import { absoluteUrl, createPageMetadata } from "@/lib/seo";
@@ -635,7 +634,6 @@ export default function ServicesPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

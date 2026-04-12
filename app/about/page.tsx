@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { BadgeCheck, Shield, Users, Workflow } from "lucide-react";
 import Link from "next/link";
@@ -119,7 +118,6 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

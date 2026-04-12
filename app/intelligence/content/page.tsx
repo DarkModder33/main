@@ -1,6 +1,5 @@
 ﻿import { ContentStudioPanel } from "@/components/intelligence/ContentStudioPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -30,7 +29,6 @@ export default function IntelligenceContentPage() {
           <ContentStudioPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

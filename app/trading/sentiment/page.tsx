@@ -9,7 +9,6 @@ import { useState, useCallback } from "react";
 import { RefreshCw } from "lucide-react";
 import { SentimentGauge } from "@/components/trading/SentimentGauge";
 import { SentimentFeed } from "@/components/trading/SentimentFeed";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { useSentimentStream } from "@/hooks/use-sentiment-stream";
 
 // â”€â”€â”€ Asset tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -135,7 +134,6 @@ export default function SentimentPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

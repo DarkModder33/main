@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import Link from "next/link";
 
 export default function OnboardingPage() {
@@ -24,7 +23,6 @@ export default function OnboardingPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 ﻿import { EmailCapture } from "@/components/EmailCapture";
 import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { Award, Briefcase, Code, Mail } from "lucide-react";
@@ -207,7 +206,6 @@ export default function PortfolioPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

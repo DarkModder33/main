@@ -1,5 +1,4 @@
 ﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import Script from "next/script";
 
@@ -81,7 +80,6 @@ export default function ProductRoadmapConsultingPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

@@ -1,5 +1,4 @@
 ﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import Script from "next/script";
 
@@ -89,7 +88,6 @@ export default function AiPoweredGuitarLessonsPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

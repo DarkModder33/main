@@ -1,7 +1,6 @@
 ﻿import { EmailCapture } from '@/components/EmailCapture';
 import { AdSenseBlock } from '@/components/monetization/AdSenseBlock';
 import { ArtistShowcase } from '@/components/music/ArtistShowcase';
-import { ShamrockFooter } from '@/components/shamrock/ShamrockFooter';
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowLeft, Sparkles, TrendingUp, Upload, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
@@ -207,7 +206,6 @@ export default function ShowcasePage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

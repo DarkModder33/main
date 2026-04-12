@@ -1,4 +1,3 @@
-﻿import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { getAllPlans } from "@/lib/monetization/plans";
 import { createPageMetadata } from "@/lib/seo";
 import { Check, Sparkles } from "lucide-react";
@@ -108,7 +107,6 @@ export default function PricingPage() {
           </p>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

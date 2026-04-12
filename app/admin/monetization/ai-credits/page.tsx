@@ -1,5 +1,4 @@
 ﻿import { AICreditsLedgerAdminPanel } from "@/components/admin/AICreditsLedgerAdminPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -30,7 +29,6 @@ export default function AICreditsLedgerAdminPage() {
 
         <AICreditsLedgerAdminPanel />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 ﻿import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { WatchlistPanel } from "@/components/intelligence/WatchlistPanel";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -30,7 +29,6 @@ export default function IntelligenceWatchlistPage() {
           <WatchlistPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

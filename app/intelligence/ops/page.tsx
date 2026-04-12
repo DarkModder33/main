@@ -1,6 +1,5 @@
 ﻿import { IntelligenceOpsPanel } from "@/components/intelligence/IntelligenceOpsPanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -29,7 +28,6 @@ export default function IntelligenceOpsPage() {
           <IntelligenceOpsPanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

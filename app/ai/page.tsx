@@ -1,6 +1,5 @@
 ﻿import { HFChatComponent } from "@/components/ai/HFChatComponent";
 import { HFGeneratorComponent } from "@/components/ai/HFGeneratorComponent";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import { AlertCircle, Brain, GitBranch, MessageSquare, Route } from "lucide-react";
 import Link from "next/link";
@@ -254,7 +253,6 @@ export default function AIHubPage() {
         </div>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

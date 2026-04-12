@@ -1,6 +1,5 @@
 ﻿import { FlowTapePanel } from "@/components/intelligence/FlowTapePanel";
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -28,7 +27,6 @@ export default function IntelligenceFlowPage() {
           <FlowTapePanel />
         </IntelligencePageShell>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

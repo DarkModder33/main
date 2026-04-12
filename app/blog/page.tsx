@@ -1,6 +1,5 @@
 ﻿import { AdSenseBlock } from "@/components/monetization/AdSenseBlock";
 import { RecommendedTools } from "@/components/monetization/AffiliateBanner";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { getAllBlogPosts } from "@/lib/content/blog-posts";
 import { createPageMetadata } from "@/lib/seo";
 import { ArrowRight, Calendar, Clock } from "lucide-react";
@@ -86,7 +85,6 @@ export default function BlogPage() {
         </section>
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }

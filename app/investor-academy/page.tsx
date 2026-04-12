@@ -1,5 +1,4 @@
 ﻿import { InvestorAcademyExperience } from "@/components/education/InvestorAcademyExperience";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { investorAcademyModules } from "@/lib/investor-academy/modules";
 import { createPageMetadata } from "@/lib/seo";
 import { ActivitySquare, BarChart3, Radar } from "lucide-react";
@@ -77,7 +76,6 @@ export default function InvestorAcademyPage() {
 
         <InvestorAcademyExperience modules={investorAcademyModules} />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

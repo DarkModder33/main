@@ -1,5 +1,4 @@
 ﻿import { BillingConsole } from "@/components/monetization/BillingConsole";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -26,7 +25,6 @@ export default function BillingPage() {
 
         <BillingConsole />
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

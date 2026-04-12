@@ -1,6 +1,5 @@
 import { AdSense } from "@/components/AdSense";
 import { CounterCard } from "@/components/counter/CounterCard";
-import { Navbar } from "@/components/dashboard/Navbar";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
 import { createPageMetadata } from "@/lib/seo";
@@ -36,8 +35,6 @@ export const metadata: Metadata = createPageMetadata({
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black">
-      <Navbar />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 md:pb-14">
         {/* Welcome Section */}
         <div className="mb-8">

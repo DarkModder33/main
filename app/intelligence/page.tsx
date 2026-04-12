@@ -2,7 +2,6 @@
 import { IntelligencePageShell } from "@/components/intelligence/IntelligencePageShell";
 import { IntelligenceRouteCard } from "@/components/intelligence/IntelligenceRouteCard";
 import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { formatCompactUsd } from "@/lib/intelligence/format";
 import { getIntelligenceSnapshot } from "@/lib/intelligence/provider";
 import { createPageMetadata } from "@/lib/seo";
@@ -306,7 +305,6 @@ export default async function IntelligenceHubPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

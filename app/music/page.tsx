@@ -1,5 +1,4 @@
 ﻿import { TrackedCtaLink } from "@/components/monetization/TrackedCtaLink";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import { createPageMetadata } from "@/lib/seo";
 import {
     ArrowRight,
@@ -295,7 +294,6 @@ export default function MusicPage() {
           </div>
         </section>
       </main>
-      <ShamrockFooter />
     </div>
   );
 }

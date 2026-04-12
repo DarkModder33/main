@@ -8,7 +8,6 @@
 import { useState, useCallback } from "react";
 import { Sparkles, ChevronDown } from "lucide-react";
 import { SignalExplainer } from "@/components/trading/SignalExplainer";
-import { ShamrockFooter } from "@/components/shamrock/ShamrockFooter";
 import type { SignalExplanation, TradingSignal } from "@/types/trading";
 
 // â”€â”€â”€ Preset signals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -181,7 +180,6 @@ export default function XAIPage() {
         )}
       </main>
 
-      <ShamrockFooter />
     </div>
   );
 }
