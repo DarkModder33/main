@@ -6,7 +6,7 @@ export type TrainingBenchmarkStageId =
   | "response_quality"
   | "execution_safety"
   | "personalization_lift"
-  | "web5_game_integration"
+  | "game_integration"
   | "live_chart_readiness";
 
 export type TrainingBenchmarkStage = {
@@ -93,8 +93,8 @@ const DEFAULT_STAGES: Omit<TrainingBenchmarkStage, "score" | "status" | "updated
     ],
   },
   {
-    id: "web5_game_integration",
-    title: "Stage 6 · Web5 game integration",
+    id: "game_integration",
+    title: "Stage 6 · Game integration",
     description: "Validate educational tokenized game signal loop integration and user behavior sync.",
     targetScore: 0.8,
     metrics: [

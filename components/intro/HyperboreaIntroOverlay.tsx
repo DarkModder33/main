@@ -17,7 +17,7 @@ const OFFER_PILLARS = [
   "Website & App Building for Businesses",
   "Tech Repair + Emergency Service Intake",
   "Guitar Lessons + Artist Growth Systems",
-  "Crypto Product Roadmaps + Utility Strategy",
+  "Product Strategy + Digital Consulting",
 ];
 
 const INTRO_SCENES = [
@@ -47,8 +47,8 @@ const INTRO_SCENES = [
   },
   {
     mode: "Growth Mode",
-    headline: "Crypto Roadmaps + Product Strategy",
-    description: "Position products, design utility, and scale with practical web3 execution.",
+    headline: "Product Strategy + Digital Consulting",
+    description: "Position products, design user experiences, and scale with practical digital execution.",
     endAt: 0.9,
   },
   {

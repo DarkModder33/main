@@ -47,7 +47,6 @@ import {
   Bookmark,
   BookOpen,
   Brain,
-  Coins,
   Command,
   Copy,
   Cpu,
@@ -57,14 +56,12 @@ import {
   Lock,
   Pencil,
   RotateCcw,
-  RotateCw,
   Send,
   ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
   Trash2,
   TrendingUp,
-  Zap
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -212,8 +209,6 @@ interface SocialOpsSnapshot {
 }
 
 const FREE_USAGE_LIMIT = 3;
-const PAYMENT_AMOUNT_SOL = 0.05;
-const PAYMENT_AMOUNT_HAX = 100;
 
 const CHAT_MODELS = [
   {
@@ -464,14 +459,13 @@ export const AINeuralHub = () => {
   const [beginnerFocusMode, setBeginnerFocusMode] = useState(true);
   const [showOperatorDock, setShowOperatorDock] = useState(false);
   const [latestReplyPulse, setLatestReplyPulse] = useState(false);
-  const { usageCount, isCharging, incrementUsage, resetUsage } = useUsageLimit(FREE_USAGE_LIMIT);
-  const [isPaying, setIsPaying] = useState(false);
+  const { usageCount, isCharging, incrementUsage } = useUsageLimit(FREE_USAGE_LIMIT);
   const [selectedChatModel, setSelectedChatModel] = useState<string>(CHAT_MODELS[0].id);
   const [openModeEnabled, setOpenModeEnabled] = useState(true);
   const [guideName, setGuideName] = useState("Trader");
   const [responseStyle, setResponseStyle] = useState<ResponseStyle>("coach");
   const [riskStance, setRiskStance] = useState<RiskStance>("balanced");
-  const [focusSymbol, setFocusSymbol] = useState("HAX");
+  const [focusSymbol, setFocusSymbol] = useState("BTC");
   const [sessionIntent, setSessionIntent] = useState("Build disciplined consistency");
   const [personaPreset, setPersonaPreset] = useState<PersonaPresetId>("mystic");
   const [videoSourceUrl, setVideoSourceUrl] = useState("");
@@ -537,12 +531,10 @@ export const AINeuralHub = () => {
   const [datasetNotes, setDatasetNotes] = useState("");
   const [behaviorLabel, setBehaviorLabel] = useState("early-session confidence pattern");
   const [behaviorObservation, setBehaviorObservation] = useState("");
-  const [tickerBehaviorSymbol, setTickerBehaviorSymbol] = useState("HAX");
+  const [tickerBehaviorSymbol, setTickerBehaviorSymbol] = useState("BTC");
   const [tickerBehaviorPattern, setTickerBehaviorPattern] = useState("");
   const [learningEnvironmentName, setLearningEnvironmentName] = useState("macro event drill");
   const [learningEnvironmentHypothesis, setLearningEnvironmentHypothesis] = useState("");
-  const [connected, setConnected] = useState(false);
-  const [chainAccountId, setChainAccountId] = useState("");
   const { neuralVaultCount, refreshNeuralVaultCount } = useNeuralVaultCount(getLocalNeuralVault);
 
   useCorePreferences({
@@ -710,23 +702,6 @@ export const AINeuralHub = () => {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const handlePayment = async () => {
-    if (!connected || !chainAccountId) return;
-    setIsPaying(true);
-    try {
-      // Logic for actual chain-native settlement would go here.
-      // For now we mock success after a delay to show UI flow
-      await new Promise(r => setTimeout(r, 2000));
-
-      resetUsage();
-      // In a real app, you'd verify the transaction on-chain
-    } catch (err) {
-      console.error("Payment failed", err);
-    } finally {
-      setIsPaying(false);
-    }
-  };
-
   // --- CHAT LOGIC ---
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
@@ -767,7 +742,7 @@ export const AINeuralHub = () => {
         ? "GUIDED_EXPLORER"
         : "NEW_SEEKER";
 
-  const secureSessionLabel = connected ? "Chain-account signed secure session" : "Anon sandbox session (privacy-first)";
+  const secureSessionLabel = "Secure session (privacy-first)";
   const effectiveOpenMode = openModeEnabled;
   const modeLabel = effectiveOpenMode ? "Mystic Open Mode" : "Guardian Standard Mode";
   const selectedPersona = PERSONA_PRESETS.find((preset) => preset.id === personaPreset) || PERSONA_PRESETS[0];
@@ -887,7 +862,7 @@ export const AINeuralHub = () => {
       "Build long-term trust: remember user preference cues from this session and keep tone calm, secure, and empowering.",
       styleInstruction,
       riskInstruction,
-      `Session focus symbol: ${focusSymbol || "HAX"}.`,
+      `Session focus symbol: ${focusSymbol || "BTC"}.`,
       `Session intention: ${sessionIntent || "Build disciplined consistency"}.`,
       `Detected market regime: ${detectedMarketRegime}.`,
       videoContext,
@@ -1122,7 +1097,7 @@ export const AINeuralHub = () => {
         setRiskStance(settings.riskStance);
       }
       if (settings.focusSymbol) {
-        setFocusSymbol(normalizeSymbol(settings.focusSymbol) || "HAX");
+        setFocusSymbol(normalizeSymbol(settings.focusSymbol) || "BTC");
       }
       if (settings.sessionIntent) {
         setSessionIntent(settings.sessionIntent);
@@ -1513,10 +1488,10 @@ export const AINeuralHub = () => {
     setGeneratedImg(null);
     setImageStatus("");
 
-    const runtimeByModel: Record<string, { style: "general" | "trading" | "nft" | "hero" | "xai_grok"; odinProfile?: "standard" | "alpha" | "overclock" }> = {
+    const runtimeByModel: Record<string, { style: "general" | "trading" | "creative" | "hero" | "xai_grok"; odinProfile?: "standard" | "alpha" | "overclock" }> = {
       NEURAL_DIFF_V4: { style: "general", odinProfile: "standard" },
       FLUX_CORE_X: { style: "hero", odinProfile: "alpha" },
-      ASTRA_LINK: { style: "nft", odinProfile: "alpha" },
+      ASTRA_LINK: { style: "creative", odinProfile: "alpha" },
       GROK_X_VISION: { style: "xai_grok", odinProfile: "overclock" },
     };
 
@@ -1726,9 +1701,9 @@ export const AINeuralHub = () => {
                 <label className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-300">Focus Symbol</label>
                 <input
                   value={focusSymbol}
-                  onChange={(event) => setFocusSymbol(normalizeSymbol(event.target.value) || "SOL")}
+                  onChange={(event) => setFocusSymbol(normalizeSymbol(event.target.value) || "BTC")}
                   className="mt-1 w-full rounded-md border border-white/15 bg-black/50 px-2 py-1 text-[11px] text-white"
-                  placeholder="SOL"
+                  placeholder="BTC"
                   maxLength={12}
                 />
               </div>
@@ -1786,66 +1761,23 @@ export const AINeuralHub = () => {
                 </div>
                 <h3 className="text-3xl font-black text-white mb-4 italic uppercase tracking-tighter">Neural Limit Reached</h3>
                 <p className="text-zinc-400 max-w-sm mb-10 text-sm leading-relaxed">
-                  Your 3 free neural sessions have been consumed. To continue accessing uncensored AI models and real-time market pickers, settle a micro-transaction of <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_HAX} $HAX</span> or <span className="text-cyan-400 font-bold">{PAYMENT_AMOUNT_SOL} native units</span>.
+                  Your 3 free neural sessions have been consumed. To continue accessing AI models and real-time market pickers, upgrade to a premium plan or purchase additional credits.
                 </p>
                 <div className="flex flex-col gap-4 w-full max-w-md">
-                  {!connected ? (
-                    <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const generated = `acct_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-                          setChainAccountId(generated);
-                          setConnected(true);
-                          setChatStatus(`Connected chain account: ${generated}`);
-                        }}
-                        className="w-full px-8 py-4 bg-cyan-500 text-black font-black rounded-2xl text-xs hover:bg-white hover:scale-[1.02] transition-all uppercase italic flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
-                      >
-                        Connect_Chain_Account
-                      </button>
-                      <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
-                        Chain-agnostic session connector (replace with production signer)
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handlePayment}
-                        disabled={isPaying}
-                        className="w-full px-8 py-4 bg-cyan-500 text-black font-black rounded-2xl text-xs hover:bg-white hover:scale-[1.02] transition-all uppercase italic flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)] disabled:opacity-50"
-                      >
-                        {isPaying ? (
-                          <>
-                            <RotateCw className="w-4 h-4 animate-spin" />
-                            Verifying_On_Chain...
-                          </>
-                        ) : (
-                          <>
-                            <Coins className="w-4 h-4" />
-                            Pay_{PAYMENT_AMOUNT_HAX}_$HAX
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={handlePayment}
-                        disabled={isPaying}
-                        className="w-full px-8 py-4 bg-zinc-900 border border-white/10 text-white font-black rounded-2xl text-xs hover:border-cyan-500/50 transition-all uppercase italic flex items-center justify-center gap-2"
-                      >
-                        <Zap className="w-4 h-4" />
-                        Alternative:_{PAYMENT_AMOUNT_SOL}_Native
-                      </button>
-                    </>
-                  )}
                   <a
-                    href={process.env.NEXT_PUBLIC_HAX_SWAP_URL || "https://tradehax.example/swap"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full px-8 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black rounded-2xl text-[10px] hover:bg-emerald-500/20 transition-all uppercase italic text-center"
+                    href="/pricing"
+                    className="w-full px-8 py-4 bg-cyan-500 text-black font-black rounded-2xl text-xs hover:bg-white hover:scale-[1.02] transition-all uppercase italic flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
                   >
-                    Open_$HAX_Swap
+                    Upgrade_to_Premium
+                  </a>
+                  <a
+                    href="/schedule"
+                    className="w-full px-8 py-4 bg-zinc-900 border border-white/10 text-white font-black rounded-2xl text-xs hover:border-cyan-500/50 transition-all uppercase italic flex items-center justify-center gap-2"
+                  >
+                    Contact_for_Enterprise
                   </a>
                 </div>
-                <p className="mt-8 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Secure_SSL_Encrypted_Handshake</p>
+                <p className="mt-8 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Secure_SSL_Encrypted</p>
               </div>
             )}
 

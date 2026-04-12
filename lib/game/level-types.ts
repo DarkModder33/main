@@ -59,7 +59,6 @@ export interface RunnerSpawnProfile {
 export interface LevelTokenConfig {
   enabled: boolean;
   claimEndpoint: string;
-  web5Collection: string;
   l2TokenSymbol: string;
   l2Network: string;
 }
@@ -107,7 +106,6 @@ export interface ArtifactCollectionEvent {
   utilityTokenBonusUnits?: number;
   lockedAtPickup?: boolean;
   claimEndpoint: string;
-  web5Collection: string;
   collectedAt: string;  rune: ElderFutharkRune;
   runeSymbol: string;
   runeBonus: number;
@@ -171,7 +169,6 @@ export function isHyperboreaLevelDefinition(
     Array.isArray(level.artifacts) &&
     level.artifacts.every(isArtifact) &&
     !!level.tokenConfig &&
-    typeof level.tokenConfig.claimEndpoint === "string" &&
-    typeof level.tokenConfig.web5Collection === "string"
+    typeof level.tokenConfig.claimEndpoint === "string"
   );
 }

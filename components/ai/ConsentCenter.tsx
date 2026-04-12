@@ -182,7 +182,7 @@ export function ConsentCenter() {
 
           <div className="mt-2 text-[10px] text-emerald-100/70">{saving ? "Saving…" : status || summary}</div>
           <div className="mt-1 text-[10px] text-emerald-100/60">
-            No wallet keys or private credentials are stored in this consent flow.
+            No private credentials are stored in this consent flow.
           </div>
         </div>
       )}

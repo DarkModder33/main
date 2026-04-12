@@ -1,20 +1,20 @@
 "use client";
 
-import { Wallet, Settings, TrendingUp, LucideIcon } from "lucide-react";
+import { UserCircle, Settings, TrendingUp, LucideIcon } from "lucide-react";
 import type { HowItWorksStep } from "@/types";
 
 const steps: HowItWorksStep[] = [
   {
     number: 1,
-    title: "Connect Your Wallet",
+    title: "Create Your Account",
     description:
-      "Securely link your chain account using modern wallet connectors and signer sessions.",
+      "Sign up and set your trading profile with preferences and risk parameters.",
   },
   {
     number: 2,
     title: "Configure Strategy",
     description:
-      "Set your trading parameters, risk tolerance, and preferred tokens. Customize to match your goals.",
+      "Set your trading parameters, risk tolerance, and market preferences. Customize to match your goals.",
   },
   {
     number: 3,
@@ -24,7 +24,7 @@ const steps: HowItWorksStep[] = [
   },
 ];
 
-const icons: LucideIcon[] = [Wallet, Settings, TrendingUp];
+const icons: LucideIcon[] = [UserCircle, Settings, TrendingUp];
 
 function StepCard({ step, Icon }: { step: HowItWorksStep; Icon: LucideIcon }) {
   return (

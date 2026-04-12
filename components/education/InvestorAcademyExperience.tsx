@@ -48,7 +48,7 @@ type AcademyScoreBreakdown = {
   bonusXp: number;
   bonusHax: number;
   totalXp: number;
-  totalHax: number;
+  totalCredits: number;
   streakScore: number;
   questScore: number;
   taskCompletionScore: number;
@@ -67,7 +67,7 @@ type AcademyLeaderboardEntry = {
 type AcademyLeaderboardSeason = "daily" | "weekly" | "all_time";
 
 type AcademyFeatureSpendQuote = {
-  feature: "ai_chat" | "hax_runner" | "signal_alert" | "bot_create";
+  feature: "ai_chat" | "hyperborea" | "signal_alert" | "bot_create";
   label: string;
   unitCostHax: number;
   usedToday: number;
@@ -78,11 +78,11 @@ type AcademyFeatureSpendQuote = {
 type AcademyEconomySnapshot = {
   userId: string;
   score: AcademyScoreBreakdown;
-  walletHaxEarned: number;
-  walletHaxCreditTotal: number;
-  walletHaxSpentTotal: number;
-  walletHaxSpentToday: number;
-  walletHaxAvailable: number;
+  creditsEarned: number;
+  creditsCreditTotal: number;
+  creditsSpentTotal: number;
+  creditsSpentToday: number;
+  creditsAvailable: number;
   featureSpendQuotes: AcademyFeatureSpendQuote[];
   generatedAt: string;
 };
@@ -124,9 +124,9 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
       progress.bonusXp,
     [completedModules, modules, progress.bonusXp],
   );
-  const totalHax = useMemo(
+  const totalCredits = useMemo(
     () =>
-      modules.reduce((total, module) => total + (completedModules[module.id] ? module.haxReward : 0), 0) +
+      modules.reduce((total, module) => total + (completedModules[module.id] ? module.creditReward : 0), 0) +
       progress.bonusHax,
     [completedModules, modules, progress.bonusHax],
   );
@@ -384,7 +384,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-300" />
-              Progress Wallet
+              Progress Rewards
             </CardTitle>
             <CardDescription>Simulation rewards for education and engagement.</CardDescription>
           </CardHeader>
@@ -414,15 +414,15 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
               <p className="text-2xl font-black text-cyan-200">{totalXp}</p>
             </div>
             <div className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3">
-              <p className="text-emerald-100/80 text-xs uppercase tracking-[0.18em]">$HAX Rewarded</p>
-              <p className="text-2xl font-black text-emerald-200">{totalHax}</p>
+              <p className="text-emerald-100/80 text-xs uppercase tracking-[0.18em]">credits Rewarded</p>
+              <p className="text-2xl font-black text-emerald-200">{totalCredits}</p>
             </div>
             {economy && (
               <div className="rounded-lg border border-violet-400/30 bg-violet-500/10 p-3">
-                <p className="text-violet-100/80 text-xs uppercase tracking-[0.18em]">Spendable $HAX</p>
-                <p className="text-2xl font-black text-violet-200">{economy.walletHaxAvailable}</p>
+                <p className="text-violet-100/80 text-xs uppercase tracking-[0.18em]">Spendable credits</p>
+                <p className="text-2xl font-black text-violet-200">{economy.creditsAvailable}</p>
                 <p className="mt-1 text-[11px] text-violet-100/80">
-                  Earned {economy.walletHaxEarned} · Season credits {economy.walletHaxCreditTotal} · Spent total {economy.walletHaxSpentTotal} · Today spend {economy.walletHaxSpentToday}
+                  Earned {economy.creditsEarned} · Season credits {economy.creditsCreditTotal} · Spent total {economy.creditsSpentTotal} · Today spend {economy.creditsSpentToday}
                 </p>
               </div>
             )}
@@ -451,7 +451,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
               Complete <span className="font-semibold">{progress.dailyQuest.moduleId.replaceAll("-", " ")}</span> with at
               least <span className="font-semibold">{Math.round(progress.dailyQuest.targetScorePct * 100)}%</span> score.
             </p>
-            <p className="text-xs text-[#9db2cc]">Bonus reward: +40 XP and +5 $HAX</p>
+            <p className="text-xs text-[#9db2cc]">Bonus reward: +40 XP and +5 credits</p>
             <p className={cn("text-xs font-semibold", progress.dailyQuest.completed ? "text-emerald-200" : "text-cyan-200")}>
               {progress.dailyQuest.completed ? "Quest complete for today" : "Quest active"}
             </p>
@@ -464,7 +464,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
               <Trophy className="h-4 w-4 text-yellow-300" />
               Leaderboard + Feature Costs
             </CardTitle>
-            <CardDescription>Ranking is derived from XP, $HAX, streak consistency, and completed tasks.</CardDescription>
+            <CardDescription>Ranking is derived from XP, credits, streak consistency, and completed tasks.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex flex-wrap gap-2">
@@ -507,7 +507,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
                         <p className="text-cyan-200">{entry.score.compositeScore} pts</p>
                       </div>
                       <p className="mt-1 text-[#9db2cc]">
-                        {entry.score.totalXp} XP · {entry.score.totalHax} HAX · {entry.streakDays} day streak
+                        {entry.score.totalXp} XP · {entry.score.totalCredits} credits · {entry.streakDays} day streak
                       </p>
                     </div>
                   );
@@ -517,7 +517,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
 
             {economy ? (
               <div className="rounded-lg border border-[#334766] bg-[#0a182b] p-3">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-[#9fb4d0]">Feature cost schedule ($HAX)</p>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[#9fb4d0]">Feature access schedule</p>
                 <ul className="mt-2 space-y-1.5 text-xs text-[#d7e5f7]">
                   {economy.featureSpendQuotes.map((quote) => (
                     <li key={quote.feature} className="flex items-center justify-between gap-2">
@@ -579,7 +579,7 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
                 <Clock3 className="h-3 w-3" /> {activeModule.estimatedMinutes} min
               </span>
               <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-emerald-200 inline-flex items-center gap-1">
-                <Coins className="h-3 w-3" /> +{activeModule.haxReward} $HAX
+                <Coins className="h-3 w-3" /> +{activeModule.creditReward} credits
               </span>
             </div>
             <CardTitle className="text-white text-2xl">{activeModule.title}</CardTitle>
@@ -664,16 +664,16 @@ export function InvestorAcademyExperience({ modules }: InvestorAcademyExperience
                 <p className="text-white font-semibold">Final score: {quizState.score} / {activeModule.quiz.length}</p>
                 <p className="mt-1 text-[#b8cbe2]">
                   {passRate >= 0.6
-                    ? "Module completed. Rewards are now added to your academy progress wallet."
+                    ? "Module completed. Rewards are now added to your academy progress."
                     : "Pass threshold not met yet. Reset and retry to claim rewards."}
                 </p>
                 {moduleCompleted && (
                   <p className="mt-2 text-emerald-200">
-                    Claimed: +{activeModule.xpReward} XP and +{activeModule.haxReward} $HAX
+                    Claimed: +{activeModule.xpReward} XP and +{activeModule.creditReward} credits
                   </p>
                 )}
                 {progress.dailyQuest.completed && progress.dailyQuest.moduleId === activeModule.id && (
-                  <p className="mt-1 text-fuchsia-200">Daily quest bonus claimed: +40 XP and +5 $HAX</p>
+                  <p className="mt-1 text-fuchsia-200">Daily quest bonus claimed: +40 XP and +5 credits</p>
                 )}
               </div>
             )}

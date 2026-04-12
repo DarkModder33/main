@@ -20,7 +20,7 @@ export function ImageGeneratorComponent() {
   const searchParams = useSearchParams();
   const [userId, setUserId] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState<"trading" | "nft" | "hero" | "general">(
+  const [style, setStyle] = useState<"trading" | "creative" | "hero" | "general">(
     "general",
   );
   const [negativePrompt, setNegativePrompt] = useState("");
@@ -224,7 +224,7 @@ export function ImageGeneratorComponent() {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {(
-                ["general", "trading", "nft", "hero"] as const
+                ["general", "trading", "creative", "hero"] as const
               ).map((s) => (
                 <button
                   key={s}
@@ -325,7 +325,7 @@ export function ImageGeneratorComponent() {
         <p>• Keep prompts specific and short (1-2 sentences)</p>
         <p>• Mention visual style + purpose (thumbnail, hero, chart)</p>
         <p>• Trading charts and visualizations</p>
-        <p>• NFT artwork generation</p>
+        <p>• Creative artwork generation</p>
         <p>• Hero images for websites</p>
         <p>• General creative images</p>
       </div>

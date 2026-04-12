@@ -557,7 +557,7 @@ export const BOOTSTRAP_DATA: InteractionLog[] = [
     category: "BEHAVIOR",
     prompt: "How does TradeHax handle WebDev consulting?",
     response:
-      "TRADEHAX_WEBDEV: We specialize in high-performance Next.js architectures with integrated multi-chain Web3 layers. Our process involves rapid prototyping, neural-terminal UI design, and aggressive optimization for Vercel edge deployment.",
+      "TRADEHAX_WEBDEV: We specialize in high-performance Next.js architectures with optimized UI layers. Our process involves rapid prototyping, neural-terminal UI design, and aggressive optimization for Vercel edge deployment.",
     source: "system",
     consent: { analytics: true, training: true },
   },
@@ -566,7 +566,7 @@ export const BOOTSTRAP_DATA: InteractionLog[] = [
     category: "HFT",
     prompt: "What is the core logic of the TradeHax HFT scanner?",
     response:
-      "HFT_SCANNER_LOGIC: The system utilizes a multi-threaded polling mechanism across multiple chain RPC endpoints. It identifies liquidity imbalances in aggregated order books and executes swaps when the slippage-adjusted arbitrage spread exceeds 0.5%.",
+      "HFT_SCANNER_LOGIC: The system utilizes a multi-threaded polling mechanism across multiple market data endpoints. It identifies liquidity imbalances in aggregated order books and signals when the slippage-adjusted arbitrage spread exceeds 0.5%.",
     source: "system",
     consent: { analytics: true, training: true },
   },
@@ -593,7 +593,7 @@ export const BOOTSTRAP_DATA: InteractionLog[] = [
     category: "MARKET",
     prompt: "Analyze the current Shamrock Protocol emission rate.",
     response:
-      "SHAMROCK_EMISSION: Current rate is 4.2 $HAX per block. Hyperborea vault density is at 88%. Expect supply-side contraction if yield depth exceeds critical threshold.",
+      "SHAMROCK_EMISSION: Hyperborea vault density is at 88%. Reward yield is operating within expected parameters. Engagement depth approaching critical threshold.",
     source: "system",
     consent: { analytics: true, training: true },
   },

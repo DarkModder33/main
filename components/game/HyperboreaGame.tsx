@@ -886,7 +886,6 @@ export function HyperboreaGame({
         utilityTokenBonusUnits: toProjectedUtilityTokenUnits(utilityPoints),
         lockedAtPickup,
         claimEndpoint: activeLevel.tokenConfig.claimEndpoint,
-        web5Collection: activeLevel.tokenConfig.web5Collection,
         collectedAt: new Date().toISOString(),
         rune: artifact.rune,
         runeSymbol: artifact.runeSymbol,

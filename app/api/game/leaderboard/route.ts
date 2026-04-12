@@ -17,7 +17,6 @@ import { NextResponse } from "next/server";
 const MAX_ENTRIES = 100;
 const MAX_SEEN_SESSION_KEYS = 2_000;
 const SAFE_ID_REGEX = /^[a-zA-Z0-9._:-]{1,128}$/;
-const SAFE_WALLET_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,64}$/;
 
 const SCORE_BOUNDS = {
   score: { min: 0, max: 5_000_000 },
@@ -137,10 +136,6 @@ function isValidSubmission(payload: LeaderboardSubmission) {
     if (oauthUserId.length < 1) return false;
   }
 
-  if (payload.walletAddress && !SAFE_WALLET_REGEX.test(payload.walletAddress)) {
-    return false;
-  }
-
   return true;
 }
 
@@ -151,8 +146,6 @@ function toEntry(payload: LeaderboardSubmission): LeaderboardEntry {
     displayName: sanitizeDisplayName(payload.displayName),
     oauthProvider: payload.oauthProvider,
     oauthUserId: sanitizeOptionalId(payload.oauthUserId, 256),
-    walletAddress: sanitizeOptionalId(payload.walletAddress, 128),
-    web5Enabled: Boolean(payload.web5Enabled && payload.walletAddress),
     levelId: sanitizePlainText(run.levelId, 128) || "level",
     score: Math.round(run.score),
     combo: Math.round(run.combo),
@@ -172,7 +165,6 @@ function toEntry(payload: LeaderboardSubmission): LeaderboardEntry {
 function getSessionKey(payload: LeaderboardSubmission) {
   const identity =
     sanitizeOptionalId(payload.oauthUserId, 256) ??
-    sanitizeOptionalId(payload.walletAddress, 128) ??
     sanitizeDisplayName(payload.displayName).toLowerCase();
   return `${payload.run.sessionId}:${payload.oauthProvider}:${identity}`;
 }

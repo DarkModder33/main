@@ -189,9 +189,9 @@ export const NeuralConsole = () => {
                <div className="flex justify-between items-center">
                   <div>
                     <p className="text-[10px] text-cyan-500 uppercase font-mono mb-1">Projected_System_Value</p>
-                    <p className="text-2xl font-black text-white italic">{projectedValue.toLocaleString()} <span className="text-cyan-500">$HAX</span></p>
+                    <p className="text-2xl font-black text-white italic">{projectedValue.toLocaleString()} <span className="text-cyan-500">pts</span></p>
                   </div>
-                  <button className="px-6 py-2 bg-cyan-500 text-black text-[10px] font-black rounded-lg uppercase">Stake_Now</button>
+                  <button className="px-6 py-2 bg-cyan-500 text-black text-[10px] font-black rounded-lg uppercase">View_Details</button>
                </div>
             </div>
           )}

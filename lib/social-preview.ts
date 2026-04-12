@@ -11,7 +11,7 @@ const SITE_ORIGIN = siteConfig.primarySiteUrl;
 const SITE_PATH = "/";
 const CAMPAIGN = "brand_preview";
 const SHARE_MESSAGE =
-  "TradeHax AI: web development, tech repair, music lessons, and Web3 services.";
+  "TradeHax AI: web development, tech repair, music lessons, and digital services.";
 const SHARE_TITLE = "TradeHax AI | Digital Services and Web3";
 
 export const primaryPreviewUrl = `${SITE_ORIGIN}${SITE_PATH}?utm_source=preview_link&utm_medium=social&utm_campaign=${CAMPAIGN}`;

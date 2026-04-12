@@ -4,15 +4,15 @@ const milestones = [
     phase: "PHASE_01: INFRASTRUCTURE",
     status: "COMPLETE",
     title: "Core System Deployment",
-    items: ["Bento UI v4.0", "Next.js 14 Framework", "Multi-Chain Ticker Engine", "Rate Limiting & Security Modules"],
+    items: ["Bento UI v4.0", "Next.js 14 Framework", "Multi-Signal Data Engine", "Rate Limiting & Security Modules"],
     accent: "border-cyan-500",
     glow: "bg-cyan-500/20"
   },
   {
-    phase: "PHASE_02: LIQUIDITY & UTILITY",
+    phase: "PHASE_02: PLATFORM & UTILITY",
     status: "ACTIVE",
-    title: "LGE & Game Integration",
-    items: ["HAX_RUNNER Beta Launch", "Liquidity Pool (LQ) Initialization", "$HAX Tokenomics Audit", "Cross-Chain Bridge testing"],
+    title: "Game & Service Integration",
+    items: ["Hyperborea Game Launch", "Booking System Integration", "AI Consulting Offerings", "Service Pricing & Plans"],
     accent: "border-purple-500",
     glow: "bg-purple-500/20"
   },
@@ -20,7 +20,7 @@ const milestones = [
     phase: "PHASE_03: AI SCALING",
     status: "PENDING",
     title: "LLM Market Insights",
-    items: ["Live Bloomberg API Integration", "Predictive Trading Signals", "Staking Pool V2", "DAO Governance Beta"],
+    items: ["Live Bloomberg API Integration", "Predictive Trading Signals", "Premium AI Features", "Community Leaderboards"],
     accent: "border-zinc-800",
     glow: "bg-zinc-800/20"
   }

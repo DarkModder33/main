@@ -4,7 +4,7 @@ export type BlogCategory =
   | "Security"
   | "Repair"
   | "Music"
-  | "Web3"
+  | "AI"
   | "Growth";
 
 export type BlogPost = {
@@ -21,19 +21,19 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
-    slug: "getting-started-solana-trading",
-    title: "Getting Started with On-Chain Trading: A Complete Guide",
+    slug: "getting-started-trading",
+    title: "Getting Started with Trading: A Complete Guide",
     excerpt:
-      "A practical walkthrough for wallet setup, risk controls, and first-trade execution across modern chains.",
+      "A practical walkthrough for account setup, risk controls, and first-trade execution across modern markets.",
     date: "2026-02-10",
     readTime: 8,
     category: "Tutorial",
     featured: true,
     author: "TradeHax AI Team",
     content: `
-  <p>On-chain trading can be fast and efficient, but speed without structure usually leads to losses. Start with setup discipline before your first execution.</p>
-<h2>Step 1: Wallet + RPC setup</h2>
-<p>Use a production wallet, enable hardware security where possible, and choose a stable RPC provider. Track failed transactions and latency spikes.</p>
+  <p>Trading can be fast and efficient, but speed without structure usually leads to losses. Start with setup discipline before your first execution.</p>
+<h2>Step 1: Account + platform setup</h2>
+<p>Use a reputable platform, enable two-factor authentication, and choose a stable data feed. Track failed orders and latency spikes.</p>
 <h2>Step 2: Risk framework</h2>
 <p>Define risk per trade (0.5% to 1%), stop conditions, and daily max drawdown before strategy selection.</p>
 <h2>Step 3: Execution routine</h2>
@@ -61,10 +61,10 @@ export const blogPosts: BlogPost[] = [
 `,
   },
   {
-    slug: "web3-wallet-security-ops-checklist",
-    title: "Web3 Wallet Security Ops Checklist",
+    slug: "trading-account-security-checklist",
+    title: "Trading Account Security Ops Checklist",
     excerpt:
-      "A repeatable checklist for protecting funds, reducing social-engineering risk, and controlling signer exposure.",
+      "A repeatable checklist for protecting your accounts, reducing social-engineering risk, and controlling access exposure.",
     date: "2026-02-06",
     readTime: 7,
     category: "Security",
@@ -72,9 +72,9 @@ export const blogPosts: BlogPost[] = [
     content: `
 <p>Security is an operating system, not a single feature. Use this checklist before every high-value transaction.</p>
 <ul>
-  <li>Verify destination addresses from two independent sources.</li>
-  <li>Segment hot wallet and treasury wallet responsibilities.</li>
-  <li>Audit approval scopes and revoke stale permissions weekly.</li>
+  <li>Verify destination accounts from two independent sources.</li>
+  <li>Segment trading and savings account responsibilities.</li>
+  <li>Audit access permissions and revoke stale authorizations weekly.</li>
   <li>Require explicit verification for urgent requests.</li>
 </ul>
 <p>Document incidents quickly and update your process after every failure mode.</p>
@@ -119,22 +119,22 @@ export const blogPosts: BlogPost[] = [
 `,
   },
   {
-    slug: "small-business-web3-implementation-roadmap",
-    title: "Small Business Web3 Implementation Roadmap",
+    slug: "small-business-ai-implementation-roadmap",
+    title: "Small Business AI Implementation Roadmap",
     excerpt:
-      "A staged rollout for token utility, wallet onboarding, and compliance-aware adoption in service businesses.",
+      "A staged rollout for AI tools, digital onboarding, and compliance-aware adoption in service businesses.",
     date: "2026-01-31",
     readTime: 10,
-    category: "Web3",
+    category: "AI",
     author: "TradeHax AI Team",
     content: `
-<p>Web3 implementations fail when teams attempt everything at once. Roll out in controlled phases.</p>
-<h2>Phase A: onboarding + identity</h2>
-<p>Start with wallet connect and gated access. Keep account recovery and support process clear.</p>
+<p>AI implementations fail when teams attempt everything at once. Roll out in controlled phases.</p>
+<h2>Phase A: onboarding + automation</h2>
+<p>Start with AI-assisted intake and basic automation. Keep processes clear and support accessible.</p>
 <h2>Phase B: utility</h2>
-<p>Launch one utility loop (discounts, access, or rewards), then measure adoption before adding more complexity.</p>
-<h2>Phase C: governance</h2>
-<p>Introduce structured voting only after participation and accountability patterns are healthy.</p>
+<p>Launch one AI utility loop (recommendations, alerts, or insights), then measure adoption before adding more complexity.</p>
+<h2>Phase C: integration</h2>
+<p>Introduce deeper AI integrations only after core adoption and accountability patterns are healthy.</p>
 `,
   },
   {

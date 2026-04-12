@@ -152,7 +152,7 @@ export default async function Home() {
                 </li>
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
                   <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
-                  <span>Cross-chain crypto flow with confidence bands</span>
+                  <span>Cross-market flow analysis with confidence bands</span>
                 </li>
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
                   <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
@@ -230,7 +230,7 @@ export default async function Home() {
                 </li>
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <span>Blockchain/Web3 smart contract deployment</span>
+                  <span>Custom API integrations and smart automation</span>
                 </li>
                 <li className="flex items-start gap-2 text-sm text-zinc-300">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />

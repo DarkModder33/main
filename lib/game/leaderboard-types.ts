@@ -7,8 +7,6 @@ export interface LeaderboardSubmission {
   displayName: string;
   oauthProvider: OAuthProvider;
   oauthUserId?: string;
-  walletAddress?: string;
-  web5Enabled?: boolean;
 }
 
 export interface LeaderboardEntry {
@@ -16,8 +14,6 @@ export interface LeaderboardEntry {
   displayName: string;
   oauthProvider: OAuthProvider;
   oauthUserId?: string;
-  walletAddress?: string;
-  web5Enabled: boolean;
   levelId: string;
   score: number;
   combo: number;

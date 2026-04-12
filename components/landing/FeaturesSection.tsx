@@ -19,9 +19,9 @@ const features: FeatureCardProps[] = [
   },
   {
     icon: <Lock className="w-8 h-8 text-[#00F0FF]" />,
-    title: "Secure Wallet Integration",
+    title: "Secure Account Management",
     description:
-      "Connect your account securely with support for modern chain wallets and signing connectors.",
+      "Connect your account securely with support for OAuth-based authentication and privacy-first session management.",
   },
   {
     icon: <BarChart3 className="w-8 h-8 text-[#3B82F6]" />,
@@ -70,7 +70,7 @@ export function FeaturesSection() {
             </span>
           </h2>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Everything you need to trade smarter across modern blockchain ecosystems
+            Everything you need to trade smarter across modern financial ecosystems
           </p>
         </div>
 

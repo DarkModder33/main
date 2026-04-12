@@ -64,7 +64,7 @@ export function HubMetricsRail({ isCharging: _isCharging, relationshipTier }: Hu
         </div>
         <h3 className="text-lg font-black text-white uppercase italic mb-2">Power User Access</h3>
         <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
-          Unlock unlimited neural generations, HFT signals, and custom fine-tuned models by staking $HAX tokens.
+          Unlock unlimited neural generations, HFT signals, and custom fine-tuned models by upgrading to Premium.
         </p>
         <button className="w-full py-3 bg-cyan-500 text-black font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-white transition-colors">
           Review_Staking_Options

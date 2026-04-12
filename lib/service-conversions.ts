@@ -13,7 +13,7 @@ export type ServiceConversionId =
   | "open_portfolio"
   | "book_repair_quote"
   | "book_guitar_lesson"
-  | "book_web3_consult"
+  | "book_ai_consult"
   | "book_trading_consult"
   | "book_social_media_consult"
   | "book_it_management_consult"
@@ -156,9 +156,9 @@ export const SERVICE_CONVERSION_EVENTS: Record<ServiceConversionId, ConversionMe
     value: 8,
     stage: "intent",
   },
-  book_web3_consult: {
-    action: "book_web3_consult",
-    label: "web3_consult",
+  book_ai_consult: {
+    action: "book_ai_consult",
+    label: "ai_consult",
     value: 10,
     stage: "intent",
   },

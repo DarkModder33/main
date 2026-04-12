@@ -33,14 +33,14 @@ export const ServiceGrid = () => {
           <div className="md:col-span-6 lg:col-span-4 row-span-3 group relative overflow-hidden rounded-3xl bg-gradient-to-b from-purple-500/10 to-black border border-white/5 p-5 sm:p-10 hover:border-purple-500/50 transition-all cursor-pointer">
             <div className="h-full flex flex-col">
               <div className="text-4xl sm:text-5xl mb-4 sm:mb-6">🎮</div>
-              <h4 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Hax Runner</h4>
+              <h4 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Hyperborea</h4>
               <p className="text-zinc-300 text-sm leading-relaxed mb-8">
-                Compete in high-stakes arcade challenges to earn $HAX and exclusive NFT fragments.
+                Compete in immersive arcade challenges, climb the leaderboard, and earn in-game rewards and recognition.
               </p>
               <div className="mt-auto pt-8 border-t border-white/5">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-xs font-mono text-zinc-500 uppercase">Current Pool</span>
-                  <span className="text-purple-500 font-mono">50,000 $HAX</span>
+                  <span className="text-xs font-mono text-zinc-500 uppercase">Season Prize Pool</span>
+                  <span className="text-purple-500 font-mono">Top 10 Rewards</span>
                 </div>
                 <button className="w-full min-h-[44px] py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-500 transition-colors">Play Now</button>
               </div>

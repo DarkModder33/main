@@ -396,8 +396,7 @@ export function generateZeldaLikeLevel(
     tokenConfig: {
       enabled: true,
       claimEndpoint: "/api/game/claim-artifact",
-      web5Collection: "hyperborea/relic-claims",
-      l2TokenSymbol: "THX",
+      l2TokenSymbol: "pts",
       l2Network: "staging",
     },
     theme: {

@@ -5,7 +5,6 @@
 
 export interface UserProfile {
   id: string;
-  walletAddress?: string;
   preferences: {
     theme: "dark" | "light";
     language: string;

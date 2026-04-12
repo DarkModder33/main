@@ -1,6 +1,5 @@
 'use client';
 
-import { useWallet } from '@/lib/wallet-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type SpadesTournamentResponse = {
@@ -151,7 +150,6 @@ export function SpadesGame() {
   const playerBidRef = useRef(3);
   const bidsLockedRef = useRef(false);
 
-  const { address, status: walletStatus } = useWallet();
 
   const [did, setDid] = useState<string>('');
   const [alias, setAlias] = useState('NeuralSpadesPlayer');
@@ -209,10 +207,9 @@ export function SpadesGame() {
     }
   }, []);
 
-  const connected = walletStatus === 'CONNECTED';
   const tournamentVault = useMemo(
-    () => process.env.NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT?.trim() || address || '',
-    [address],
+    () => process.env.NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT?.trim() || '',
+    [],
   );
 
   const fetchRoomSnapshot = useCallback(async () => {
@@ -794,12 +791,6 @@ export function SpadesGame() {
 
   async function handleSimulateWager() {
     setWagerBusy(true);
-
-    if (!connected || !address) {
-      setWagerStatus('Connect your chain account first to simulate a signed wager transaction.');
-      setWagerBusy(false);
-      return;
-    }
 
     if (!tournamentVault) {
       setWagerStatus('Set NEXT_PUBLIC_SPADES_TOURNAMENT_VAULT to simulate escrow destination.');

@@ -35,7 +35,7 @@ export default function InvestorAcademyPage() {
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em]">
             <span className="rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-cyan-200">Simulation only</span>
-            <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-200">$HAX utility rewards</span>
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-200">Utility rewards</span>
             <span className="rounded-full border border-fuchsia-400/40 bg-fuchsia-500/10 px-3 py-1 text-fuchsia-200">Quest-ready progression</span>
           </div>
         </section>

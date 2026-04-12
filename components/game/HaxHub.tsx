@@ -39,7 +39,7 @@ export const HaxHub = () => {
                 <h4 className="text-white font-bold mb-1 uppercase tracking-tighter">{item.name}</h4>
                 <p className="text-zinc-500 text-xs mb-6 leading-relaxed">{item.desc}</p>
                 <button className="w-full py-3 bg-white/5 border border-white/10 text-white text-xs font-mono rounded-lg hover:bg-white hover:text-black transition-all">
-                  BUY_FOR_{item.cost}_$HAX
+                  BUY_FOR_{item.cost}_PTS
                 </button>
               </div>
             ))}

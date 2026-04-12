@@ -36,11 +36,11 @@ export const metadata = createPageMetadata({
     "custom AI agents",
     "web development",
     "app development",
-    "blockchain development",
+    "ai development",
     "smart contracts",
     "technical support",
     "IT services",
-    "web3 consulting",
+    "ai consulting",
     "digital services",
     "execution studio",
     "automation workflows",
@@ -67,17 +67,17 @@ const servicesFaqs = [
 
 const servicePaths = [
   {
-    title: "AI Trading + Web3",
-    summary: "Trading systems, strategy consults, and blockchain development for advanced digital execution.",
+    title: "AI Trading + Strategy",
+    summary: "Trading systems, strategy consults, and AI solutions for advanced digital execution.",
     href: scheduleLinks.tradingConsult,
     conversionId: "book_trading_consult" as ServiceConversionId,
-    cta: "Start AI/Web3 Discovery",
+    cta: "Start AI Discovery",
   },
   {
     title: "Digital Builds",
     summary: "Websites, apps, cloud architecture, and e-commerce systems with end-to-end delivery.",
     href: scheduleLinks.webDevConsult,
-    conversionId: "book_web3_consult" as ServiceConversionId,
+    conversionId: "book_ai_consult" as ServiceConversionId,
     cta: "Start Build Consultation",
   },
   {
@@ -130,7 +130,7 @@ const servicesPageJsonLd = {
         "Application Development",
         "Tech Support",
         "Social Media Marketing",
-        "Web3 Consulting",
+        "AI Consulting",
       ],
       availableChannel: [
         {
@@ -225,9 +225,9 @@ export default function ServicesPage() {
                 <Server className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-white font-bold mb-1">Blockchain & Web3 Systems</h3>
+                <h3 className="text-white font-bold mb-1">AI & Tech Systems</h3>
                 <p className="text-sm text-zinc-400">
-                  Smart contracts, DApps, NFT platforms, multi-chain development, and auditing
+                  AI integrations, automation systems, custom development, and technical consulting
                 </p>
               </div>
             </div>
@@ -313,19 +313,19 @@ export default function ServicesPage() {
             <div className="grid md:grid-cols-2 gap-8">
           <ServiceCard
             icon={<Code className="w-10 h-10" />}
-            title="Web3 Development"
-            description="Custom blockchain applications, smart contracts, and decentralized platforms built with modern technologies."
+            title="Custom Development"
+            description="Custom web applications, automation systems, and modern platforms built with current technologies."
             features={[
-              "Multi-chain EVM + non-EVM development",
-              "Smart contract auditing",
-              "DApp architecture & design",
-              "Wallet integration",
-              "NFT marketplace development",
+              "Full-stack web development",
+              "API integration & design",
+              "Automation & workflow systems",
+              "Technical architecture",
+              "Code review & audits",
             ]}
             pricing="Starting at $5,000"
-            ctaLabel="Book Web3 Discovery Call"
+            ctaLabel="Book AI Consulting Discovery Call"
             ctaHref={scheduleLinks.webDevConsult}
-            ctaConversionId="book_web3_consult"
+            ctaConversionId="book_ai_consult"
           />
 
           <ServiceCard
@@ -349,18 +349,18 @@ export default function ServicesPage() {
           <ServiceCard
             icon={<Users className="w-10 h-10" />}
             title="Consulting & Strategy"
-            description="Expert guidance on blockchain adoption, DeFi strategies, and Web3 business models."
+            description="Expert guidance on AI adoption, tech strategy, and digital business models."
             features={[
               "Technical architecture review",
-              "Blockchain strategy planning",
-              "DeFi protocol optimization",
+              "AI strategy planning",
+              "Process optimization",
               "Team training & workshops",
               "Code review & audits",
             ]}
             pricing="$200/hour"
-            ctaLabel="Book Web3 Strategy Consult"
+            ctaLabel="Book Strategy Consult"
             ctaHref={scheduleLinks.webDevConsult}
-            ctaConversionId="book_web3_consult"
+            ctaConversionId="book_ai_consult"
           />
 
           <ServiceCard
@@ -377,7 +377,7 @@ export default function ServicesPage() {
             pricing="Starting at $4,000"
             ctaLabel="Start Build Consultation"
             ctaHref={scheduleLinks.webDevConsult}
-            ctaConversionId="book_web3_consult"
+            ctaConversionId="book_ai_consult"
           />
 
           <ServiceCard
@@ -528,7 +528,7 @@ export default function ServicesPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <Benefit
               title="Cross-Domain Expertise"
-              description="Digital services, repair support, education, and Web3 consulting in one team"
+              description="Digital services, repair support, education, and AI consulting in one team"
             />
             <Benefit
               title="Fast Delivery"
